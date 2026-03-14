@@ -96,7 +96,7 @@ export default function ForBrands() {
               <div className="flex items-start gap-3">
                 <div className="w-2 h-2 rounded-full bg-pink mt-2 flex-shrink-0"></div>
                 <p className="font-nunito text-lg text-white">
-                  Credit system — only charged when there's a match
+                  Credit system — only charged when there&apos;s a match
                 </p>
               </div>
               <div className="flex items-start gap-3">

@@ -53,7 +53,7 @@ export default function Pricing() {
         {/* Headline */}
         <div className="text-center mb-16">
           <h2 className="font-jakarta text-5xl sm:text-6xl lg:text-7xl font-extrabold text-ink">
-            Pricing that doesn't <span className="text-pink">sting</span>.
+            Pricing that doesn&apos;t <span className="text-pink">sting</span>.
           </h2>
         </div>
 

@@ -42,10 +42,10 @@ export default function FAQ() {
         {/* Headline */}
         <div className="text-center mb-16">
           <h2 className="font-jakarta text-5xl sm:text-6xl font-extrabold text-white mb-3">
-            You've got questions.
+            You&apos;ve got questions.
           </h2>
           <p className="font-jakarta text-4xl sm:text-5xl font-extrabold text-neon">
-            We've got answers.
+            We&apos;ve got answers.
           </p>
         </div>
 

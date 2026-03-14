@@ -57,9 +57,9 @@ export default function Waitlist() {
             <div className="max-w-lg mx-auto mb-6 p-6 bg-ink text-neon border-2 border-ink shadow-neo">
               <div className="flex items-center justify-center gap-3 mb-3">
                 <span className="text-3xl">✓</span>
-                <h3 className="font-jakarta text-2xl font-bold">You're in!</h3>
+                <h3 className="font-jakarta text-2xl font-bold">You&apos;re in!</h3>
               </div>
-              <p className="font-nunito text-lg">We'll hit you up at launch. 🎉</p>
+              <p className="font-nunito text-lg">We&apos;ll hit you up at launch. 🎉</p>
             </div>
           )}
 

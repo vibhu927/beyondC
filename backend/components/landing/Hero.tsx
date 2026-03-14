@@ -47,13 +47,13 @@ export default function Hero() {
               className="px-8 py-4 bg-ink text-neon border-2 border-ink shadow-neo-neon font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#C8FF00] hover:-translate-y-1 transition-all"
               onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              I'm a Creator →
+              I&apos;m a Creator →
             </button>
             <button 
               className="px-8 py-4 bg-pink text-white border-2 border-ink shadow-neo-pink font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#FF2D78] hover:-translate-y-1 transition-all"
               onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              I'm a Brand →
+              I&apos;m a Brand →
             </button>
           </div>
 
