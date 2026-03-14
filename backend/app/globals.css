@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --neon: #C8FF00;
+  --pink: #FF2D78;
+  --blue: #3D5BFF;
+  --purple: #9B5DE5;
+  --orange: #FF6B00;
+  --ink: #0D0D0D;
+  --muted: #6B6B6B;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--ink);
+  background: #FFFFFF;
+  overflow-x: hidden;
+}
+
+/* Staggered fade-in animations */
+.animate-delay-100 {
+  animation-delay: 0.1s;
+}
+
+.animate-delay-200 {
+  animation-delay: 0.2s;
+}
+
+.animate-delay-300 {
+  animation-delay: 0.3s;
+}
+
+.animate-delay-400 {
+  animation-delay: 0.4s;
+}
+
+/* Neo-brutalist card hover effect */
+.neo-card {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.neo-card:hover {
+  transform: translateY(-2px);
+}
+
+.neo-card-neon:hover {
+  box-shadow: 6px 6px 0px #C8FF00;
+}
+
+.neo-card-pink:hover {
+  box-shadow: 6px 6px 0px #FF2D78;
+}
+
+.neo-card-blue:hover {
+  box-shadow: 6px 6px 0px #3D5BFF;
+}
+
+.neo-card-purple:hover {
+  box-shadow: 6px 6px 0px #9B5DE5;
+}
+
+/* Wavy underline */
+.wavy-underline {
+  position: relative;
+  display: inline-block;
+}
+
+.wavy-underline::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 6px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 10'%3E%3Cpath d='M0,5 Q5,0 10,5 T20,5 T30,5 T40,5 T50,5 T60,5 T70,5 T80,5 T90,5 T100,5' stroke='%23C8FF00' stroke-width='3' fill='none'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 40px 10px;
+}
+
+/* Smooth accordion transition */
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.accordion-content.open {
+  max-height: 500px;
+}
+
+/* Parallax elements */
+.parallax {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Floating animation optimization */
+.float-element {
+  will-change: transform;
+  animation: float 4s ease-in-out infinite;
+}
+
+.float-delayed {
+  animation: float 4s ease-in-out 1s infinite;
+}
+
+/* Marquee container */
+.marquee-container {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.marquee-content {
+  display: inline-block;
+  padding-left: 100%;
+  animation: marquee 30s linear infinite;
+}
+
+.marquee-content-reverse {
+  display: inline-block;
+  padding-right: 100%;
+  animation: marquee-reverse 30s linear infinite;
+}
+
+/* Strikethrough animation */
+.strikethrough {
+  position: relative;
+  display: inline-block;
+}
+
+.strikethrough::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 2px;
+  background: var(--pink);
+  transform: translateY(-50%);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--neon);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--pink);
+}

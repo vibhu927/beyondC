@@ -1,0 +1,45 @@
+import type { Metadata } from 'next'
+import { Plus_Jakarta_Sans, Space_Grotesk, Nunito } from 'next/font/google'
+import './globals.css'
+
+const plusJakarta = Plus_Jakarta_Sans({ 
+  subsets: ['latin'], 
+  variable: '--font-jakarta',
+  weight: ['400', '600', '700', '800'],
+  display: 'swap',
+})
+
+const spaceGrotesk = Space_Grotesk({ 
+  subsets: ['latin'], 
+  variable: '--font-space',
+  display: 'swap',
+})
+
+const nunito = Nunito({ 
+  subsets: ['latin'], 
+  variable: '--font-nunito',
+  display: 'swap',
+})
+
+export const metadata: Metadata = {
+  title: 'BeyondC - Collabs that go Beyond the feed',
+  description: 'BeyondC connects brands and creators for real paid collabs — starting at just ₹100. No fake followers. No cold DMs. Just results.',
+  keywords: 'brand collaboration, content creators, influencer marketing, paid collabs, creator economy, India',
+  openGraph: {
+    title: 'BeyondC - Collabs that go Beyond the feed',
+    description: 'Real paid collabs between brands and creators. Starting at just ₹100.',
+    type: 'website',
+  },
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en" className={`${plusJakarta.variable} ${spaceGrotesk.variable} ${nunito.variable}`}>
+      <body className={nunito.className}>{children}</body>
+    </html>
+  )
+}

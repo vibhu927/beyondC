@@ -1,0 +1,126 @@
+import { z } from 'zod'
+
+// Auth schemas
+export const signupSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  role: z.enum(['creator', 'brand']),
+  display_name: z.string().min(1),
+})
+
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+})
+
+// Creator profile schemas
+export const updateCreatorProfileSchema = z.object({
+  display_name: z.string().optional(),
+  avatar_url: z.string().url().optional().nullable(),
+  bio: z.string().optional(),
+  niches: z.array(z.string()).optional(),
+  platforms: z.array(z.string()).optional(),
+  instagram_handle: z.string().optional(),
+  youtube_handle: z.string().optional(),
+  twitter_handle: z.string().optional(),
+  followers_count: z.number().int().min(0).optional(),
+  engagement_rate: z.number().min(0).max(100).optional(),
+  portfolio_links: z.array(z.string().url()).optional(),
+  onboarded: z.boolean().optional(),
+})
+
+// Brand profile schemas
+export const updateBrandProfileSchema = z.object({
+  display_name: z.string().optional(),
+  avatar_url: z.string().url().optional().nullable(),
+  brand_name: z.string().optional(),
+  brand_category: z.string().optional(),
+  description: z.string().optional(),
+  logo_url: z.string().url().optional().nullable(),
+  website: z.string().url().optional(),
+  contact_email: z.string().email().optional(),
+  size: z.enum(['micro', 'mid', 'big']).optional(),
+  onboarded: z.boolean().optional(),
+})
+
+// Campaign schemas
+export const createCampaignSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  niche: z.string(),
+  collab_type: z.enum(['paid', 'barter', 'hybrid']),
+  budget: z.number().int().min(0).optional(), // in paise
+  deliverables: z.array(z.string()),
+  requirements: z.string().optional(),
+  deadline: z.string().optional(), // ISO date string
+  status: z.enum(['draft', 'active', 'closed']).optional(),
+})
+
+export const updateCampaignSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  niche: z.string().optional(),
+  collab_type: z.enum(['paid', 'barter', 'hybrid']).optional(),
+  budget: z.number().int().min(0).optional(),
+  deliverables: z.array(z.string()).optional(),
+  requirements: z.string().optional(),
+  deadline: z.string().optional(),
+  status: z.enum(['draft', 'active', 'closed']).optional(),
+})
+
+// Bid schemas
+export const createBidSchema = z.object({
+  campaign_id: z.string().uuid(),
+  message: z.string().optional(),
+})
+
+// Direct request schemas
+export const createCollabRequestSchema = z.object({
+  creator_id: z.string().uuid(),
+  message: z.string().optional(),
+  budget: z.number().int().min(0).optional(),
+  collab_type: z.enum(['paid', 'barter', 'hybrid']),
+  deliverables: z.array(z.string()),
+})
+
+// Event schemas
+export const createEventSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  event_date: z.string(), // ISO date string
+  location: z.string().optional(),
+  image_url: z.string().url().optional(),
+})
+
+// Wallet schemas
+export const createTopupSchema = z.object({
+  amount: z.number().int().min(10000), // minimum ₹100 (in paise)
+})
+
+// Credit schemas
+export const createCreditPurchaseSchema = z.object({
+  pack: z.enum(['starter', 'growth', 'pro', 'enterprise']),
+})
+
+export const verifyPaymentSchema = z.object({
+  razorpay_order_id: z.string(),
+  razorpay_payment_id: z.string(),
+  razorpay_signature: z.string(),
+})
+
+// Message schema
+export const createMessageSchema = z.object({
+  content: z.string().min(1).max(5000),
+})
+
+// Rating schema
+export const createRatingSchema = z.object({
+  collab_id: z.string().uuid(),
+  rating: z.number().int().min(1).max(5),
+  review: z.string().optional(),
+})
+
+// Generic action schema
+export const actionSchema = z.object({
+  action: z.enum(['accept', 'reject']),
+})

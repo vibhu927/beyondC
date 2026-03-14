@@ -1,0 +1,21 @@
+I will write bugs in this file.
+Whatever is resolved just mark it as resolved by writing [Resolved] in front of that point.
+
+
+App - 
+[Resolved] 1. The back button is not working on sign and login page
+[Resolved] 2. I entered info and pressed create account button and the application restarted to onboarding pages.
+[Resolved] 3. No validations are there in fields of creating an account like password validation, phone number validation of country code and email one
+
+
+
+Backend - 
+[Resolved] 1. Check APIs are working or not.
+
+Resolution notes:
+- Signup/Login back buttons now support fallback navigation when there is no previous route in stack.
+- Signup no longer routes to home when no authenticated session exists; it sends users to login with a clear message.
+- Signup validation now enforces role-specific required fields (Primary Niche / Brand Category) and enables interactive validation feedback.
+- Backend auth APIs validated:
+	- /api/auth/login returns 401 Invalid login credentials for bad test creds (expected).
+	- /api/auth/web-signup returns 400 validation error for invalid payload (expected).
