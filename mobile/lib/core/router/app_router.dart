@@ -8,6 +8,12 @@ import '../../features/onboarding/screens/role_select_screen.dart';
 import '../../features/auth/screens/signup_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
+import '../../features/brand/screens/brand_home_screen.dart';
+import '../../features/creator/screens/creator_home_screen.dart';
+import '../../features/creator/screens/campaigns_screen.dart';
+import '../../features/creator/screens/campaign_detail_screen.dart';
+import '../../features/creator/screens/profile_screen.dart';
+import '../../features/creator/screens/wallet_screen.dart';
 import 'route_names.dart';
 
 // Placeholder screen widgets — replace as screens are built
@@ -42,15 +48,21 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Logged in → don't show auth screens
       if (isAuthenticated && isAuthRoute) {
         final role = authState.role;
-        return role == 'creator' ? RouteNames.creatorHome : RouteNames.brandHome;
+        return role == 'creator'
+            ? RouteNames.creatorHome
+            : RouteNames.brandHome;
       }
 
       // Role-based route protection
       if (isAuthenticated) {
         final role = authState.role;
         final location = state.matchedLocation;
-        if (role == 'creator' && location.startsWith('/brand')) return RouteNames.creatorHome;
-        if (role == 'brand' && location.startsWith('/creator')) return RouteNames.brandHome;
+        if (role == 'creator' && location.startsWith('/brand')) {
+          return RouteNames.creatorHome;
+        }
+        if (role == 'brand' && location.startsWith('/creator')) {
+          return RouteNames.brandHome;
+        }
       }
 
       return null;
@@ -89,23 +101,35 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Creator Portal
       GoRoute(
         path: RouteNames.creatorHome,
-        builder: (c, s) => const PlaceholderScreen('Creator Home'),
+        builder: (c, s) => const CreatorHomeScreen(),
       ),
       GoRoute(
         path: RouteNames.creatorCampaigns,
-        builder: (c, s) => const PlaceholderScreen('Campaigns'),
+        builder: (c, s) => const CampaignsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.campaignDetail,
+        builder: (c, s) => CampaignDetailScreen(id: s.pathParameters['id']!),
       ),
       GoRoute(
         path: RouteNames.myBids,
         builder: (c, s) => const PlaceholderScreen('My Bids'),
       ),
       GoRoute(
+        path: RouteNames.creatorRequests,
+        builder: (c, s) => const PlaceholderScreen('Creator Requests'),
+      ),
+      GoRoute(
+        path: RouteNames.creatorCollabs,
+        builder: (c, s) => const PlaceholderScreen('Creator Collabs'),
+      ),
+      GoRoute(
         path: RouteNames.creatorProfile,
-        builder: (c, s) => const PlaceholderScreen('Creator Profile'),
+        builder: (c, s) => const CreatorProfileScreen(),
       ),
       GoRoute(
         path: RouteNames.creatorWallet,
-        builder: (c, s) => const PlaceholderScreen('Wallet'),
+        builder: (c, s) => const WalletScreen(),
       ),
       GoRoute(
         path: RouteNames.myTickets,
@@ -115,15 +139,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Brand Portal
       GoRoute(
         path: RouteNames.brandHome,
-        builder: (c, s) => const PlaceholderScreen('Brand Home'),
+        builder: (c, s) => const BrandHomeScreen(),
       ),
       GoRoute(
         path: RouteNames.brandCampaigns,
         builder: (c, s) => const PlaceholderScreen('Brand Campaigns'),
       ),
       GoRoute(
+        path: '/brand/campaigns/:id/bids',
+        builder: (c, s) =>
+            PlaceholderScreen('Campaign Bids ${s.pathParameters['id']}'),
+      ),
+      GoRoute(
         path: RouteNames.createCampaign,
         builder: (c, s) => const PlaceholderScreen('Create Campaign'),
+      ),
+      GoRoute(
+        path: RouteNames.brandRequests,
+        builder: (c, s) => const PlaceholderScreen('Brand Requests'),
       ),
       GoRoute(
         path: RouteNames.brandProfile,
@@ -136,6 +169,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.brandEvents,
         builder: (c, s) => const PlaceholderScreen('Events'),
+      ),
+      GoRoute(
+        path: RouteNames.createEvent,
+        builder: (c, s) => const PlaceholderScreen('Create Event'),
       ),
 
       // Shared

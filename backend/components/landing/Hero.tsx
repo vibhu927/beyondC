@@ -1,10 +1,13 @@
 'use client'
 
+import Link from 'next/link'
 import { useParallax } from '@/hooks/useParallax'
+import { useFrontendSession } from '@/hooks/useFrontendSession'
 
 export default function Hero() {
   const blobOffset = useParallax(0.2)
   const cardOffset = useParallax(0.4)
+  const { session, hasSession } = useFrontendSession()
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white pt-20">
@@ -43,18 +46,34 @@ export default function Hero() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animate-delay-300 mb-12">
-            <button 
-              className="px-8 py-4 bg-ink text-neon border-2 border-ink shadow-neo-neon font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#C8FF00] hover:-translate-y-1 transition-all"
-              onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              I&apos;m a Creator →
-            </button>
-            <button 
-              className="px-8 py-4 bg-pink text-white border-2 border-ink shadow-neo-pink font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#FF2D78] hover:-translate-y-1 transition-all"
-              onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              I&apos;m a Brand →
-            </button>
+            {hasSession ? (
+              <>
+                <p className="rounded-full border-2 border-ink bg-neon px-4 py-2 font-space text-xs font-bold uppercase tracking-[0.08em] text-ink">
+                  Welcome back, {session?.firstName}
+                </p>
+                <Link
+                  href="/"
+                  className="px-8 py-4 bg-ink text-neon border-2 border-ink shadow-neo-neon font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#C8FF00] hover:-translate-y-1 transition-all"
+                >
+                  Go to Home →
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/join/creator"
+                  className="px-8 py-4 bg-ink text-neon border-2 border-ink shadow-neo-neon font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#C8FF00] hover:-translate-y-1 transition-all"
+                >
+                  I&apos;m a Creator →
+                </Link>
+                <Link
+                  href="/join/brand"
+                  className="px-8 py-4 bg-pink text-white border-2 border-ink shadow-neo-pink font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#FF2D78] hover:-translate-y-1 transition-all"
+                >
+                  I&apos;m a Brand →
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Download Buttons */}

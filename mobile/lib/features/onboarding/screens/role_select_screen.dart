@@ -26,7 +26,8 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
 
     // Navigate to signup with role passed as extra
     Future.delayed(const Duration(milliseconds: 150), () {
-      context.go(RouteNames.signup, extra: {'role': role});
+      if (!mounted) return;
+      context.push(RouteNames.signup, extra: {'role': role});
     });
   }
 
@@ -200,7 +201,7 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    context.go(RouteNames.login);
+                    context.push(RouteNames.login);
                   },
                   child: Text(
                     'Already have an account? Log in',

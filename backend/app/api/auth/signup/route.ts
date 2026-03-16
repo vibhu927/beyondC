@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { signupSchema } from '@/lib/validators'
 
 export async function POST(request: NextRequest) {
@@ -10,17 +10,17 @@ export async function POST(request: NextRequest) {
     const validatedData = signupSchema.parse(body)
     const { email, password, role, display_name } = validatedData
 
-    const supabase = createClient()
+    const supabase = createAdminClient()
 
-    // Create user in Supabase Auth
-    const { data, error } = await supabase.auth.signUp({
+    // Create user in Supabase Auth using service role to avoid email rate-limit
+    // in local/dev onboarding flows.
+    const { data, error } = await supabase.auth.admin.createUser({
       email,
       password,
-      options: {
-        data: {
-          role,
-          display_name,
-        },
+      email_confirm: true,
+      user_metadata: {
+        role,
+        display_name,
       },
     })
 
@@ -33,8 +33,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         user: data.user,
-        session: data.session,
-        message: 'Signup successful. Please check your email for verification.',
+        session: null,
+        message: 'Signup successful. Please log in.',
       },
       { status: 201 }
     )

@@ -1,5 +1,8 @@
+'use client'
+
 import Link from 'next/link'
 import Navbar from '@/components/landing/Navbar'
+import { useFrontendSession } from '@/hooks/useFrontendSession'
 
 const creatorTags = ['Nano', 'Micro', 'Macro']
 const brandTags = ['Startup', 'D2C', 'Big Brand']
@@ -61,6 +64,8 @@ function RoleCard({
 }
 
 export default function JoinPage() {
+  const { session, hasSession } = useFrontendSession()
+
   return (
     <main className="min-h-screen bg-white">
       <Navbar />
@@ -71,38 +76,62 @@ export default function JoinPage() {
             I am a...
           </h1>
 
-          <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <RoleCard
-              href="/join/creator"
-              badge="🎨 For Creators"
-              badgeClass="bg-neon text-ink"
-              title="Content Creator"
-              description="Get paid to create. Collabs starting at ₹100."
-              tags={creatorTags}
-              shadow="shadow-[6px_6px_0_#C8FF00]"
-              buttonClass="bg-ink text-neon"
-              buttonText="Join as Creator →"
-            />
+          {hasSession ? (
+            <div className="mx-auto mt-10 max-w-2xl border-2 border-ink bg-white p-8 text-center shadow-[6px_6px_0_#C8FF00]">
+              <p className="font-space text-xs font-bold uppercase tracking-[0.08em] text-ink/70">
+                Account Already Created
+              </p>
+              <h2 className="mt-3 font-jakarta text-3xl font-extrabold text-ink">
+                Welcome, {session?.firstName}
+              </h2>
+              <p className="mt-4 font-nunito text-base text-ink/80">
+                You are already onboarded. Join options are hidden for your session.
+              </p>
+              <div className="mt-6">
+                <Link
+                  href="/"
+                  className="inline-flex items-center justify-center border-2 border-ink bg-ink px-6 py-3 font-space text-sm font-bold uppercase tracking-[0.08em] text-neon shadow-[4px_4px_0_#0D0D0D]"
+                >
+                  Go to Home →
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
+                <RoleCard
+                  href="/join/creator"
+                  badge="🎨 For Creators"
+                  badgeClass="bg-neon text-ink"
+                  title="Content Creator"
+                  description="Get paid to create. Collabs starting at ₹100."
+                  tags={creatorTags}
+                  shadow="shadow-[6px_6px_0_#C8FF00]"
+                  buttonClass="bg-ink text-neon"
+                  buttonText="Join as Creator →"
+                />
 
-            <RoleCard
-              href="/join/brand"
-              badge="🏢 For Brands"
-              badgeClass="bg-pink text-white"
-              title="Brand / Startup"
-              description="Find creators for campaigns and events."
-              tags={brandTags}
-              shadow="shadow-[6px_6px_0_#FF2D78]"
-              buttonClass="bg-pink text-white"
-              buttonText="Join as Brand →"
-            />
-          </div>
+                <RoleCard
+                  href="/join/brand"
+                  badge="🏢 For Brands"
+                  badgeClass="bg-pink text-white"
+                  title="Brand / Startup"
+                  description="Find creators for campaigns and events."
+                  tags={brandTags}
+                  shadow="shadow-[6px_6px_0_#FF2D78]"
+                  buttonClass="bg-pink text-white"
+                  buttonText="Join as Brand →"
+                />
+              </div>
 
-          <p className="mt-10 text-center font-nunito text-base text-ink/80">
-            Already have an account?{' '}
-            <Link href="/login" className="font-bold text-pink underline underline-offset-4">
-              Log in
-            </Link>
-          </p>
+              <p className="mt-10 text-center font-nunito text-base text-ink/80">
+                Already have an account?{' '}
+                <Link href="/login" className="font-bold text-pink underline underline-offset-4">
+                  Log in
+                </Link>
+              </p>
+            </>
+          )}
         </div>
       </section>
     </main>

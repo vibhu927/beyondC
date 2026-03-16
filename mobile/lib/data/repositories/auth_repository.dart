@@ -1,10 +1,18 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dio/dio.dart';
+
 import '../../core/constants/api_constants.dart';
 
 class AuthRepository {
   final SupabaseClient _supabase = Supabase.instance.client;
-  final Dio _dio = Dio();
+  final Dio _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 12),
+      receiveTimeout: const Duration(seconds: 20),
+      sendTimeout: const Duration(seconds: 20),
+      headers: const {'Content-Type': 'application/json'},
+    ),
+  );
 
   /// Sign up with email, password, and role metadata
   Future<void> signUp({
@@ -17,7 +25,7 @@ class AuthRepository {
     Map<String, dynamic>? extraData,
   }) async {
     try {
-      await _dio.post(
+      final response = await _dio.post(
         '${ApiConstants.apiBaseUrl}/auth/signup',
         data: {
           'email': email,
@@ -29,17 +37,24 @@ class AuthRepository {
           'phone': phone,
           ...?extraData,
         },
-        options: Options(
-          headers: const {
-            'Content-Type': 'application/json',
-          },
-        ),
       );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Could not create account. Please try again.');
+      }
     } on DioException catch (e) {
       final data = e.response?.data;
-      if (data is Map<String, dynamic> && data['error'] is String) {
+      if (data is Map && data['error'] is String) {
         throw Exception(data['error'] as String);
       }
+
+      final code = e.response?.statusCode;
+      if (code == null) {
+        throw Exception(
+          'Could not reach local backend. Ensure API is running at ${ApiConstants.apiBaseUrl}.',
+        );
+      }
+
       throw Exception(e.message ?? 'Signup failed');
     } catch (e) {
       rethrow;

@@ -1,6 +1,11 @@
+'use client'
+
 import Link from 'next/link'
+import { useFrontendSession } from '@/hooks/useFrontendSession'
 
 export default function JoinSuccessPage() {
+  const { session } = useFrontendSession()
+
   return (
     <main className="flex min-h-screen items-center justify-center bg-ink px-4 py-12">
       <div className="w-full max-w-3xl text-center">
@@ -12,7 +17,7 @@ export default function JoinSuccessPage() {
         <p className="mt-8 text-[80px] leading-none">🎉</p>
 
         <h1 className="mt-6 font-jakarta text-4xl font-extrabold text-white sm:text-[40px]">
-          You&apos;re in!
+          You&apos;re in{session?.firstName ? `, ${session.firstName}` : ''}!
         </h1>
 
         <p className="mx-auto mt-4 max-w-xl font-nunito text-lg text-white/75">
@@ -20,6 +25,14 @@ export default function JoinSuccessPage() {
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Link
+            href="/"
+            className="inline-flex w-full items-center justify-center gap-2 border-2 border-neon bg-ink px-6 py-4 font-space text-sm font-bold uppercase tracking-[0.08em] text-neon shadow-[4px_4px_0_#C8FF00] sm:w-auto"
+          >
+            <span aria-hidden>⌂</span>
+            Go to Home
+          </Link>
+
           <Link
             href="#"
             className="inline-flex w-full items-center justify-center gap-2 border-2 border-ink bg-white px-6 py-4 font-space text-sm font-bold uppercase tracking-[0.08em] text-ink shadow-[4px_4px_0_#0D0D0D] sm:w-auto"

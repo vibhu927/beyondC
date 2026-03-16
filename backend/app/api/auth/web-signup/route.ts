@@ -78,15 +78,18 @@ export async function POST(request: NextRequest) {
 
     const { error: profileError } = await supabase
       .from('profiles')
-      .update({
-        role: parsed.role,
-        first_name: parsed.first_name,
-        full_name: parsed.full_name,
-        email: parsed.email,
-        phone: parsed.phone,
-        is_onboarded: true,
-      })
-      .eq('id', userId)
+      .upsert(
+        {
+          id: userId,
+          role: parsed.role,
+          first_name: parsed.first_name,
+          full_name: parsed.full_name,
+          email: parsed.email,
+          phone: parsed.phone,
+          is_onboarded: true,
+        },
+        { onConflict: 'id' }
+      )
 
     if (profileError) {
       return NextResponse.json({ error: profileError.message }, { status: 400 })
@@ -95,13 +98,16 @@ export async function POST(request: NextRequest) {
     if (parsed.role === 'creator') {
       const { error: creatorError } = await supabase
         .from('creator_profiles')
-        .update({
-          niche: [parsed.primary_niche],
-          content_type: parsed.content_type,
-          instagram_handle: parsed.instagram_handle || null,
-          starting_price: parsed.starting_price,
-        })
-        .eq('id', userId)
+        .upsert(
+          {
+            id: userId,
+            niche: [parsed.primary_niche],
+            content_type: parsed.content_type,
+            instagram_handle: parsed.instagram_handle || null,
+            starting_price: parsed.starting_price,
+          },
+          { onConflict: 'id' }
+        )
 
       if (creatorError) {
         return NextResponse.json({ error: creatorError.message }, { status: 400 })
@@ -111,14 +117,17 @@ export async function POST(request: NextRequest) {
     if (parsed.role === 'brand') {
       const { error: brandError } = await supabase
         .from('brand_profiles')
-        .update({
-          brand_name: parsed.brand_name,
-          brand_category: parsed.brand_category,
-          website: parsed.website || null,
-          gst_number: parsed.gst_number || null,
-          description: parsed.description,
-        })
-        .eq('id', userId)
+        .upsert(
+          {
+            id: userId,
+            brand_name: parsed.brand_name,
+            brand_category: parsed.brand_category,
+            website: parsed.website || null,
+            gst_number: parsed.gst_number || null,
+            description: parsed.description,
+          },
+          { onConflict: 'id' }
+        )
 
       if (brandError) {
         return NextResponse.json({ error: brandError.message }, { status: 400 })

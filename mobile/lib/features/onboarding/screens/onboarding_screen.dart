@@ -41,7 +41,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _skip() {
-    context.go(RouteNames.roleSelect);
+    context.push(RouteNames.roleSelect);
   }
 
   @override
@@ -80,7 +80,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           color: _currentPage == index
                               ? AppColors.neon
                               : Colors.white,
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusFull),
                           border: Border.all(
                             color: AppColors.ink,
                             width: 1.5,
@@ -184,7 +185,8 @@ class _OnboardingPage1 extends StatelessWidget {
                               height: 48,
                               decoration: BoxDecoration(
                                 color: AppColors.pink.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                                borderRadius: BorderRadius.circular(
+                                    AppSpacing.radiusFull),
                                 border: Border.all(
                                   color: AppColors.ink,
                                   width: 2,
@@ -249,7 +251,8 @@ class _OnboardingPage1 extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.neon,
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusFull),
                           ),
                           child: Text(
                             '₹500-2K',
@@ -270,7 +273,8 @@ class _OnboardingPage1 extends StatelessWidget {
         Expanded(
           flex: 45,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -363,7 +367,8 @@ class _OnboardingPage2 extends StatelessWidget {
         Expanded(
           flex: 45,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -527,11 +532,13 @@ class _OnboardingPage3 extends StatelessWidget {
                               color: AppColors.ink,
                               width: 2,
                             ),
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusSM),
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusSM),
                           ),
                           child: GridView.builder(
                             physics: const NeverScrollableScrollPhysics(),
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 8,
                               mainAxisSpacing: 2,
                               crossAxisSpacing: 2,
@@ -539,10 +546,12 @@ class _OnboardingPage3 extends StatelessWidget {
                             itemCount: 64,
                             itemBuilder: (context, index) {
                               // Create a pseudo-random pattern
-                              final shouldFill = (index * 7 + index ~/ 8 * 13) % 3 == 0;
+                              final shouldFill =
+                                  (index * 7 + index ~/ 8 * 13) % 3 == 0;
                               return Container(
                                 decoration: BoxDecoration(
-                                  color: shouldFill ? AppColors.ink : Colors.white,
+                                  color:
+                                      shouldFill ? AppColors.ink : Colors.white,
                                   borderRadius: BorderRadius.circular(1),
                                 ),
                               );
@@ -557,7 +566,8 @@ class _OnboardingPage3 extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.purple,
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusFull),
                           ),
                           child: Text(
                             'ADMIT ONE',
@@ -578,7 +588,8 @@ class _OnboardingPage3 extends StatelessWidget {
         Expanded(
           flex: 45,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

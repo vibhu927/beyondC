@@ -98,6 +98,56 @@ class AuthNotifier extends Notifier<AuthState> {
     }
   }
 
+  /// Sign up via backend API and immediately sign in on device.
+  /// This keeps a live local session so router does not bounce back to onboarding.
+  Future<AuthResponse> signUpAndSignIn({
+    required String email,
+    required String password,
+    required String role,
+    required String firstName,
+    required String fullName,
+    required String phone,
+    Map<String, dynamic>? extraData,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+
+    try {
+      await _authRepository.signUp(
+        email: email,
+        password: password,
+        role: role,
+        firstName: firstName,
+        fullName: fullName,
+        phone: phone,
+        extraData: extraData,
+      );
+
+      final authResponse = await _authRepository.signIn(
+        email: email,
+        password: password,
+      );
+
+      final signedInUser = authResponse.user;
+      final signedInRole =
+          signedInUser?.userMetadata?['role'] as String? ?? role;
+
+      state = state.copyWith(
+        user: signedInUser,
+        role: signedInRole,
+        isLoading: false,
+        error: null,
+      );
+
+      return authResponse;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString(),
+      );
+      rethrow;
+    }
+  }
+
   /// Sign in with email and password
   Future<AuthResponse> signIn({
     required String email,
@@ -165,4 +215,5 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 }
 
-final authProvider = NotifierProvider<AuthNotifier, AuthState>(() => AuthNotifier());
+final authProvider =
+    NotifierProvider<AuthNotifier, AuthState>(() => AuthNotifier());

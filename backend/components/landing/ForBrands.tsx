@@ -1,6 +1,11 @@
 'use client'
 
+import Link from 'next/link'
+import { useFrontendSession } from '@/hooks/useFrontendSession'
+
 export default function ForBrands() {
+  const { session, hasSession } = useFrontendSession()
+
   return (
     <section id="for-brands" className="bg-ink py-20 sm:py-32">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -108,12 +113,18 @@ export default function ForBrands() {
             </div>
 
             {/* CTA */}
-            <button 
-              className="px-8 py-4 bg-pink text-white border-2 border-white shadow-neo-pink font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#FF2D78] hover:-translate-y-1 transition-all"
-              onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Start as Brand →
-            </button>
+            {hasSession ? (
+              <p className="inline-flex items-center rounded-full border-2 border-white bg-neon px-4 py-2 font-space text-xs font-bold uppercase tracking-[0.08em] text-ink">
+                Account ready, {session?.firstName}
+              </p>
+            ) : (
+              <Link
+                href="/join/brand"
+                className="px-8 py-4 bg-pink text-white border-2 border-white shadow-neo-pink font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#FF2D78] hover:-translate-y-1 transition-all"
+              >
+                Start as Brand →
+              </Link>
+            )}
           </div>
         </div>
       </div>

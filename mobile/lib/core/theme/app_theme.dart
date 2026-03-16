@@ -59,19 +59,23 @@ class AppTheme {
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
-          borderSide: const BorderSide(color: AppColors.ink, width: AppSpacing.borderWidth),
+          borderSide: const BorderSide(
+              color: AppColors.ink, width: AppSpacing.borderWidth),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
-          borderSide: const BorderSide(color: AppColors.ink, width: AppSpacing.borderWidth),
+          borderSide: const BorderSide(
+              color: AppColors.ink, width: AppSpacing.borderWidth),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
-          borderSide: const BorderSide(color: AppColors.neon, width: AppSpacing.borderWidth),
+          borderSide: const BorderSide(
+              color: AppColors.neon, width: AppSpacing.borderWidth),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
-          borderSide: const BorderSide(color: AppColors.error, width: AppSpacing.borderWidth),
+          borderSide: const BorderSide(
+              color: AppColors.error, width: AppSpacing.borderWidth),
         ),
         hintStyle: AppTypography.bodyMD.copyWith(color: AppColors.muted),
         labelStyle: AppTypography.labelMD,
@@ -85,7 +89,8 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md, vertical: AppSpacing.xs),
       ),
 
       // Divider
@@ -104,6 +109,47 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
       ),
 
+      fontFamily: 'Nunito',
+    );
+  }
+
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: AppColors.ink,
+      primaryColor: AppColors.neon,
+      colorScheme: const ColorScheme.dark(
+        primary: AppColors.neon,
+        secondary: AppColors.pink,
+        tertiary: AppColors.blue,
+        surface: Color(0xFF171717),
+        onPrimary: AppColors.ink,
+        onSecondary: AppColors.white,
+        onSurface: AppColors.white,
+        error: AppColors.error,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: AppColors.ink,
+        foregroundColor: AppColors.white,
+        elevation: 0,
+        centerTitle: false,
+        titleTextStyle:
+            AppTypography.displaySM.copyWith(color: AppColors.white),
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+        surfaceTintColor: Colors.transparent,
+        shape: const Border(
+          bottom: BorderSide(color: Color(0xFF2A2A2A), width: 1),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: const Color(0xFF222222),
+        contentTextStyle: AppTypography.bodyMD.copyWith(color: AppColors.white),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
       fontFamily: 'Nunito',
     );
   }

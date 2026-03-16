@@ -1,9 +1,12 @@
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { useFrontendSession } from '@/hooks/useFrontendSession'
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
+  const { session, hasSession } = useFrontendSession()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,18 +19,18 @@ export default function Navbar() {
 
   return (
     <nav 
-      className={`fixed top-0 left-0 right-0 z-50 bg-white border-b-2 border-ink transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-[100] bg-white border-b-2 border-ink transition-all duration-300 ${
         isScrolled ? 'shadow-md' : ''
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 sm:h-20">
           {/* Logo */}
           <div className="flex items-center">
-            <a href="#" className="flex items-center gap-0 font-space text-2xl sm:text-3xl font-bold">
+            <Link href="/" className="flex items-center gap-0 font-space text-2xl sm:text-3xl font-bold">
               <span className="text-ink">Beyond</span>
               <span className="bg-ink text-neon px-2 sm:px-3 py-1 rounded-full">C</span>
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Nav Links */}
@@ -47,19 +50,35 @@ export default function Navbar() {
           </div>
 
           {/* CTA Buttons */}
-          <div className="flex items-center gap-3">
-            <button 
-              className="hidden sm:block px-4 py-2 bg-ink text-neon border-2 border-ink font-jakarta font-semibold text-sm hover:bg-transparent hover:text-ink transition-all"
-              onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Join as Creator
-            </button>
-            <button 
-              className="px-4 py-2 bg-neon text-ink border-2 border-ink font-jakarta font-semibold text-sm hover:shadow-neo transition-all"
-              onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Join as Brand
-            </button>
+          <div className="relative z-[120] flex items-center gap-3 shrink-0 pointer-events-auto">
+            {hasSession ? (
+              <>
+                <span className="hidden sm:inline-flex items-center rounded-full border-2 border-ink bg-neon px-4 py-2 font-space text-xs font-bold uppercase tracking-[0.08em] text-ink">
+                  Hi, {session?.firstName}
+                </span>
+                <Link
+                  href="/"
+                  className="shrink-0 cursor-pointer px-4 py-2 bg-ink text-neon border-2 border-ink font-jakarta font-semibold text-sm hover:bg-transparent hover:text-ink transition-all"
+                >
+                  Home
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/join/creator"
+                  className="hidden sm:block shrink-0 cursor-pointer px-4 py-2 bg-ink text-neon border-2 border-ink font-jakarta font-semibold text-sm hover:bg-transparent hover:text-ink transition-all"
+                >
+                  Join as Creator
+                </Link>
+                <Link
+                  href="/join/brand"
+                  className="shrink-0 cursor-pointer px-4 py-2 bg-neon text-ink border-2 border-ink font-jakarta font-semibold text-sm hover:shadow-neo transition-all"
+                >
+                  Join as Brand
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

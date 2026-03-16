@@ -134,7 +134,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     }
 
     try {
-      await ref.read(authProvider.notifier).signUp(
+      await ref.read(authProvider.notifier).signUpAndSignIn(
             email: _emailController.text.trim(),
             password: _passwordController.text,
             role: _role,
@@ -146,15 +146,22 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Account created successfully. Please log in.',
-            style: TextStyle(color: Colors.white),
+            _role == 'creator'
+                ? 'Account created. Welcome creator!'
+                : 'Account created. Welcome brand!',
+            style: const TextStyle(color: Colors.white),
           ),
           backgroundColor: AppColors.ink,
         ),
       );
-      context.go(RouteNames.login);
+
+      if (_role == 'creator') {
+        context.go(RouteNames.creatorHome);
+      } else {
+        context.go(RouteNames.brandHome);
+      }
     } catch (e) {
       if (!mounted) return;
 
@@ -192,7 +199,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 Row(
                   children: [
                     IconButton(
-                      onPressed: () => context.go(RouteNames.roleSelect),
+                      onPressed: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go(RouteNames.roleSelect);
+                        }
+                      },
                       icon: const Icon(
                         Icons.arrow_back,
                         color: AppColors.ink,
@@ -224,7 +237,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 const SizedBox(height: 32),
                 // Role badge
                 BCBadge(
-                  label: _role == 'creator' ? '🎨 Joining as Creator' : '🏢 Joining as Brand',
+                  label: _role == 'creator'
+                      ? '🎨 Joining as Creator'
+                      : '🏢 Joining as Brand',
                   variant: _role == 'creator'
                       ? BCBadgeVariant.neon
                       : BCBadgeVariant.pink,
@@ -234,14 +249,16 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 BCTextField(
                   label: 'First Name',
                   controller: _firstNameController,
-                  validator: (value) => Validators.minLength(value, 2, 'First name'),
+                  validator: (value) =>
+                      Validators.minLength(value, 2, 'First name'),
                   enabled: !isLoading,
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 BCTextField(
                   label: 'Full Name',
                   controller: _fullNameController,
-                  validator: (value) => Validators.minLength(value, 2, 'Full name'),
+                  validator: (value) =>
+                      Validators.minLength(value, 2, 'Full name'),
                   enabled: !isLoading,
                 ),
                 const SizedBox(height: AppSpacing.lg),
@@ -269,7 +286,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   enabled: !isLoading,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       color: AppColors.ink,
                     ),
                     onPressed: () {
@@ -291,7 +310,9 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   enabled: !isLoading,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       color: AppColors.ink,
                     ),
                     onPressed: () {
@@ -322,17 +343,20 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     hint: 'Select your niche',
                     validator: (value) =>
                         value == null ? 'Primary niche is required' : null,
-                    onChanged: isLoading ? null : (value) {
-                      setState(() {
-                        _selectedNiche = value;
-                      });
-                    },
+                    onChanged: isLoading
+                        ? null
+                        : (value) {
+                            setState(() {
+                              _selectedNiche = value;
+                            });
+                          },
                   ),
                 ] else ...[
                   BCTextField(
                     label: 'Brand Name',
                     controller: _brandNameController,
-                    validator: (value) => Validators.minLength(value, 2, 'Brand name'),
+                    validator: (value) =>
+                        Validators.minLength(value, 2, 'Brand name'),
                     enabled: !isLoading,
                   ),
                   const SizedBox(height: AppSpacing.lg),
@@ -343,11 +367,13 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     hint: 'Select category',
                     validator: (value) =>
                         value == null ? 'Brand category is required' : null,
-                    onChanged: isLoading ? null : (value) {
-                      setState(() {
-                        _selectedCategory = value;
-                      });
-                    },
+                    onChanged: isLoading
+                        ? null
+                        : (value) {
+                            setState(() {
+                              _selectedCategory = value;
+                            });
+                          },
                   ),
                 ],
                 const SizedBox(height: 32),
@@ -369,9 +395,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 // Already have account
                 Center(
                   child: TextButton(
-                    onPressed: isLoading ? null : () {
-                      context.go(RouteNames.login);
-                    },
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            context.push(RouteNames.login);
+                          },
                     child: Text(
                       'Already have an account? Log in',
                       style: AppTypography.buttonMD.copyWith(

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/landing/Navbar'
 import StepProgress from '@/components/join/StepProgress'
+import { setFrontendSession } from '@/lib/frontend-session'
 
 type BrandForm = {
   first_name: string
@@ -185,6 +186,13 @@ export default function BrandJoinPage() {
         setSubmitError(payload.error || 'Signup failed. Please try again.')
         return
       }
+
+      setFrontendSession({
+        firstName: form.first_name.trim(),
+        fullName: form.full_name.trim(),
+        email: form.email.trim(),
+        role: 'brand',
+      })
 
       router.push('/join/success')
     } catch {

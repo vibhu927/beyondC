@@ -29,7 +29,7 @@ class ApiConstants {
   // Next.js API base URL
   // In debug, use LAN URL by default so physical devices can reach the backend.
   static String get apiBaseUrl {
-    if (!kDebugMode) return 'https://your-production-domain.com/api';
+    if (!kDebugMode) return 'https://beyond-c-78nm.vercel.app/api';
 
     if (apiBaseUrlOverride.isNotEmpty) {
       return apiBaseUrlOverride;

@@ -88,7 +88,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Row(
                   children: [
                     IconButton(
-                      onPressed: () => context.go(RouteNames.roleSelect),
+                      onPressed: () {
+                        if (context.canPop()) {
+                          context.pop();
+                        } else {
+                          context.go(RouteNames.roleSelect);
+                        }
+                      },
                       icon: const Icon(
                         Icons.arrow_back,
                         color: AppColors.ink,
@@ -142,7 +148,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   enabled: !isLoading,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       color: AppColors.ink,
                     ),
                     onPressed: () {
@@ -263,7 +271,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: isLoading
                         ? null
                         : () {
-                            context.go(RouteNames.roleSelect);
+                            context.push(RouteNames.roleSelect);
                           },
                     child: Text(
                       'Don\'t have an account? Sign up',
