@@ -1,493 +1,464 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'auth_provider.dart';
-import 'campaign_provider.dart';
+import '../data/models/creator_models.dart';
+import '../data/models/paginated_result.dart';
+import '../data/repositories/creator_repository.dart';
+import '../data/services/api_service.dart';
 
-enum WalletTransactionType { topUp, feeDeduction }
+final creatorRepositoryProvider = Provider<CreatorRepository>((ref) {
+  return CreatorRepository(ref.read(apiServiceProvider));
+});
 
-class CreatorPastCollab {
-  const CreatorPastCollab({
-    required this.id,
-    required this.brandCategory,
-    required this.collabType,
-    required this.rating,
-    required this.amountPaise,
+class CreatorCampaignFilters {
+  const CreatorCampaignFilters({
+    this.niche,
+    this.collabType,
+    this.minBudget,
+    this.maxBudget,
   });
 
-  final String id;
-  final String brandCategory;
-  final CampaignCollabType collabType;
-  final int rating;
-  final int amountPaise;
-}
+  final String? niche;
+  final CampaignCollabType? collabType;
+  final int? minBudget;
+  final int? maxBudget;
 
-class WalletTransaction {
-  const WalletTransaction({
-    required this.id,
-    required this.type,
-    required this.amountPaise,
-    required this.createdAt,
-    this.brandCategory,
-  });
-
-  final String id;
-  final WalletTransactionType type;
-  final int amountPaise;
-  final DateTime createdAt;
-  final String? brandCategory;
-}
-
-class CreatorProfile {
-  const CreatorProfile({
-    required this.firstName,
-    required this.fullName,
-    required this.tier,
-    required this.followers,
-    required this.engagementRate,
-    required this.avgCollabPaise,
-    required this.bio,
-    required this.niches,
-    required this.contentTypes,
-    required this.startingPricePaise,
-    required this.instagramConnected,
-    required this.youtubeConnected,
-    required this.walletBalance,
-    required this.walletBalancePaise,
-    required this.activeBidsCount,
-  });
-
-  final String firstName;
-  final String fullName;
-  final String tier;
-  final int followers;
-  final double engagementRate;
-  final int avgCollabPaise;
-  final String bio;
-  final List<String> niches;
-  final List<String> contentTypes;
-  final int startingPricePaise;
-  final bool instagramConnected;
-  final bool youtubeConnected;
-  final int walletBalance;
-  final int walletBalancePaise;
-  final int activeBidsCount;
-
-  CreatorProfile copyWith({
-    String? firstName,
-    String? fullName,
-    String? tier,
-    int? followers,
-    double? engagementRate,
-    int? avgCollabPaise,
-    String? bio,
-    List<String>? niches,
-    List<String>? contentTypes,
-    int? startingPricePaise,
-    bool? instagramConnected,
-    bool? youtubeConnected,
-    int? walletBalance,
-    int? walletBalancePaise,
-    int? activeBidsCount,
+  CreatorCampaignFilters copyWith({
+    Object? niche = _sentinel,
+    Object? collabType = _sentinel,
+    Object? minBudget = _sentinel,
+    Object? maxBudget = _sentinel,
   }) {
-    return CreatorProfile(
-      firstName: firstName ?? this.firstName,
-      fullName: fullName ?? this.fullName,
-      tier: tier ?? this.tier,
-      followers: followers ?? this.followers,
-      engagementRate: engagementRate ?? this.engagementRate,
-      avgCollabPaise: avgCollabPaise ?? this.avgCollabPaise,
-      bio: bio ?? this.bio,
-      niches: niches ?? this.niches,
-      contentTypes: contentTypes ?? this.contentTypes,
-      startingPricePaise: startingPricePaise ?? this.startingPricePaise,
-      instagramConnected: instagramConnected ?? this.instagramConnected,
-      youtubeConnected: youtubeConnected ?? this.youtubeConnected,
-      walletBalance: walletBalance ?? this.walletBalance,
-      walletBalancePaise: walletBalancePaise ?? this.walletBalancePaise,
-      activeBidsCount: activeBidsCount ?? this.activeBidsCount,
+    return CreatorCampaignFilters(
+      niche: identical(niche, _sentinel) ? this.niche : niche as String?,
+      collabType: identical(collabType, _sentinel)
+          ? this.collabType
+          : collabType as CampaignCollabType?,
+      minBudget: identical(minBudget, _sentinel)
+          ? this.minBudget
+          : minBudget as int?,
+      maxBudget: identical(maxBudget, _sentinel)
+          ? this.maxBudget
+          : maxBudget as int?,
     );
   }
 }
 
-class CreatorRequest {
-  const CreatorRequest({
-    required this.id,
-    required this.brandInitial,
-    required this.brandCategory,
-    required this.budget,
-    required this.collabType,
-    required this.receivedAt,
+class CreatorCampaignsState {
+  const CreatorCampaignsState({
+    required this.campaigns,
+    required this.page,
+    required this.hasMore,
+    this.isLoadingMore = false,
+    this.filters = const CreatorCampaignFilters(),
   });
 
-  final String id;
-  final String brandInitial;
-  final String brandCategory;
-  final int budget;
-  final CampaignCollabType collabType;
-  final DateTime receivedAt;
+  final List<Campaign> campaigns;
+  final int page;
+  final bool hasMore;
+  final bool isLoadingMore;
+  final CreatorCampaignFilters filters;
+
+  CreatorCampaignsState copyWith({
+    List<Campaign>? campaigns,
+    int? page,
+    bool? hasMore,
+    bool? isLoadingMore,
+    CreatorCampaignFilters? filters,
+  }) {
+    return CreatorCampaignsState(
+      campaigns: campaigns ?? this.campaigns,
+      page: page ?? this.page,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      filters: filters ?? this.filters,
+    );
+  }
 }
 
-class ActiveCollab {
-  const ActiveCollab({
-    required this.id,
-    required this.brandCategory,
-    required this.amount,
-    required this.currentStep,
+class CreatorHomeData {
+  const CreatorHomeData({
+    required this.profile,
+    required this.wallet,
+    required this.bids,
+    required this.requests,
+    required this.activeCollabs,
+    required this.campaigns,
   });
 
-  final String id;
-  final String brandCategory;
-  final int amount;
-  final int currentStep;
-}
+  final CreatorProfile profile;
+  final WalletData wallet;
+  final List<Bid> bids;
+  final List<CollabRequest> requests;
+  final List<Collab> activeCollabs;
+  final List<Campaign> campaigns;
 
-class CreatorState {
-  const CreatorState({
-    this.creatorProfile,
-    this.walletBalance = 0,
-    this.walletBalancePaise = 0,
-    this.activeBidsCount = 0,
-    this.requests = const [],
-    this.activeCollabs = const [],
-    this.myBidCampaignIds = const [],
-    this.pastCollabs = const [],
-    this.transactions = const [],
-    this.isLoading = false,
-    this.isPastCollabsLoading = false,
-    this.isWalletLoading = false,
-    this.error,
-  });
-
-  final CreatorProfile? creatorProfile;
-  final int walletBalance;
-  final int walletBalancePaise;
-  final int activeBidsCount;
-  final List<CreatorRequest> requests;
-  final List<ActiveCollab> activeCollabs;
-  final List<String> myBidCampaignIds;
-  final List<CreatorPastCollab> pastCollabs;
-  final List<WalletTransaction> transactions;
-  final bool isLoading;
-  final bool isPastCollabsLoading;
-  final bool isWalletLoading;
-  final String? error;
+  int get activeBidsCount =>
+      bids.where((bid) => bid.status != 'withdrawn' && bid.status != 'rejected').length;
 
   bool hasBidForCampaign(String campaignId) {
-    return myBidCampaignIds.contains(campaignId);
-  }
-
-  CreatorState copyWith({
-    CreatorProfile? creatorProfile,
-    int? walletBalance,
-    int? walletBalancePaise,
-    int? activeBidsCount,
-    List<CreatorRequest>? requests,
-    List<ActiveCollab>? activeCollabs,
-    List<String>? myBidCampaignIds,
-    List<CreatorPastCollab>? pastCollabs,
-    List<WalletTransaction>? transactions,
-    bool? isLoading,
-    bool? isPastCollabsLoading,
-    bool? isWalletLoading,
-    Object? error = _sentinel,
-  }) {
-    return CreatorState(
-      creatorProfile: creatorProfile ?? this.creatorProfile,
-      walletBalance: walletBalance ?? this.walletBalance,
-      walletBalancePaise: walletBalancePaise ?? this.walletBalancePaise,
-      activeBidsCount: activeBidsCount ?? this.activeBidsCount,
-      requests: requests ?? this.requests,
-      activeCollabs: activeCollabs ?? this.activeCollabs,
-      myBidCampaignIds: myBidCampaignIds ?? this.myBidCampaignIds,
-      pastCollabs: pastCollabs ?? this.pastCollabs,
-      transactions: transactions ?? this.transactions,
-      isLoading: isLoading ?? this.isLoading,
-      isPastCollabsLoading: isPastCollabsLoading ?? this.isPastCollabsLoading,
-      isWalletLoading: isWalletLoading ?? this.isWalletLoading,
-      error: identical(error, _sentinel) ? this.error : error as String?,
+    return bids.any(
+      (bid) => bid.campaignId == campaignId && bid.status != 'withdrawn',
     );
   }
 }
 
-class CreatorNotifier extends Notifier<CreatorState> {
+class CreatorProfileNotifier extends AsyncNotifier<CreatorProfile> {
   @override
-  CreatorState build() => const CreatorState();
-
-  Future<void> fetchCreatorHome() async {
-    if (state.isLoading || state.creatorProfile != null) return;
-    await _loadCreatorHome();
+  Future<CreatorProfile> build() async {
+    return ref.read(creatorRepositoryProvider).fetchCreatorProfile();
   }
 
-  Future<void> fetchCreatorProfile() async {
-    if (state.creatorProfile == null) {
-      await _loadCreatorHome();
-      return;
-    }
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
+  }
+}
 
-    if (state.pastCollabs.isNotEmpty || state.isPastCollabsLoading) return;
+class MyBidsNotifier extends AsyncNotifier<List<Bid>> {
+  @override
+  Future<List<Bid>> build() async {
+    return ref.read(creatorRepositoryProvider).fetchMyBids();
+  }
 
-    state = state.copyWith(isPastCollabsLoading: true, error: null);
-    await Future<void>.delayed(const Duration(milliseconds: 800));
-    state = state.copyWith(
-      isPastCollabsLoading: false,
-      pastCollabs: _mockPastCollabs,
-      error: null,
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
+  }
+}
+
+class RequestsNotifier extends AsyncNotifier<List<CollabRequest>> {
+  @override
+  Future<List<CollabRequest>> build() async {
+    return ref.read(creatorRepositoryProvider).fetchRequests();
+  }
+
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
+  }
+}
+
+class CreatorCollabsNotifier extends AsyncNotifier<List<Collab>> {
+  @override
+  Future<List<Collab>> build() async {
+    return ref.read(creatorRepositoryProvider).fetchCreatorCollabs();
+  }
+
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
+  }
+}
+
+class WalletNotifier extends AsyncNotifier<WalletData> {
+  @override
+  Future<WalletData> build() async {
+    return ref.read(creatorRepositoryProvider).fetchWallet();
+  }
+
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
+  }
+}
+
+class EventInvitesNotifier extends AsyncNotifier<List<EventInvite>> {
+  @override
+  Future<List<EventInvite>> build() async {
+    return ref.read(creatorRepositoryProvider).fetchEventInvites();
+  }
+
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
+  }
+}
+
+class TicketsNotifier extends AsyncNotifier<List<EventTicket>> {
+  @override
+  Future<List<EventTicket>> build() async {
+    return ref.read(creatorRepositoryProvider).fetchTickets();
+  }
+
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
+  }
+}
+
+class CreatorCampaignsNotifier extends AsyncNotifier<CreatorCampaignsState> {
+  static const int _pageSize = 20;
+
+  @override
+  Future<CreatorCampaignsState> build() async {
+    final result = await _fetchPage(
+      page: 1,
+      filters: const CreatorCampaignFilters(),
+    );
+
+    return CreatorCampaignsState(
+      campaigns: result.items,
+      page: result.page,
+      hasMore: result.hasMore,
+      filters: const CreatorCampaignFilters(),
     );
   }
 
-  Future<void> fetchWallet() async {
-    if (state.creatorProfile == null) {
-      await _loadCreatorHome();
-      return;
-    }
+  Future<void> refresh() async {
+    final currentFilters = state.valueOrNull?.filters ?? const CreatorCampaignFilters();
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final result = await _fetchPage(page: 1, filters: currentFilters);
+      return CreatorCampaignsState(
+        campaigns: result.items,
+        page: result.page,
+        hasMore: result.hasMore,
+        filters: currentFilters,
+      );
+    });
+  }
 
-    if (state.transactions.isNotEmpty || state.isWalletLoading) return;
+  Future<void> loadMore() async {
+    final current = state.valueOrNull;
+    if (current == null || current.isLoadingMore || !current.hasMore) return;
 
-    state = state.copyWith(isWalletLoading: true, error: null);
-    await Future<void>.delayed(const Duration(milliseconds: 900));
-    state = state.copyWith(
-      isWalletLoading: false,
-      transactions: _mockTransactions,
-      error: null,
+    state = AsyncData(current.copyWith(isLoadingMore: true));
+
+    final result = await AsyncValue.guard(() async {
+      final nextPage = current.page + 1;
+      final nextResult = await _fetchPage(page: nextPage, filters: current.filters);
+      return current.copyWith(
+        campaigns: [...current.campaigns, ...nextResult.items],
+        page: nextResult.page,
+        hasMore: nextResult.hasMore,
+        isLoadingMore: false,
+      );
+    });
+
+    state = result;
+  }
+
+  Future<void> applyFilters(CreatorCampaignFilters filters) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final result = await _fetchPage(page: 1, filters: filters);
+      return CreatorCampaignsState(
+        campaigns: result.items,
+        page: result.page,
+        hasMore: result.hasMore,
+        filters: filters,
+      );
+    });
+  }
+
+  Future<PaginatedResult<Campaign>> _fetchPage({
+    required int page,
+    required CreatorCampaignFilters filters,
+  }) {
+    return ref.read(creatorRepositoryProvider).fetchCampaigns(
+          page: page,
+          limit: _pageSize,
+          niche: filters.niche,
+          collabType: filters.collabType,
+          minBudget: filters.minBudget,
+          maxBudget: filters.maxBudget,
+        );
+  }
+}
+
+class CreatorHomeNotifier extends AsyncNotifier<CreatorHomeData> {
+  @override
+  Future<CreatorHomeData> build() async {
+    final repository = ref.read(creatorRepositoryProvider);
+
+    final profileFuture = repository.fetchCreatorProfile();
+    final walletFuture = repository.fetchWallet();
+    final bidsFuture = repository.fetchMyBids();
+    final requestsFuture = repository.fetchRequests();
+    final collabsFuture = repository.fetchCreatorCollabs();
+    final campaignsFuture = repository.fetchCampaigns(limit: 10);
+
+    final profile = await profileFuture;
+    final wallet = await walletFuture;
+    final bids = await bidsFuture;
+    final requests = await requestsFuture;
+    final collabs = await collabsFuture;
+    final campaigns = await campaignsFuture;
+
+    return CreatorHomeData(
+      profile: profile,
+      wallet: wallet,
+      bids: bids,
+      requests: requests,
+      activeCollabs: collabs,
+      campaigns: campaigns.items,
     );
   }
 
-  Future<void> refreshCreatorHome() async {
-    await _loadCreatorHome();
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
   }
+}
 
-  Future<void> refreshCreatorProfile() async {
-    state = state.copyWith(isPastCollabsLoading: true, error: null);
-    await Future<void>.delayed(const Duration(milliseconds: 600));
-    state = state.copyWith(
-      isPastCollabsLoading: false,
-      pastCollabs: _mockPastCollabs,
-      error: null,
-    );
-  }
-
-  Future<void> refreshWallet() async {
-    state = state.copyWith(isWalletLoading: true, error: null);
-    await Future<void>.delayed(const Duration(milliseconds: 700));
-    state = state.copyWith(
-      isWalletLoading: false,
-      transactions: _mockTransactions,
-      error: null,
-    );
-  }
+class CreatorActionsNotifier extends AsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
 
   Future<void> submitBid({
     required String campaignId,
+    required String message,
   }) async {
-    if (state.myBidCampaignIds.contains(campaignId)) return;
-    final ids = [...state.myBidCampaignIds, campaignId];
-    final nextCount = state.activeBidsCount + 1;
-    state = state.copyWith(
-      myBidCampaignIds: ids,
-      activeBidsCount: nextCount,
-      creatorProfile: state.creatorProfile?.copyWith(activeBidsCount: nextCount),
-    );
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await ref
+          .read(creatorRepositoryProvider)
+          .placeBid(campaignId: campaignId, message: message);
+      _invalidateBidRelated();
+    });
   }
 
-  Future<void> withdrawBid(String campaignId) async {
-    if (!state.myBidCampaignIds.contains(campaignId)) return;
-    final ids = state.myBidCampaignIds.where((id) => id != campaignId).toList();
-    final nextCount = (state.activeBidsCount - 1).clamp(0, 99999);
-    state = state.copyWith(
-      myBidCampaignIds: ids,
-      activeBidsCount: nextCount,
-      creatorProfile: state.creatorProfile?.copyWith(activeBidsCount: nextCount),
-    );
+  Future<void> withdrawBid(String bidId) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await ref.read(creatorRepositoryProvider).withdrawBid(bidId);
+      _invalidateBidRelated();
+    });
   }
 
-  void toggleInstagramConnection() {
-    final profile = state.creatorProfile;
-    if (profile == null) return;
-    state = state.copyWith(
-      creatorProfile: profile.copyWith(
-        instagramConnected: !profile.instagramConnected,
-      ),
-    );
+  Future<void> respondToRequest({
+    required String requestId,
+    required String action,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await ref
+          .read(creatorRepositoryProvider)
+          .respondToRequest(requestId: requestId, action: action);
+      ref.invalidate(requestsProvider);
+      ref.invalidate(creatorCollabsProvider);
+      ref.invalidate(walletProvider);
+      ref.invalidate(creatorHomeProvider);
+    });
   }
 
-  void toggleYouTubeConnection() {
-    final profile = state.creatorProfile;
-    if (profile == null) return;
-    state = state.copyWith(
-      creatorProfile: profile.copyWith(
-        youtubeConnected: !profile.youtubeConnected,
-      ),
-    );
+  Future<void> updateMilestone({
+    required String collabId,
+    required String milestone,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await ref
+          .read(creatorRepositoryProvider)
+          .updateCollabMilestone(collabId: collabId, milestone: milestone);
+      ref.invalidate(creatorCollabsProvider);
+      ref.invalidate(creatorHomeProvider);
+    });
   }
 
-  void topUpWallet(int amountInr) {
-    final addedPaise = amountInr * 100;
-    final nextPaise = state.walletBalancePaise + addedPaise;
-    final nextInr = nextPaise ~/ 100;
-    final nextTransactions = [
-      WalletTransaction(
-        id: 'txn-topup-${DateTime.now().millisecondsSinceEpoch}',
-        type: WalletTransactionType.topUp,
-        amountPaise: addedPaise,
-        createdAt: DateTime.now(),
-      ),
-      ...state.transactions,
-    ];
-
-    state = state.copyWith(
-      walletBalancePaise: nextPaise,
-      walletBalance: nextInr,
-      transactions: nextTransactions,
-      creatorProfile: state.creatorProfile?.copyWith(
-        walletBalancePaise: nextPaise,
-        walletBalance: nextInr,
-      ),
-    );
+  Future<RazorpayOrder> topUpWallet(int amountPaise) async {
+    final order = await ref
+        .read(creatorRepositoryProvider)
+        .createWalletTopupOrder(amountPaise);
+    return order;
   }
 
-  Future<void> _loadCreatorHome() async {
-    state = state.copyWith(isLoading: true, error: null);
+  Future<int> verifyWalletTopup({
+    required String orderId,
+    required String paymentId,
+    required String signature,
+  }) async {
+    final newBalance = await ref.read(creatorRepositoryProvider).verifyWalletTopup(
+          orderId: orderId,
+          paymentId: paymentId,
+          signature: signature,
+        );
+    ref.invalidate(walletProvider);
+    ref.invalidate(creatorProfileProvider);
+    ref.invalidate(creatorHomeProvider);
+    return newBalance;
+  }
 
-    await Future<void>.delayed(const Duration(seconds: 1));
+  Future<void> respondToEventInvite({
+    required String inviteId,
+    required String action,
+  }) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      await ref
+          .read(creatorRepositoryProvider)
+          .respondToEventInvite(inviteId: inviteId, action: action);
+      ref.invalidate(eventInvitesProvider);
+      ref.invalidate(ticketsProvider);
+      ref.invalidate(creatorHomeProvider);
+    });
+  }
 
-    final authState = ref.read(authProvider);
-    final metadata = authState.user?.userMetadata ?? const <String, dynamic>{};
-    final email = authState.user?.email;
-    final rawEmailPrefix =
-        email != null && email.contains('@') ? email.split('@').first : email;
-    final displayName =
-        (metadata['display_name'] as String?)?.trim().isNotEmpty == true
-            ? (metadata['display_name'] as String).trim()
-            : null;
-    final emailPrefix = rawEmailPrefix?.trim().isNotEmpty == true
-        ? rawEmailPrefix!.trim()
-        : null;
-    final firstName =
-        (metadata['first_name'] as String?)?.trim().isNotEmpty == true
-            ? (metadata['first_name'] as String).trim()
-            : (displayName ?? emailPrefix ?? 'Creator');
-    final fullName =
-        (metadata['full_name'] as String?)?.trim().isNotEmpty == true
-            ? (metadata['full_name'] as String).trim()
-            : (displayName ?? firstName);
-
-    const walletBalance = 240;
-    const walletBalancePaise = 24000;
-    const activeBidsCount = 8;
-
-    state = state.copyWith(
-      isLoading: false,
-      creatorProfile: CreatorProfile(
-        firstName: firstName,
-        fullName: fullName,
-        tier: 'Rising Creator',
-        followers: 82300,
-        engagementRate: 4.7,
-        avgCollabPaise: 480000,
-        bio:
-            'I create high-retention lifestyle and fashion content with a strong save/share audience pattern.',
-        niches: const ['Fashion', 'Beauty', 'Lifestyle'],
-        contentTypes: const ['Reels', 'Stories', 'YouTube Shorts'],
-        startingPricePaise: 350000,
-        instagramConnected: true,
-        youtubeConnected: false,
-        walletBalance: walletBalance,
-        walletBalancePaise: walletBalancePaise,
-        activeBidsCount: activeBidsCount,
-      ),
-      walletBalance: walletBalance,
-      walletBalancePaise: walletBalancePaise,
-      activeBidsCount: activeBidsCount,
-      requests: [
-        CreatorRequest(
-          id: 'req-1',
-          brandInitial: 'H',
-          brandCategory: 'Health',
-          budget: 2200,
-          collabType: CampaignCollabType.paid,
-          receivedAt: DateTime.now().subtract(const Duration(hours: 2)),
-        ),
-        CreatorRequest(
-          id: 'req-2',
-          brandInitial: 'F',
-          brandCategory: 'Fashion',
-          budget: 3200,
-          collabType: CampaignCollabType.hybrid,
-          receivedAt: DateTime.now().subtract(const Duration(hours: 9)),
-        ),
-      ],
-      activeCollabs: const [
-        ActiveCollab(
-          id: 'collab-1',
-          brandCategory: 'Beauty',
-          amount: 4500,
-          currentStep: 2,
-        ),
-        ActiveCollab(
-          id: 'collab-2',
-          brandCategory: 'Tech',
-          amount: 5800,
-          currentStep: 3,
-        ),
-      ],
-      myBidCampaignIds: const ['glow-drop-02'],
-      pastCollabs: _mockPastCollabs,
-      transactions: _mockTransactions,
-      isPastCollabsLoading: false,
-      isWalletLoading: false,
-      error: null,
-    );
+  void _invalidateBidRelated() {
+    ref.invalidate(myBidsProvider);
+    ref.invalidate(creatorCampaignsProvider);
+    ref.invalidate(creatorProfileProvider);
+    ref.invalidate(creatorHomeProvider);
   }
 }
 
-final _mockPastCollabs = <CreatorPastCollab>[
-  const CreatorPastCollab(
-    id: 'past-1',
-    brandCategory: 'Beauty',
-    collabType: CampaignCollabType.hybrid,
-    rating: 5,
-    amountPaise: 620000,
-  ),
-  const CreatorPastCollab(
-    id: 'past-2',
-    brandCategory: 'Tech',
-    collabType: CampaignCollabType.paid,
-    rating: 4,
-    amountPaise: 510000,
-  ),
-  const CreatorPastCollab(
-    id: 'past-3',
-    brandCategory: 'Food',
-    collabType: CampaignCollabType.barter,
-    rating: 5,
-    amountPaise: 280000,
-  ),
-];
+final creatorProfileProvider =
+    AsyncNotifierProvider<CreatorProfileNotifier, CreatorProfile>(
+  CreatorProfileNotifier.new,
+);
 
-final _mockTransactions = <WalletTransaction>[
-  WalletTransaction(
-    id: 'txn-1',
-    type: WalletTransactionType.topUp,
-    amountPaise: 19900,
-    createdAt: DateTime.now().subtract(const Duration(days: 1, hours: 4)),
-  ),
-  WalletTransaction(
-    id: 'txn-2',
-    type: WalletTransactionType.feeDeduction,
-    amountPaise: 2500,
-    brandCategory: 'Beauty',
-    createdAt: DateTime.now().subtract(const Duration(days: 2, hours: 7)),
-  ),
-  WalletTransaction(
-    id: 'txn-3',
-    type: WalletTransactionType.topUp,
-    amountPaise: 9900,
-    createdAt: DateTime.now().subtract(const Duration(days: 5, hours: 1)),
-  ),
-];
+final myBidsProvider = AsyncNotifierProvider<MyBidsNotifier, List<Bid>>(
+  MyBidsNotifier.new,
+);
+
+final requestsProvider = AsyncNotifierProvider<RequestsNotifier, List<CollabRequest>>(
+  RequestsNotifier.new,
+);
+
+final creatorCollabsProvider =
+    AsyncNotifierProvider<CreatorCollabsNotifier, List<Collab>>(
+  CreatorCollabsNotifier.new,
+);
+
+final walletProvider = AsyncNotifierProvider<WalletNotifier, WalletData>(
+  WalletNotifier.new,
+);
+
+final eventInvitesProvider =
+    AsyncNotifierProvider<EventInvitesNotifier, List<EventInvite>>(
+  EventInvitesNotifier.new,
+);
+
+final ticketsProvider = AsyncNotifierProvider<TicketsNotifier, List<EventTicket>>(
+  TicketsNotifier.new,
+);
+
+final creatorCampaignsProvider =
+    AsyncNotifierProvider<CreatorCampaignsNotifier, CreatorCampaignsState>(
+  CreatorCampaignsNotifier.new,
+);
+
+final creatorHomeProvider =
+    AsyncNotifierProvider<CreatorHomeNotifier, CreatorHomeData>(
+  CreatorHomeNotifier.new,
+);
+
+final creatorActionsProvider = AsyncNotifierProvider<CreatorActionsNotifier, void>(
+  CreatorActionsNotifier.new,
+);
+
+final campaignDetailProvider = FutureProvider.family<Campaign?, String>((ref, id) async {
+  final existing = ref.watch(creatorCampaignsProvider).valueOrNull;
+  if (existing != null) {
+    final fromList = existing.campaigns.where((campaign) => campaign.id == id).toList();
+    if (fromList.isNotEmpty) {
+      return fromList.first;
+    }
+  }
+
+  final page = await ref.read(creatorRepositoryProvider).fetchCampaigns(page: 1, limit: 50);
+  final matches = page.items.where((campaign) => campaign.id == id).toList();
+  return matches.isEmpty ? null : matches.first;
+});
 
 const _sentinel = Object();
-
-final creatorProvider = NotifierProvider<CreatorNotifier, CreatorState>(
-  CreatorNotifier.new,
-);

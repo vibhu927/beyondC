@@ -6,7 +6,7 @@ import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
-import '../../../providers/campaign_provider.dart';
+import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
@@ -45,9 +45,6 @@ class _BidBottomSheetState extends ConsumerState<BidBottomSheet> {
   @override
   void initState() {
     super.initState();
-    Future<void>.microtask(
-      () => ref.read(creatorProvider.notifier).fetchCreatorHome(),
-    );
   }
 
   @override
@@ -71,10 +68,22 @@ class _BidBottomSheetState extends ConsumerState<BidBottomSheet> {
       _isSubmitting = true;
     });
 
-    await Future<void>.delayed(const Duration(milliseconds: 350));
-    await ref
-        .read(creatorProvider.notifier)
-        .submitBid(campaignId: widget.campaign.id);
+    try {
+      await ref.read(creatorActionsProvider.notifier).submitBid(
+            campaignId: widget.campaign.id,
+            message:
+                '${_deliverablesController.text.trim()}\n${_pitchController.text.trim()}'.trim(),
+          );
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isSubmitting = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not submit bid right now.')),
+      );
+      return;
+    }
 
     if (!mounted) return;
 
@@ -84,8 +93,7 @@ class _BidBottomSheetState extends ConsumerState<BidBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final creatorState = ref.watch(creatorProvider);
-    final balancePaise = creatorState.walletBalancePaise;
+    final balancePaise = ref.watch(walletProvider).valueOrNull?.balance ?? 0;
     final feePaise = _estimatedFeePaise();
 
     return DraggableScrollableSheet(

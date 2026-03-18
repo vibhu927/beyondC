@@ -23,9 +23,7 @@ class BCAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final unreadCount = ref.watch(
-      notificationProvider.select((state) => state.unreadCount),
-    );
+    final unreadCount = ref.watch(unreadCountProvider);
     final themeMode = ref.watch(themeModeProvider);
     final isDark = themeMode == ThemeMode.dark;
     final iconColor = isDark ? AppColors.white : AppColors.ink;
@@ -57,7 +55,7 @@ class BCAppBar extends ConsumerWidget implements PreferredSizeWidget {
             clipBehavior: Clip.none,
             children: [
               IconButton(
-                onPressed: () => context.go(RouteNames.notifications),
+                onPressed: () => context.push(RouteNames.notifications),
                 icon: Icon(
                   Icons.notifications_none_rounded,
                   color: iconColor,
@@ -66,17 +64,43 @@ class BCAppBar extends ConsumerWidget implements PreferredSizeWidget {
               ),
               if (unreadCount > 0)
                 Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      color: AppColors.error,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: AppColors.white, width: 1.5),
-                    ),
-                  ),
+                  top: 8,
+                  right: 6,
+                  child: unreadCount > 9
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.error,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: isDark ? AppColors.ink : AppColors.white,
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Text(
+                            '9+',
+                            style: AppTypography.labelXS.copyWith(
+                              color: AppColors.white,
+                              fontSize: 9,
+                              height: 1,
+                            ),
+                          ),
+                        )
+                      : Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: AppColors.error,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: isDark ? AppColors.ink : AppColors.white,
+                              width: 1.5,
+                            ),
+                          ),
+                        ),
                 ),
             ],
           ),

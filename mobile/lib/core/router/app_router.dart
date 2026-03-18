@@ -9,12 +9,29 @@ import '../../features/auth/screens/signup_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/brand/screens/brand_home_screen.dart';
+import '../../features/brand/screens/brand_campaigns_screen.dart';
+import '../../features/brand/screens/post_campaign_screen.dart';
+import '../../features/brand/screens/campaign_bids_screen.dart';
+import '../../features/brand/screens/creator_discovery_screen.dart';
+import '../../features/brand/screens/brand_events_screen.dart';
+import '../../features/brand/screens/create_event_screen.dart';
+import '../../features/brand/screens/event_invites_screen.dart';
+import '../../features/brand/screens/brand_profile_screen.dart';
+import '../../features/brand/screens/credits_screen.dart';
 import '../../features/creator/screens/creator_home_screen.dart';
 import '../../features/creator/screens/campaigns_screen.dart';
 import '../../features/creator/screens/campaign_detail_screen.dart';
+import '../../features/creator/screens/my_tickets_screen.dart';
 import '../../features/creator/screens/profile_screen.dart';
+import '../../features/creator/screens/ticket_detail_screen.dart';
 import '../../features/creator/screens/wallet_screen.dart';
+import '../../features/shared/screens/chat_screen.dart';
+import '../../features/shared/screens/collab_detail_screen.dart';
+import '../../features/shared/screens/milestone_screen.dart';
+import '../../features/shared/screens/notifications_screen.dart';
+import '../../features/shared/screens/rating_screen.dart';
 import 'route_names.dart';
+import 'router_holder.dart';
 
 // Placeholder screen widgets — replace as screens are built
 class PlaceholderScreen extends StatelessWidget {
@@ -30,7 +47,7 @@ class PlaceholderScreen extends StatelessWidget {
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
 
-  return GoRouter(
+  final router = GoRouter(
     initialLocation: RouteNames.splash,
     redirect: (context, state) {
       final isAuthenticated = authState.user != null;
@@ -124,6 +141,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (c, s) => const PlaceholderScreen('Creator Collabs'),
       ),
       GoRoute(
+        path: RouteNames.creatorChat,
+        builder: (c, s) => ChatScreen(collabId: s.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RouteNames.creatorEvents,
+        builder: (c, s) => const PlaceholderScreen('Creator Events'),
+      ),
+      GoRoute(
         path: RouteNames.creatorProfile,
         builder: (c, s) => const CreatorProfileScreen(),
       ),
@@ -133,7 +158,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.myTickets,
-        builder: (c, s) => const PlaceholderScreen('My Tickets'),
+        builder: (c, s) => const MyTicketsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.ticketDetail,
+        builder: (c, s) =>
+            TicketDetailScreen(inviteId: s.pathParameters['id']!),
       ),
 
       // Brand Portal
@@ -143,42 +173,66 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.brandCampaigns,
-        builder: (c, s) => const PlaceholderScreen('Brand Campaigns'),
+        builder: (c, s) => const BrandCampaignsScreen(),
       ),
       GoRoute(
-        path: '/brand/campaigns/:id/bids',
-        builder: (c, s) =>
-            PlaceholderScreen('Campaign Bids ${s.pathParameters['id']}'),
+        path: RouteNames.campaignBids,
+        builder: (c, s) => CampaignBidsScreen(id: s.pathParameters['id']!),
       ),
       GoRoute(
         path: RouteNames.createCampaign,
-        builder: (c, s) => const PlaceholderScreen('Create Campaign'),
+        builder: (c, s) => const PostCampaignScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.brandDiscover,
+        builder: (c, s) => const CreatorDiscoveryScreen(),
       ),
       GoRoute(
         path: RouteNames.brandRequests,
         builder: (c, s) => const PlaceholderScreen('Brand Requests'),
       ),
       GoRoute(
+        path: RouteNames.brandChat,
+        builder: (c, s) => ChatScreen(collabId: s.pathParameters['id']!),
+      ),
+      GoRoute(
         path: RouteNames.brandProfile,
-        builder: (c, s) => const PlaceholderScreen('Brand Profile'),
+        builder: (c, s) => const BrandProfileScreen(),
       ),
       GoRoute(
         path: RouteNames.brandCredits,
-        builder: (c, s) => const PlaceholderScreen('Credits'),
+        builder: (c, s) => const CreditsScreen(),
       ),
       GoRoute(
         path: RouteNames.brandEvents,
-        builder: (c, s) => const PlaceholderScreen('Events'),
+        builder: (c, s) => const BrandEventsScreen(),
       ),
       GoRoute(
         path: RouteNames.createEvent,
-        builder: (c, s) => const PlaceholderScreen('Create Event'),
+        builder: (c, s) => const CreateEventScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.eventInvites,
+        builder: (c, s) => EventInvitesScreen(id: s.pathParameters['id']!),
       ),
 
       // Shared
       GoRoute(
         path: RouteNames.notifications,
-        builder: (c, s) => const PlaceholderScreen('Notifications'),
+        builder: (c, s) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.collabDetail,
+        builder: (c, s) =>
+            CollabDetailScreen(collabId: s.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RouteNames.collabMilestones,
+        builder: (c, s) => MilestoneScreen(collabId: s.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RouteNames.collabRating,
+        builder: (c, s) => RatingScreen(collabId: s.pathParameters['id']!),
       ),
       GoRoute(
         path: RouteNames.settings,
@@ -186,4 +240,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+
+  RouterHolder.router = router;
+  return router;
 });

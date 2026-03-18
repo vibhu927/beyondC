@@ -17,6 +17,7 @@ class RouteNames {
   static const String creatorRequests = '/creator/requests';
   static const String creatorCollabs = '/creator/collabs';
   static const String creatorChat = '/creator/collabs/:id/chat';
+  static const String creatorEvents = '/creator/events';
   static const String creatorProfile = '/creator/profile';
   static const String creatorWallet = '/creator/wallet';
   static const String myTickets = '/creator/tickets';
@@ -30,6 +31,7 @@ class RouteNames {
   static const String brandRequests = '/brand/requests';
   static const String brandCollabs = '/brand/collabs';
   static const String brandChat = '/brand/collabs/:id/chat';
+  static const String brandDiscover = '/brand/discover';
   static const String brandProfile = '/brand/profile';
   static const String brandCredits = '/brand/credits';
   static const String brandEvents = '/brand/events';
@@ -38,5 +40,8 @@ class RouteNames {
 
   // Shared
   static const String notifications = '/notifications';
+  static const String collabDetail = '/collabs/:id';
+  static const String collabMilestones = '/collabs/:id/milestones';
+  static const String collabRating = '/collabs/:id/rate';
   static const String settings = '/settings';
 }

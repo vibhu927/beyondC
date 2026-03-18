@@ -5,7 +5,12 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Allow public routes
-  const publicRoutes = ['/api/auth/signup', '/api/auth/login', '/api/auth/web-signup']
+  const publicRoutes = [
+    '/api/auth/signup',
+    '/api/auth/login',
+    '/api/auth/web-signup',
+    '/api/waitlist',
+  ]
   if (publicRoutes.includes(pathname)) {
     return NextResponse.next()
   }

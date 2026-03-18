@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shimmer/shimmer.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
@@ -10,6 +9,8 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_bar.dart';
+import '../../../widgets/bc_empty_state.dart';
+import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/cards/bc_card.dart';
 
 class WalletScreen extends ConsumerStatefulWidget {
@@ -20,22 +21,25 @@ class WalletScreen extends ConsumerStatefulWidget {
 }
 
 class _WalletScreenState extends ConsumerState<WalletScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future<void>.microtask(() async {
-      await Future.wait([
-        ref.read(creatorProvider.notifier).fetchCreatorHome(),
-        ref.read(creatorProvider.notifier).fetchWallet(),
-      ]);
-    });
+  Future<void> _refresh() {
+    return ref.read(walletProvider.notifier).refresh();
   }
 
-  Future<void> _refresh() async {
-    await Future.wait([
-      ref.read(creatorProvider.notifier).refreshCreatorHome(),
-      ref.read(creatorProvider.notifier).refreshWallet(),
-    ]);
+  Future<void> _createTopupOrder(int amountInr) async {
+    try {
+      final order =
+          await ref.read(creatorActionsProvider.notifier).topUpWallet(amountInr * 100);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Top-up order created: ${order.orderId}')),
+      );
+      await _refresh();
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not create top-up order.')),
+      );
+    }
   }
 
   Future<void> _topUpCustomAmount() async {
@@ -70,167 +74,169 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
     controller.dispose();
 
     if (amount == null || amount <= 0) return;
-    ref.read(creatorProvider.notifier).topUpWallet(amount);
+    await _createTopupOrder(amount);
   }
 
   @override
   Widget build(BuildContext context) {
-    final creatorState = ref.watch(creatorProvider);
+    final walletAsync = ref.watch(walletProvider);
 
     return Scaffold(
       appBar: const BCAppBar(title: 'My Wallet'),
       body: RefreshIndicator(
         color: AppColors.neon,
         onRefresh: _refresh,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenPadding,
-            AppSpacing.lg,
-            AppSpacing.screenPadding,
-            AppSpacing.huge,
+        child: walletAsync.when(
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: AppColors.ink),
           ),
-          children: [
-            BCCard(
-              shadow: AppShadows.neon,
-              backgroundColor: AppColors.ink,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Current Balance',
-                    style: AppTypography.bodySM.copyWith(
-                      color: AppColors.white.withValues(alpha: 0.75),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    Formatters.currency(creatorState.walletBalancePaise),
-                    style: AppTypography.displayXL.copyWith(
-                      color: AppColors.white,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Row(
-                    children: AppConstants.walletTopUpOptions
-                        .take(3)
-                        .map(
-                          (amount) => Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: AppSpacing.sm),
-                              child: _QuickTopUpButton(
-                                amount: amount,
-                                onTap: () =>
-                                    ref.read(creatorProvider.notifier).topUpWallet(amount),
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: _topUpCustomAmount,
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.white,
-                      ),
-                      child: const Text('Custom Amount →'),
-                    ),
-                  ),
-                ],
+          error: (error, _) => BCErrorState(
+            message: error.toString(),
+            onRetry: _refresh,
+          ),
+          data: (wallet) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.screenPadding,
+                AppSpacing.lg,
+                AppSpacing.screenPadding,
+                AppSpacing.huge,
               ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            BCCard(
-              shadow: AppShadows.blue,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('How fees work 💡', style: AppTypography.displaySM),
-                  const SizedBox(height: AppSpacing.md),
-                  _feeRow('Micro Brand', '₹10–₹30'),
-                  const SizedBox(height: AppSpacing.xs),
-                  _feeRow('Mid Brand', '₹50–₹100'),
-                  const SizedBox(height: AppSpacing.xs),
-                  _feeRow('Big Brand', '₹150–₹300'),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'Fee deducted only when you accept a collab',
-                    style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            const Text('Transaction History', style: AppTypography.displaySM),
-            const SizedBox(height: AppSpacing.md),
-            if (creatorState.isWalletLoading)
-              const _TransactionShimmerList()
-            else if (creatorState.transactions.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.huge),
-                child: Text(
-                  'No transactions yet',
-                  textAlign: TextAlign.center,
-                  style: AppTypography.bodyMD.copyWith(color: AppColors.muted),
-                ),
-              )
-            else
-              BCCard(
-                child: ListView.separated(
-                  itemCount: creatorState.transactions.length,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  separatorBuilder: (_, __) => const Divider(
-                    color: AppColors.divider,
-                    height: 20,
-                  ),
-                  itemBuilder: (context, index) {
-                    final txn = creatorState.transactions[index];
-                    final isTopUp = txn.type == WalletTransactionType.topUp;
-                    final sign = isTopUp ? '+' : '-';
-
-                    return Row(
-                      children: [
-                        Icon(
-                          isTopUp
-                              ? Icons.arrow_upward_rounded
-                              : Icons.arrow_downward_rounded,
-                          color: isTopUp ? AppColors.success : AppColors.error,
+              children: [
+                BCCard(
+                  shadow: AppShadows.neon,
+                  backgroundColor: AppColors.ink,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Current Balance',
+                        style: AppTypography.bodySM.copyWith(
+                          color: AppColors.white.withValues(alpha: 0.75),
                         ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '$sign${Formatters.currency(txn.amountPaise)}',
-                                style: AppTypography.labelMD.copyWith(
-                                  color:
-                                      isTopUp ? AppColors.success : AppColors.error,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        Formatters.currency(wallet.balance),
+                        style: AppTypography.displayXL.copyWith(
+                          color: AppColors.white,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      Row(
+                        children: AppConstants.walletTopUpOptions
+                            .take(3)
+                            .map(
+                              (amount) => Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                                  child: _QuickTopUpButton(
+                                    amount: amount,
+                                    onTap: () => _createTopupOrder(amount),
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: AppSpacing.xs),
-                              Text(
-                                isTopUp
-                                    ? 'Wallet Top-up'
-                                    : 'Collab fee — ${txn.brandCategory ?? 'Campaign'}',
-                                style: AppTypography.bodySM,
-                              ),
-                            ],
+                            )
+                            .toList(),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _topUpCustomAmount,
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.white,
                           ),
+                          child: const Text('Custom Amount →'),
                         ),
-                        Text(
-                          Formatters.date(txn.createdAt),
-                          style: AppTypography.bodyXS,
-                        ),
-                      ],
-                    );
-                  },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-          ],
+                const SizedBox(height: AppSpacing.xl),
+                BCCard(
+                  shadow: AppShadows.blue,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('How fees work 💡', style: AppTypography.displaySM),
+                      const SizedBox(height: AppSpacing.md),
+                      _feeRow('Micro Brand', '₹10–₹30'),
+                      const SizedBox(height: AppSpacing.xs),
+                      _feeRow('Mid Brand', '₹50–₹100'),
+                      const SizedBox(height: AppSpacing.xs),
+                      _feeRow('Big Brand', '₹150–₹300'),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Fee deducted only when you accept a collab',
+                        style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                const Text('Transaction History', style: AppTypography.displaySM),
+                const SizedBox(height: AppSpacing.md),
+                if (wallet.transactions.isEmpty)
+                  const BCEmptyState(message: 'No transactions yet')
+                else
+                  BCCard(
+                    child: ListView.separated(
+                      itemCount: wallet.transactions.length,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      separatorBuilder: (_, __) => const Divider(
+                        color: AppColors.divider,
+                        height: 20,
+                      ),
+                      itemBuilder: (context, index) {
+                        final txn = wallet.transactions[index];
+                        final isTopUp = txn.type == 'topup';
+                        final sign = isTopUp ? '+' : '-';
+
+                        return Row(
+                          children: [
+                            Icon(
+                              isTopUp
+                                  ? Icons.arrow_upward_rounded
+                                  : Icons.arrow_downward_rounded,
+                              color: isTopUp ? AppColors.success : AppColors.error,
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '$sign${Formatters.currency(txn.amount)}',
+                                    style: AppTypography.labelMD.copyWith(
+                                      color: isTopUp
+                                          ? AppColors.success
+                                          : AppColors.error,
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  Text(
+                                    isTopUp
+                                        ? 'Wallet Top-up'
+                                        : 'Collab fee — ${txn.reason}',
+                                    style: AppTypography.bodySM,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              Formatters.date(txn.createdAt ?? DateTime.now()),
+                              style: AppTypography.bodyXS,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -270,53 +276,6 @@ class _QuickTopUpButton extends StatelessWidget {
         child: Text(
           '₹$amount',
           style: AppTypography.labelMD.copyWith(color: AppColors.ink),
-        ),
-      ),
-    );
-  }
-}
-
-class _TransactionShimmerList extends StatelessWidget {
-  const _TransactionShimmerList();
-
-  @override
-  Widget build(BuildContext context) {
-    return BCCard(
-      child: Column(
-        children: List.generate(
-          4,
-          (index) => Padding(
-            padding: EdgeInsets.only(bottom: index == 3 ? 0 : AppSpacing.md),
-            child: Shimmer.fromColors(
-              baseColor: AppColors.divider,
-              highlightColor: AppColors.surfaceAlt,
-              child: Row(
-                children: [
-                  Container(width: 18, height: 18, color: AppColors.white),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 100,
-                          height: 14,
-                          color: AppColors.white,
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Container(
-                          width: 140,
-                          height: 12,
-                          color: AppColors.white,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(width: 70, height: 12, color: AppColors.white),
-                ],
-              ),
-            ),
-          ),
         ),
       ),
     );

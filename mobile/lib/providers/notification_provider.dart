@@ -1,114 +1,103 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-class ActivityNotification {
-  const ActivityNotification({
-    required this.id,
-    required this.audience,
-    required this.description,
-    required this.createdAt,
-    required this.icon,
-    required this.accentColor,
-    this.isUnread = true,
-  });
+import '../data/repositories/notification_repository.dart';
+import '../data/services/api_service.dart';
+import 'auth_provider.dart';
 
-  final String id;
-  final String audience;
-  final String description;
-  final DateTime createdAt;
-  final IconData icon;
-  final Color accentColor;
-  final bool isUnread;
-}
+final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
+  return NotificationRepository(ref.read(apiServiceProvider));
+});
 
-class NotificationState {
-  const NotificationState({
-    this.notifications = const [],
-    this.isLoading = false,
-    this.error,
-  });
+class NotificationNotifier extends AsyncNotifier<List<AppNotification>> {
+  StreamSubscription<dynamic>? _notificationSubscription;
 
-  final List<ActivityNotification> notifications;
-  final bool isLoading;
-  final String? error;
-
-  int get unreadCount => notifications.where((item) => item.isUnread).length;
-
-  NotificationState copyWith({
-    List<ActivityNotification>? notifications,
-    bool? isLoading,
-    Object? error = _sentinel,
-  }) {
-    return NotificationState(
-      notifications: notifications ?? this.notifications,
-      isLoading: isLoading ?? this.isLoading,
-      error: identical(error, _sentinel) ? this.error : error as String?,
-    );
-  }
-}
-
-class NotificationNotifier extends Notifier<NotificationState> {
   @override
-  NotificationState build() => const NotificationState();
+  Future<List<AppNotification>> build() async {
+    final userId = ref.watch(authProvider.select((state) => state.user?.id));
+    final notifications =
+        await ref.read(notificationRepositoryProvider).getNotifications();
+
+    _subscribe(userId);
+    ref.onDispose(() {
+      _notificationSubscription?.cancel();
+    });
+
+    return notifications;
+  }
 
   Future<void> fetchNotifications() async {
-    if (state.isLoading || state.notifications.isNotEmpty) return;
-    await _loadNotifications();
+    ref.invalidateSelf();
+    await future;
   }
 
   Future<void> refreshNotifications() async {
-    await _loadNotifications();
+    await fetchNotifications();
   }
 
-  Future<void> _loadNotifications() async {
-    state = state.copyWith(isLoading: true, error: null);
+  Future<void> markRead(String notificationId) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
 
-    await Future<void>.delayed(const Duration(milliseconds: 800));
+    await ref.read(notificationRepositoryProvider).markRead(notificationId);
 
-    state = state.copyWith(
-      isLoading: false,
-      notifications: [
-        ActivityNotification(
-          id: 'note-1',
-          audience: 'brand',
-          description: 'Priya S. bid on your Fitness Sprint campaign',
-          createdAt: DateTime.now().subtract(const Duration(minutes: 24)),
-          icon: Icons.local_fire_department_rounded,
-          accentColor: const Color(0xFFFF2D78),
-        ),
-        ActivityNotification(
-          id: 'note-2',
-          audience: 'brand',
-          description: 'Rahul M. accepted your creator request',
-          createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-          icon: Icons.check_circle_rounded,
-          accentColor: const Color(0xFF3D5BFF),
-        ),
-        ActivityNotification(
-          id: 'note-3',
-          audience: 'brand',
-          description: 'Your Beauty launch campaign got 5 new bids',
-          createdAt: DateTime.now().subtract(const Duration(hours: 5)),
-          icon: Icons.campaign_rounded,
-          accentColor: const Color(0xFFC8FF00),
-        ),
-        ActivityNotification(
-          id: 'note-4',
-          audience: 'creator',
-          description: 'A new campaign matching your niche just dropped',
-          createdAt: DateTime.now().subtract(const Duration(hours: 6)),
-          icon: Icons.bolt_rounded,
-          accentColor: const Color(0xFF9B5DE5),
-        ),
-      ],
-      error: null,
+    state = AsyncData(
+      current
+          .map(
+            (item) =>
+                item.id == notificationId ? item.copyWith(isRead: true) : item,
+          )
+          .toList(),
     );
+  }
+
+  Future<void> markAllRead() async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+
+    await ref.read(notificationRepositoryProvider).markAllRead();
+
+    state = AsyncData(
+      current.map((item) => item.copyWith(isRead: true)).toList(),
+    );
+  }
+
+  void _subscribe(String? userId) {
+    _notificationSubscription?.cancel();
+
+    if (userId == null || userId.isEmpty) {
+      return;
+    }
+
+    final stream = Supabase.instance.client
+        .from('notifications')
+        .stream(primaryKey: const ['id']).eq('user_id', userId);
+
+    _notificationSubscription = stream.listen((dynamic rows) {
+      if (rows is! List) return;
+
+      final incoming = rows
+          .whereType<Map>()
+          .map((entry) =>
+              entry.map((key, value) => MapEntry(key.toString(), value)))
+          .map(AppNotification.fromApi)
+          .toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      state = AsyncData(incoming);
+    });
   }
 }
 
-const _sentinel = Object();
-
 final notificationProvider =
-    NotifierProvider<NotificationNotifier, NotificationState>(
+    AsyncNotifierProvider<NotificationNotifier, List<AppNotification>>(
   NotificationNotifier.new,
 );
+
+final unreadCountProvider = Provider<int>((ref) {
+  final notifications = ref.watch(notificationProvider).valueOrNull;
+  if (notifications == null) return 0;
+  return notifications.where((item) => !item.isRead).length;
+});

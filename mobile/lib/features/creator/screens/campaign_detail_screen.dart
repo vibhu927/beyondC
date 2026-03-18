@@ -7,11 +7,12 @@ import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
-import '../../../providers/campaign_provider.dart';
+import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../../../widgets/bc_error_state.dart';
 import '../widgets/bid_bottom_sheet.dart';
 
 class CampaignDetailScreen extends ConsumerStatefulWidget {
@@ -27,17 +28,6 @@ class CampaignDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future<void>.microtask(() async {
-      await Future.wait([
-        ref.read(campaignProvider.notifier).fetchCampaigns(),
-        ref.read(creatorProvider.notifier).fetchCreatorHome(),
-      ]);
-    });
-  }
-
   Future<void> _openBidSheet(Campaign campaign) async {
     final submitted = await showModalBottomSheet<bool>(
       context: context,
@@ -55,25 +45,29 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final campaignState = ref.watch(campaignProvider);
-    final creatorState = ref.watch(creatorProvider);
+    final campaignAsync = ref.watch(campaignDetailProvider(widget.id));
+    final bids = ref.watch(myBidsProvider).valueOrNull ?? const <Bid>[];
 
-    final campaign = campaignState.campaigns
-        .where((item) => item.id == widget.id)
-        .cast<Campaign?>()
-        .firstOrNull;
-
-    if (campaignState.isLoading && campaign == null) {
+    if (campaignAsync.isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.ink)),
       );
     }
 
+    if (campaignAsync.hasError) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Campaign Detail')),
+        body: BCErrorState(
+          message: campaignAsync.error.toString(),
+          onRetry: () => ref.invalidate(campaignDetailProvider(widget.id)),
+        ),
+      );
+    }
+
+    final campaign = campaignAsync.value;
     if (campaign == null) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Campaign Detail'),
-        ),
+        appBar: AppBar(title: const Text('Campaign Detail')),
         body: Center(
           child: Text(
             'Campaign not found',
@@ -83,7 +77,11 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
       );
     }
 
-    final hasBid = creatorState.hasBidForCampaign(campaign.id);
+    final activeBid = bids
+        .where((bid) => bid.campaignId == campaign.id && bid.status != 'withdrawn')
+        .cast<Bid?>()
+        .firstOrNull;
+    final hasBid = activeBid != null;
     final daysLeft = campaign.deadline.difference(DateTime.now()).inDays;
     const slotCount = 3;
     final filledSlots = (campaign.bidCount / 9).ceil().clamp(1, slotCount);
@@ -194,7 +192,7 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   Text(
-                    '${Formatters.currencyFromINR(campaign.minBudget)}–${Formatters.currencyFromINR(campaign.maxBudget)}',
+                    '${Formatters.currency(campaign.minBudget)}–${Formatters.currency(campaign.maxBudget)}',
                     style: AppTypography.displayLG,
                   ),
                   const SizedBox(height: AppSpacing.sm),
@@ -222,7 +220,7 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           Text(
-                            'Estimated value: ${Formatters.currencyFromINR((campaign.minBudget + campaign.maxBudget) ~/ 2)}',
+                            'Estimated value: ${Formatters.currency((campaign.minBudget + campaign.maxBudget) ~/ 2)}',
                             style: AppTypography.labelSM,
                           ),
                         ],
@@ -335,10 +333,17 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     OutlinedButton(
-                      onPressed: () {
-                        ref
-                            .read(creatorProvider.notifier)
-                            .withdrawBid(campaign.id);
+                      onPressed: () async {
+                        try {
+                          await ref
+                              .read(creatorActionsProvider.notifier)
+                              .withdrawBid(activeBid.id);
+                        } catch (_) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Could not withdraw bid.')),
+                          );
+                        }
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: AppColors.ink, width: 2),
@@ -404,14 +409,14 @@ Color _avatarColor(String initial) {
 }
 
 String _targetTier(Campaign campaign) {
-  if (campaign.maxBudget >= 5000) return 'Micro · Mid creators';
-  if (campaign.maxBudget >= 2500) return 'Nano · Micro creators';
+  if (campaign.maxBudget >= 500000) return 'Micro · Mid creators';
+  if (campaign.maxBudget >= 250000) return 'Nano · Micro creators';
   return 'Nano creators';
 }
 
 String _minFollowers(Campaign campaign) {
-  if (campaign.maxBudget >= 5000) return 'Min 50K followers';
-  if (campaign.maxBudget >= 2500) return 'Min 10K followers';
+  if (campaign.maxBudget >= 500000) return 'Min 50K followers';
+  if (campaign.maxBudget >= 250000) return 'Min 10K followers';
   return 'Min 5K followers';
 }
 

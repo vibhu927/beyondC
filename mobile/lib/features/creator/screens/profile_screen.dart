@@ -9,11 +9,12 @@ import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../data/models/creator_models.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../providers/campaign_provider.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
+import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/cards/bc_card.dart';
 
 class CreatorProfileScreen extends ConsumerStatefulWidget {
@@ -24,21 +25,11 @@ class CreatorProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future<void>.microtask(() async {
-      await Future.wait([
-        ref.read(creatorProvider.notifier).fetchCreatorHome(),
-        ref.read(creatorProvider.notifier).fetchCreatorProfile(),
-      ]);
-    });
-  }
-
   Future<void> _refresh() async {
     await Future.wait([
-      ref.read(creatorProvider.notifier).refreshCreatorHome(),
-      ref.read(creatorProvider.notifier).refreshCreatorProfile(),
+      ref.read(creatorProfileProvider.notifier).refresh(),
+      ref.read(creatorCollabsProvider.notifier).refresh(),
+      ref.read(walletProvider.notifier).refresh(),
     ]);
   }
 
@@ -57,22 +48,34 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final creatorState = ref.watch(creatorProvider);
-    final profile = creatorState.creatorProfile;
+    final profileAsync = ref.watch(creatorProfileProvider);
+    final collabsAsync = ref.watch(creatorCollabsProvider);
+    final walletAsync = ref.watch(walletProvider);
 
-    if (profile == null && creatorState.isLoading) {
+    if (profileAsync.isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.ink)),
       );
     }
 
+    if (profileAsync.hasError) {
+      return Scaffold(
+        body: BCErrorState(
+          message: profileAsync.error.toString(),
+          onRetry: _refresh,
+        ),
+      );
+    }
+
+    final profile = profileAsync.value;
     if (profile == null) {
       return const Scaffold(
         body: Center(child: Text('Unable to load profile')),
       );
     }
 
-    final pastCollabs = creatorState.pastCollabs.take(3).toList();
+    final pastCollabs = collabsAsync.valueOrNull?.take(3).toList() ?? const <Collab>[];
+    final walletBalance = walletAsync.valueOrNull?.balance ?? profile.walletBalancePaise;
 
     return Scaffold(
       bottomNavigationBar: const BCBottomNav(
@@ -221,16 +224,11 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                     _PlatformTile(
                       title: 'Instagram',
                       connected: profile.instagramConnected,
-                      onTap: () => ref
-                          .read(creatorProvider.notifier)
-                          .toggleInstagramConnection(),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     _PlatformTile(
                       title: 'YouTube',
                       connected: profile.youtubeConnected,
-                      onTap: () =>
-                          ref.read(creatorProvider.notifier).toggleYouTubeConnection(),
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     const Text('Content Types', style: AppTypography.displaySM),
@@ -279,7 +277,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            'Past Collabs (${creatorState.pastCollabs.length})',
+                            'Past Collabs (${collabsAsync.valueOrNull?.length ?? 0})',
                             style: AppTypography.displaySM,
                           ),
                         ),
@@ -298,43 +296,49 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                         ),
                       ],
                     ),
-                    if (creatorState.isPastCollabsLoading)
+                    if (collabsAsync.isLoading)
                       const _PastCollabsShimmerList()
+                    else if (collabsAsync.hasError)
+                      BCErrorState(
+                        message: collabsAsync.error.toString(),
+                        onRetry: () => ref.invalidate(creatorCollabsProvider),
+                      )
                     else
                       Column(
                         children: pastCollabs
-                            .map((collab) => Padding(
-                                  padding:
-                                      const EdgeInsets.only(bottom: AppSpacing.sm),
-                                  child: BCCard(
-                                    backgroundColor: AppColors.surfaceAlt,
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                '${collab.brandCategory} • ${_collabTypeLabel(collab.collabType)}',
-                                                style: AppTypography.labelMD,
-                                              ),
-                                              const SizedBox(height: AppSpacing.xs),
-                                              Text(
-                                                '⭐' * collab.rating,
-                                                style: AppTypography.bodySM,
-                                              ),
-                                            ],
-                                          ),
+                            .map(
+                              (collab) => Padding(
+                                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                                child: BCCard(
+                                  backgroundColor: AppColors.surfaceAlt,
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              '${collab.brandCategory} • ${_collabTypeLabel(collab.collabType)}',
+                                              style: AppTypography.labelMD,
+                                            ),
+                                            const SizedBox(height: AppSpacing.xs),
+                                            Text(
+                                              '⭐' * ((collab.rating ?? 4).clamp(1, 5)),
+                                              style: AppTypography.bodySM,
+                                            ),
+                                          ],
                                         ),
-                                        Text(
-                                          Formatters.currency(collab.amountPaise),
-                                          style: AppTypography.labelLG,
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                      Text(
+                                        Formatters.currency(collab.amount),
+                                        style: AppTypography.labelLG,
+                                      ),
+                                    ],
                                   ),
-                                ))
+                                ),
+                              ),
+                            )
                             .toList(),
                       ),
                     const SizedBox(height: AppSpacing.xl),
@@ -353,7 +357,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                 ),
                                 const SizedBox(height: AppSpacing.xs),
                                 Text(
-                                  Formatters.currency(profile.walletBalancePaise),
+                                  Formatters.currency(walletBalance),
                                   style: AppTypography.displaySM
                                       .copyWith(color: AppColors.neon),
                                 ),
@@ -372,8 +376,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                 color: AppColors.ink,
                                 borderRadius:
                                     BorderRadius.circular(AppSpacing.radiusSM),
-                                border:
-                                    Border.all(color: AppColors.ink, width: 2),
+                                border: Border.all(color: AppColors.ink, width: 2),
                               ),
                               child: Text(
                                 'Top Up →',
@@ -404,11 +407,11 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                             contentPadding: EdgeInsets.zero,
                             onTap: _logout,
                             leading: const Text('🚪'),
-                            title: AppTypography.labelMD.copyWith(
-                                      color: AppColors.error,
-                                    ).let(
-                                      (style) => Text('Logout', style: style),
-                                    ),
+                            title: Text(
+                              'Logout',
+                              style: AppTypography.labelMD
+                                  .copyWith(color: AppColors.error),
+                            ),
                             trailing: const Icon(
                               Icons.chevron_right_rounded,
                               color: AppColors.error,
@@ -464,17 +467,14 @@ class _PlatformTile extends StatelessWidget {
   const _PlatformTile({
     required this.title,
     required this.connected,
-    required this.onTap,
   });
 
   final String title;
   final bool connected;
-  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return BCCard(
-      onTap: onTap,
       child: Row(
         children: [
           Expanded(
@@ -556,8 +556,4 @@ String _collabTypeLabel(CampaignCollabType type) {
     case CampaignCollabType.hybrid:
       return 'Hybrid';
   }
-}
-
-extension _MapStyleToWidget on TextStyle {
-  Widget let(Widget Function(TextStyle style) fn) => fn(this);
 }

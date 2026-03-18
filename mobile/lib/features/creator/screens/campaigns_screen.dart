@@ -6,9 +6,12 @@ import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../providers/campaign_provider.dart';
+import '../../../data/models/creator_models.dart';
+import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_bar.dart';
 import '../../../widgets/bc_bottom_nav.dart';
+import '../../../widgets/bc_empty_state.dart';
+import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 import '../widgets/campaign_card.dart';
@@ -23,8 +26,6 @@ class CampaignsScreen extends ConsumerStatefulWidget {
 }
 
 class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
-  static const _pageSize = 6;
-
   final ScrollController _scrollController = ScrollController();
 
   String _activeChip = _campaignFilterChips.first;
@@ -32,19 +33,13 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
 
   final Set<CampaignCollabType> _sheetCollabTypes = <CampaignCollabType>{};
   final Set<String> _sheetNiches = <String>{};
-  int? _minBudget;
-  int? _maxBudget;
-
-  int _visibleCount = _pageSize;
-  bool _isLoadingMore = false;
+  int? _minBudgetInr;
+  int? _maxBudgetInr;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
-    Future<void>.microtask(
-      () => ref.read(campaignProvider.notifier).fetchCampaigns(),
-    );
   }
 
   @override
@@ -55,47 +50,40 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
     super.dispose();
   }
 
-  Future<void> _refresh() async {
-    await ref.read(campaignProvider.notifier).refreshCampaigns();
-    if (mounted) {
-      setState(() {
-        _visibleCount = _pageSize;
-      });
-    }
+  Future<void> _refresh() {
+    return ref.read(creatorCampaignsProvider.notifier).refresh();
   }
 
   void _onScroll() {
-    if (!_scrollController.hasClients || _isLoadingMore) return;
+    if (!_scrollController.hasClients) return;
     final max = _scrollController.position.maxScrollExtent;
     final current = _scrollController.position.pixels;
     if (current >= max - 220) {
-      _loadMore();
+      ref.read(creatorCampaignsProvider.notifier).loadMore();
     }
   }
 
-  Future<void> _loadMore() async {
-    final campaigns = _applySort(_applyFilters(ref.read(campaignProvider).campaigns));
-    if (_visibleCount >= campaigns.length) return;
+  Future<void> _applyServerFilters() {
+    final chipCollabType = _chipCollabType(_activeChip);
+    final chipNiche = _chipNiche(_activeChip);
 
-    setState(() {
-      _isLoadingMore = true;
-    });
+    final filter = CreatorCampaignFilters(
+      collabType: chipCollabType ??
+          (_sheetCollabTypes.length == 1 ? _sheetCollabTypes.first : null),
+      niche: chipNiche ?? (_sheetNiches.length == 1 ? _sheetNiches.first : null),
+      minBudget: _minBudgetInr == null ? null : _minBudgetInr! * 100,
+      maxBudget: _maxBudgetInr == null ? null : _maxBudgetInr! * 100,
+    );
 
-    await Future<void>.delayed(const Duration(milliseconds: 650));
-
-    if (!mounted) return;
-    setState(() {
-      _visibleCount = (_visibleCount + _pageSize).clamp(0, campaigns.length);
-      _isLoadingMore = false;
-    });
+    return ref.read(creatorCampaignsProvider.notifier).applyFilters(filter);
   }
 
   void _openFiltersSheet() {
     final minController = TextEditingController(
-      text: _minBudget?.toString() ?? '',
+      text: _minBudgetInr?.toString() ?? '',
     );
     final maxController = TextEditingController(
-      text: _maxBudget?.toString() ?? '',
+      text: _maxBudgetInr?.toString() ?? '',
     );
 
     final workingCollabTypes = Set<CampaignCollabType>.from(_sheetCollabTypes);
@@ -166,7 +154,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                           children: [
                             Expanded(
                               child: BCTextField(
-                                label: 'Min ₹',
+                                label: 'Min (INR)',
                                 hint: '1000',
                                 keyboardType: TextInputType.number,
                                 controller: minController,
@@ -175,7 +163,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                             const SizedBox(width: AppSpacing.md),
                             Expanded(
                               child: BCTextField(
-                                label: 'Max ₹',
+                                label: 'Max (INR)',
                                 hint: '10000',
                                 keyboardType: TextInputType.number,
                                 controller: maxController,
@@ -209,7 +197,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                         const SizedBox(height: AppSpacing.xl),
                         BCPrimaryButton.neon(
                           label: 'Apply Filters →',
-                          onPressed: () {
+                          onPressed: () async {
                             setState(() {
                               _sheetCollabTypes
                                 ..clear()
@@ -217,26 +205,26 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                               _sheetNiches
                                 ..clear()
                                 ..addAll(workingNiches);
-                              _minBudget = int.tryParse(minController.text.trim());
-                              _maxBudget = int.tryParse(maxController.text.trim());
-                              _visibleCount = _pageSize;
+                              _minBudgetInr = int.tryParse(minController.text.trim());
+                              _maxBudgetInr = int.tryParse(maxController.text.trim());
                             });
                             Navigator.of(context).pop();
+                            await _applyServerFilters();
                           },
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         Align(
                           alignment: Alignment.center,
                           child: TextButton(
-                            onPressed: () {
+                            onPressed: () async {
                               setState(() {
                                 _sheetCollabTypes.clear();
                                 _sheetNiches.clear();
-                                _minBudget = null;
-                                _maxBudget = null;
-                                _visibleCount = _pageSize;
+                                _minBudgetInr = null;
+                                _maxBudgetInr = null;
                               });
                               Navigator.of(context).pop();
+                              await _applyServerFilters();
                             },
                             style: TextButton.styleFrom(
                               foregroundColor: AppColors.pink,
@@ -259,8 +247,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
     });
   }
 
-  List<Campaign> _applyFilters(List<Campaign> campaigns) {
-    return campaigns.where((campaign) {
+  List<Campaign> _applyLocalFilters(List<Campaign> campaigns) {
+    final filtered = campaigns.where((campaign) {
       final chipMatch = switch (_activeChip) {
         'All' => true,
         'Paid' => campaign.collabType == CampaignCollabType.paid,
@@ -268,11 +256,9 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
         'Hybrid' => campaign.collabType == CampaignCollabType.hybrid,
         _ => campaign.brandCategory.toLowerCase() == _activeChip.toLowerCase(),
       };
-
       if (!chipMatch) return false;
 
-      if (_sheetCollabTypes.isNotEmpty &&
-          !_sheetCollabTypes.contains(campaign.collabType)) {
+      if (_sheetCollabTypes.isNotEmpty && !_sheetCollabTypes.contains(campaign.collabType)) {
         return false;
       }
 
@@ -283,36 +269,35 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
         return false;
       }
 
-      if (_minBudget != null && campaign.maxBudget < _minBudget!) {
+      final minBudgetPaise = _minBudgetInr == null ? null : _minBudgetInr! * 100;
+      final maxBudgetPaise = _maxBudgetInr == null ? null : _maxBudgetInr! * 100;
+
+      if (minBudgetPaise != null && campaign.maxBudget < minBudgetPaise) {
         return false;
       }
 
-      if (_maxBudget != null && campaign.minBudget > _maxBudget!) {
+      if (maxBudgetPaise != null && campaign.minBudget > maxBudgetPaise) {
         return false;
       }
 
       return true;
     }).toList();
-  }
 
-  List<Campaign> _applySort(List<Campaign> campaigns) {
-    final sorted = [...campaigns];
     switch (_activeSort) {
       case _CampaignSort.newest:
-        sorted.sort((a, b) => b.deadline.compareTo(a.deadline));
+        filtered.sort((a, b) => b.deadline.compareTo(a.deadline));
       case _CampaignSort.budgetAsc:
-        sorted.sort((a, b) => a.minBudget.compareTo(b.minBudget));
+        filtered.sort((a, b) => a.minBudget.compareTo(b.minBudget));
       case _CampaignSort.budgetDesc:
-        sorted.sort((a, b) => b.maxBudget.compareTo(a.maxBudget));
+        filtered.sort((a, b) => b.maxBudget.compareTo(a.maxBudget));
     }
-    return sorted;
+
+    return filtered;
   }
 
   @override
   Widget build(BuildContext context) {
-    final campaignState = ref.watch(campaignProvider);
-    final filteredCampaigns = _applySort(_applyFilters(campaignState.campaigns));
-    final visibleCampaigns = filteredCampaigns.take(_visibleCount).toList();
+    final campaignsAsync = ref.watch(creatorCampaignsProvider);
 
     return Scaffold(
       appBar: BCAppBar(
@@ -354,11 +339,11 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                   return _NeoPill(
                     label: chip,
                     isActive: isActive,
-                    onTap: () {
+                    onTap: () async {
                       setState(() {
                         _activeChip = chip;
-                        _visibleCount = _pageSize;
                       });
+                      await _applyServerFilters();
                     },
                   );
                 },
@@ -372,86 +357,73 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                 _SortPill(
                   label: 'Newest',
                   isActive: _activeSort == _CampaignSort.newest,
-                  onTap: () {
-                    setState(() {
-                      _activeSort = _CampaignSort.newest;
-                      _visibleCount = _pageSize;
-                    });
-                  },
+                  onTap: () => setState(() => _activeSort = _CampaignSort.newest),
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 _SortPill(
                   label: 'Budget ↑',
                   isActive: _activeSort == _CampaignSort.budgetAsc,
-                  onTap: () {
-                    setState(() {
-                      _activeSort = _CampaignSort.budgetAsc;
-                      _visibleCount = _pageSize;
-                    });
-                  },
+                  onTap: () => setState(() => _activeSort = _CampaignSort.budgetAsc),
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 _SortPill(
                   label: 'Budget ↓',
                   isActive: _activeSort == _CampaignSort.budgetDesc,
-                  onTap: () {
-                    setState(() {
-                      _activeSort = _CampaignSort.budgetDesc;
-                      _visibleCount = _pageSize;
-                    });
-                  },
+                  onTap: () => setState(() => _activeSort = _CampaignSort.budgetDesc),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            if (campaignState.isLoading)
-              Column(
+            campaignsAsync.when(
+              loading: () => Column(
                 children: List.generate(
                   4,
                   (index) => const Padding(
                     padding: EdgeInsets.only(bottom: AppSpacing.md),
-                    child: SizedBox(
-                      height: 220,
-                      child: CampaignCardSkeleton(),
-                    ),
+                    child: SizedBox(height: 220, child: CampaignCardSkeleton()),
                   ),
                 ),
-              )
-            else if (visibleCampaigns.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.huge),
-                child: Text(
-                  '🔍 No campaigns match your filters.',
-                  textAlign: TextAlign.center,
-                  style: AppTypography.bodyMD.copyWith(color: AppColors.muted),
-                ),
-              )
-            else
-              Column(
-                children: [
-                  for (final campaign in visibleCampaigns)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: SizedBox(
-                        height: 220,
-                        child: CampaignCard(
-                          campaign: campaign,
-                          onTap: () => context.push(
-                            RouteNames.campaignDetail
-                                .replaceFirst(':id', campaign.id),
+              ),
+              error: (error, _) => BCErrorState(
+                message: error.toString(),
+                onRetry: _refresh,
+              ),
+              data: (state) {
+                final visibleCampaigns = _applyLocalFilters(state.campaigns);
+                if (visibleCampaigns.isEmpty) {
+                  return const BCEmptyState(
+                    emoji: '🔍',
+                    message: 'No campaigns match your filters.',
+                  );
+                }
+
+                return Column(
+                  children: [
+                    for (final campaign in visibleCampaigns)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: SizedBox(
+                          height: 220,
+                          child: CampaignCard(
+                            campaign: campaign,
+                            onTap: () => context.push(
+                              RouteNames.campaignDetail
+                                  .replaceFirst(':id', campaign.id),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  if (_isLoadingMore)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                      child: Center(
-                        child: CircularProgressIndicator(color: AppColors.ink),
+                    if (state.isLoadingMore)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                        child: Center(
+                          child: CircularProgressIndicator(color: AppColors.ink),
+                        ),
                       ),
-                    ),
-                ],
-              ),
+                  ],
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -554,4 +526,24 @@ String _collabTypeLabel(CampaignCollabType type) {
     case CampaignCollabType.hybrid:
       return 'Hybrid';
   }
+}
+
+CampaignCollabType? _chipCollabType(String chip) {
+  switch (chip) {
+    case 'Paid':
+      return CampaignCollabType.paid;
+    case 'Barter':
+      return CampaignCollabType.barter;
+    case 'Hybrid':
+      return CampaignCollabType.hybrid;
+    default:
+      return null;
+  }
+}
+
+String? _chipNiche(String chip) {
+  if (_nicheFilters.contains(chip)) {
+    return chip;
+  }
+  return null;
 }

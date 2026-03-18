@@ -5,16 +5,38 @@ import { useState } from 'react'
 export default function Waitlist() {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (email) {
-      // Store in localStorage for demo
-      const existingEmails = JSON.parse(localStorage.getItem('beyondc_waitlist') || '[]')
-      existingEmails.push({ email, timestamp: new Date().toISOString() })
-      localStorage.setItem('beyondc_waitlist', JSON.stringify(existingEmails))
+  const submitWaitlist = async () => {
+    const normalizedEmail = email.trim()
+    if (!normalizedEmail || isSubmitting) return
+
+    setIsSubmitting(true)
+    setErrorMessage('')
+
+    try {
+      const response = await fetch('/api/waitlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: normalizedEmail }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setErrorMessage(data?.error || 'Could not join waitlist. Please try again.')
+        return
+      }
+
       setSubmitted(true)
       setEmail('')
+    } catch {
+      setErrorMessage('Could not join waitlist. Please try again.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -35,38 +57,58 @@ export default function Waitlist() {
 
           {/* Form or Success State */}
           {!submitted ? (
-            <form onSubmit={handleSubmit} className="max-w-lg mx-auto mb-6">
+            <div className="max-w-lg mx-auto mb-6" role="form" aria-label="Join waitlist">
               <div className="flex flex-col sm:flex-row gap-4">
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      void submitWaitlist()
+                    }
+                  }}
                   placeholder="your@email.com"
                   required
                   className="flex-1 px-6 py-4 bg-white border-2 border-ink text-ink font-nunito text-lg shadow-neo focus:outline-none focus:shadow-[6px_6px_0_#0D0D0D] transition-all"
                 />
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={() => {
+                    void submitWaitlist()
+                  }}
+                  disabled={isSubmitting}
                   className="px-8 py-4 bg-ink text-neon border-2 border-ink shadow-neo font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#0D0D0D] hover:-translate-y-1 transition-all whitespace-nowrap"
                 >
-                  Join Now →
+                  {isSubmitting ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-neon border-t-transparent" />
+                      Joining...
+                    </span>
+                  ) : (
+                    'Join Now →'
+                  )}
                 </button>
               </div>
-            </form>
+              {errorMessage && (
+                <p className="mt-4 font-nunito text-sm text-red-700">{errorMessage}</p>
+              )}
+            </div>
           ) : (
             <div className="max-w-lg mx-auto mb-6 p-6 bg-ink text-neon border-2 border-ink shadow-neo">
               <div className="flex items-center justify-center gap-3 mb-3">
                 <span className="text-3xl">✓</span>
-                <h3 className="font-jakarta text-2xl font-bold">You&apos;re in!</h3>
+                <h3 className="font-jakarta text-2xl font-bold">Thankyou for joining the waitlist.</h3>
               </div>
               <p className="font-nunito text-lg">We&apos;ll hit you up at launch. 🎉</p>
             </div>
           )}
 
           {/* Trust Signal */}
-          <p className="font-nunito text-sm text-ink mb-8">
+          {/* <p className="font-nunito text-sm text-ink mb-8">
             🔒 No spam. Unsubscribe anytime.
-          </p>
+          </p> */}
 
           {/* Divider */}
           <div className="flex items-center gap-4 max-w-lg mx-auto mb-8">

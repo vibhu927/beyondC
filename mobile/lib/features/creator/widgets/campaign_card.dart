@@ -6,7 +6,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../providers/campaign_provider.dart';
+import '../../../core/utils/formatters.dart';
+import '../../../data/models/creator_models.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/cards/bc_card.dart';
 
@@ -77,7 +78,7 @@ class CampaignCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    '${_rupees(campaign.minBudget)}–${_rupees(campaign.maxBudget)}',
+                    '${Formatters.currency(campaign.minBudget)}–${Formatters.currency(campaign.maxBudget)}',
                     style: AppTypography.displaySM,
                   ),
                 ),
@@ -242,9 +243,6 @@ String _deadlineLabel(DateTime deadline) {
   if (duration.inHours >= 1) return '${duration.inHours}h left';
   return '${duration.inMinutes.clamp(1, 59)}m left';
 }
-
-String _rupees(int value) =>
-    '₹${NumberFormat.decimalPattern('en_IN').format(value)}';
 
 Color _avatarColor(String initial) {
   const palette = [

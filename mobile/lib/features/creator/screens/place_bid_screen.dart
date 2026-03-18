@@ -4,7 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../providers/campaign_provider.dart';
+import '../../../data/models/creator_models.dart';
+import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_bar.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../widgets/bid_bottom_sheet.dart';
@@ -19,7 +20,7 @@ class PlaceBidScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final campaigns = ref.watch(campaignProvider).campaigns;
+    final campaigns = ref.watch(creatorCampaignsProvider).valueOrNull?.campaigns ?? const <Campaign>[];
     final campaign = campaigns
         .where((item) => item.id == campaignId)
         .cast<Campaign?>()

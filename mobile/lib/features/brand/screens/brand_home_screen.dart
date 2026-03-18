@@ -10,7 +10,6 @@ import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../providers/brand_provider.dart';
-import '../../../providers/campaign_provider.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_app_bar.dart';
@@ -45,7 +44,6 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
   Future<void> _loadInitialData() async {
     await Future.wait([
       ref.read(brandProvider.notifier).fetchBrandHome(),
-      ref.read(campaignProvider.notifier).fetchCampaigns(),
       ref.read(notificationProvider.notifier).fetchNotifications(),
     ]);
   }
@@ -53,20 +51,8 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
   Future<void> _refresh() async {
     await Future.wait([
       ref.read(brandProvider.notifier).refreshBrandHome(),
-      ref.read(campaignProvider.notifier).refreshCampaigns(),
       ref.read(notificationProvider.notifier).refreshNotifications(),
     ]);
-  }
-
-  Future<void> _scrollToDiscovery() async {
-    final discoveryContext = _discoveryKey.currentContext;
-    if (discoveryContext == null) return;
-    await Scrollable.ensureVisible(
-      discoveryContext,
-      duration: const Duration(milliseconds: 450),
-      curve: Curves.easeOutCubic,
-      alignment: 0.08,
-    );
   }
 
   void _openFiltersSheet() {
@@ -239,13 +225,11 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final brandState = ref.watch(brandProvider);
-    final notificationState = ref.watch(notificationProvider);
+    final notificationAsync = ref.watch(notificationProvider);
     final brandProfile = brandState.brandProfile;
     final filteredCreators = brandState.filteredCreators;
-    final activityFeed = notificationState.notifications
-        .where((item) => item.audience == 'brand')
-        .take(4)
-        .toList();
+    final activityFeed =
+        (notificationAsync.valueOrNull ?? const []).take(4).toList();
 
     return Scaffold(
       appBar: const BCAppBar(title: 'Brand Home'),
@@ -311,7 +295,7 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                           title: 'Find Creators',
                           subtitle: 'Browse and send requests',
                           shadow: AppShadows.neon,
-                          onTap: _scrollToDiscovery,
+                          onTap: () => context.push(RouteNames.brandDiscover),
                         ),
                       ),
                     ],
@@ -460,7 +444,9 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                                   ),
                                   const SizedBox(height: AppSpacing.md),
                                   Text(
-                                    _deadlineCopy(campaign.deadline),
+                                    _deadlineCopy(
+                                      campaign.deadline ?? DateTime.now(),
+                                    ),
                                     style: AppTypography.bodySM
                                         .copyWith(color: AppColors.muted),
                                   ),
@@ -500,21 +486,23 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                                 width: 42,
                                 height: 42,
                                 decoration: BoxDecoration(
-                                  color: activity.accentColor,
+                                  color: _activityColor(activity.type),
                                   borderRadius: BorderRadius.circular(
                                       AppSpacing.radiusFull),
                                   border: Border.all(
                                       color: AppColors.ink, width: 2),
                                 ),
-                                child:
-                                    Icon(activity.icon, color: AppColors.ink),
+                                child: Icon(
+                                  _activityIcon(activity.type),
+                                  color: AppColors.white,
+                                ),
                               ),
                               const SizedBox(width: AppSpacing.md),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(activity.description,
+                                    Text(_activityDescription(activity),
                                         style: AppTypography.bodySM),
                                     const SizedBox(height: AppSpacing.xs),
                                     Text(
@@ -735,4 +723,44 @@ String _deadlineCopy(DateTime deadline) {
     return '${duration.inHours} hours left';
   }
   return '${duration.inMinutes.clamp(1, 59)} minutes left';
+}
+
+Color _activityColor(String type) {
+  switch (type) {
+    case 'bid_received':
+      return AppColors.pink;
+    case 'bid_accepted':
+      return AppColors.neon;
+    case 'event_invite':
+      return AppColors.purple;
+    case 'collab_matched':
+      return AppColors.blue;
+    case 'request_received':
+      return AppColors.orange;
+    default:
+      return AppColors.ink;
+  }
+}
+
+IconData _activityIcon(String type) {
+  switch (type) {
+    case 'bid_received':
+      return Icons.assignment_rounded;
+    case 'bid_accepted':
+      return Icons.check_circle_rounded;
+    case 'event_invite':
+      return Icons.confirmation_num_rounded;
+    case 'collab_matched':
+      return Icons.handshake_rounded;
+    case 'request_received':
+      return Icons.mail_rounded;
+    default:
+      return Icons.notifications_rounded;
+  }
+}
+
+String _activityDescription(dynamic activity) {
+  final body = (activity.body as String?) ?? '';
+  if (body.trim().isNotEmpty) return body;
+  return (activity.title as String?) ?? 'New activity';
 }
