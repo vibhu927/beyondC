@@ -39,7 +39,7 @@ class _BrandEventsScreenState extends ConsumerState<BrandEventsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         title: const Text('My Events', style: AppTypography.displaySM),
@@ -162,7 +162,8 @@ class _EventCard extends StatelessWidget {
                   ),
                   child: Text(
                     event.eventType,
-                    style: AppTypography.labelXS.copyWith(color: AppColors.white),
+                    style:
+                        AppTypography.labelXS.copyWith(color: AppColors.white),
                   ),
                 ),
             ],
@@ -212,7 +213,8 @@ class _EventCard extends StatelessWidget {
                       side: const BorderSide(color: AppColors.purple, width: 2),
                       foregroundColor: AppColors.purple,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusMD),
                       ),
                     ),
                     child: const Text('Manage Invites →'),
@@ -235,8 +237,12 @@ class _EventsShimmerList extends StatelessWidget {
         (index) => Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: Shimmer.fromColors(
-            baseColor: AppColors.divider,
-            highlightColor: AppColors.surfaceAlt,
+            baseColor: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkSurface
+                : AppColors.lightDivider,
+            highlightColor: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkSurfaceAlt
+                : AppColors.lightSurfaceAlt,
             child: BCCard(
               child: Column(
                 children: [

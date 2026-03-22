@@ -43,7 +43,7 @@ class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         title: const Text('My Campaigns', style: AppTypography.displaySM),
@@ -205,8 +205,12 @@ class _CampaignShimmerList extends StatelessWidget {
         (index) => Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.md),
           child: Shimmer.fromColors(
-            baseColor: AppColors.divider,
-            highlightColor: AppColors.surfaceAlt,
+            baseColor: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkSurface
+                : AppColors.lightDivider,
+            highlightColor: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkSurfaceAlt
+                : AppColors.lightSurfaceAlt,
             child: BCCard(
               child: Column(
                 children: [

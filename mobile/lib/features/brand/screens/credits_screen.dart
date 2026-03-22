@@ -34,7 +34,7 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         title: const Text('My Credits', style: AppTypography.displaySM),
@@ -65,7 +65,8 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         '${state.creditBalance}',
-                        style: AppTypography.displayXL.copyWith(color: AppColors.white),
+                        style: AppTypography.displayXL
+                            .copyWith(color: AppColors.white),
                       ),
                     ],
                   ),
@@ -80,7 +81,8 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('How credits work 💡', style: AppTypography.displaySM),
+                const Text('How credits work 💡',
+                    style: AppTypography.displaySM),
                 const SizedBox(height: AppSpacing.md),
                 _infoRow('Send direct request', '1 credit'),
                 const SizedBox(height: AppSpacing.xs),
@@ -213,7 +215,9 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                             Text(
                               '$sign${txn.creditDelta} credits',
                               style: AppTypography.labelMD.copyWith(
-                                color: isPositive ? AppColors.success : AppColors.error,
+                                color: isPositive
+                                    ? AppColors.success
+                                    : AppColors.error,
                               ),
                             ),
                             const SizedBox(height: AppSpacing.xs),
@@ -281,7 +285,8 @@ class _CreditPackCard extends StatelessWidget {
                   ),
                   child: Text(
                     badge!,
-                    style: AppTypography.labelXS.copyWith(color: AppColors.white),
+                    style:
+                        AppTypography.labelXS.copyWith(color: AppColors.white),
                   ),
                 ),
             ],
@@ -295,11 +300,13 @@ class _CreditPackCard extends StatelessWidget {
             label: 'Buy Now →',
             isFullWidth: true,
             backgroundColor: buttonColor,
-            textColor: buttonColor == AppColors.neon ? AppColors.ink : AppColors.white,
+            textColor:
+                buttonColor == AppColors.neon ? AppColors.ink : AppColors.white,
             shadow: AppShadows.ink,
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Coming Soon: Razorpay integration.')),
+                const SnackBar(
+                    content: Text('Coming Soon: Razorpay integration.')),
               );
             },
           ),
@@ -321,8 +328,12 @@ class _TransactionsShimmer extends StatelessWidget {
           (index) => Padding(
             padding: EdgeInsets.only(bottom: index == 3 ? 0 : AppSpacing.md),
             child: Shimmer.fromColors(
-              baseColor: AppColors.divider,
-              highlightColor: AppColors.surfaceAlt,
+              baseColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkSurface
+                  : AppColors.lightDivider,
+              highlightColor: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkSurfaceAlt
+                  : AppColors.lightSurfaceAlt,
               child: Row(
                 children: [
                   Container(width: 20, height: 20, color: AppColors.white),
@@ -331,9 +342,11 @@ class _TransactionsShimmer extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(width: 100, height: 14, color: AppColors.white),
+                        Container(
+                            width: 100, height: 14, color: AppColors.white),
                         const SizedBox(height: AppSpacing.xs),
-                        Container(width: 180, height: 12, color: AppColors.white),
+                        Container(
+                            width: 180, height: 12, color: AppColors.white),
                       ],
                     ),
                   ),

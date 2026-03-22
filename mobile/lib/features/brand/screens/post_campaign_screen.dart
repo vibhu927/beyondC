@@ -174,7 +174,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(

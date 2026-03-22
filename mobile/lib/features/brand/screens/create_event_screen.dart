@@ -147,7 +147,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         title: const Text('Host an Event 🎟️', style: AppTypography.displaySM),

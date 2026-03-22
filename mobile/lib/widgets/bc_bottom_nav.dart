@@ -21,18 +21,24 @@ class BCBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = _itemsFor(role);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final surface = theme.colorScheme.surface;
+    final onSurface = theme.colorScheme.onSurface;
+    final divider = theme.dividerTheme.color ??
+        (isDark ? AppColors.darkDivider : AppColors.lightDivider);
 
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        border: Border(top: BorderSide(color: AppColors.divider)),
+      decoration: BoxDecoration(
+        color: surface,
+        border: Border(top: BorderSide(color: divider)),
       ),
       child: Theme(
-        data: Theme.of(context).copyWith(
+        data: theme.copyWith(
           splashFactory: NoSplash.splashFactory,
           highlightColor: Colors.transparent,
           navigationBarTheme: NavigationBarThemeData(
-            backgroundColor: AppColors.white,
+            backgroundColor: surface,
             indicatorColor: Colors.transparent,
             shadowColor: Colors.transparent,
             elevation: 0,
@@ -40,14 +46,15 @@ class BCBottomNav extends StatelessWidget {
                 WidgetStateProperty.resolveWith<TextStyle>((states) {
               final isSelected = states.contains(WidgetState.selected);
               return AppTypography.labelXS.copyWith(
-                color: isSelected ? AppColors.ink : AppColors.muted,
+                color:
+                    isSelected ? onSurface : onSurface.withValues(alpha: 0.6),
               );
             }),
           ),
         ),
         child: NavigationBar(
           selectedIndex: currentIndex,
-          backgroundColor: AppColors.white,
+          backgroundColor: surface,
           surfaceTintColor: Colors.transparent,
           height: 72,
           labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
@@ -58,8 +65,18 @@ class BCBottomNav extends StatelessWidget {
           destinations: [
             for (var i = 0; i < items.length; i++)
               NavigationDestination(
-                icon: _NavIcon(icon: items[i].icon, isSelected: false),
-                selectedIcon: _NavIcon(icon: items[i].icon, isSelected: true),
+                icon: _NavIcon(
+                  icon: items[i].icon,
+                  isSelected: false,
+                  isDark: isDark,
+                  onSurfaceColor: onSurface,
+                ),
+                selectedIcon: _NavIcon(
+                  icon: items[i].icon,
+                  isSelected: true,
+                  isDark: isDark,
+                  onSurfaceColor: onSurface,
+                ),
                 label: items[i].label,
               ),
           ],
@@ -128,17 +145,23 @@ class _NavIcon extends StatelessWidget {
   const _NavIcon({
     required this.icon,
     required this.isSelected,
+    required this.isDark,
+    required this.onSurfaceColor,
   });
 
   final IconData icon;
   final bool isSelected;
+  final bool isDark;
+  final Color onSurfaceColor;
 
   @override
   Widget build(BuildContext context) {
     final iconWidget = Icon(
       icon,
       size: 22,
-      color: isSelected ? AppColors.ink : AppColors.muted,
+      color: isSelected
+          ? AppColors.lightText
+          : onSurfaceColor.withValues(alpha: 0.6),
     );
 
     if (!isSelected) return iconWidget;
@@ -148,6 +171,8 @@ class _NavIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.neon,
         borderRadius: BorderRadius.circular(AppSpacing.radiusSM),
+        border:
+            isDark ? Border.all(color: AppColors.darkBorder, width: 1) : null,
       ),
       child: iconWidget,
     );

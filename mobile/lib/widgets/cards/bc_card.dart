@@ -5,8 +5,8 @@ import '../../core/theme/app_spacing.dart';
 class BCCard extends StatelessWidget {
   final Widget child;
   final List<BoxShadow> shadow;
-  final Color backgroundColor;
-  final Color borderColor;
+  final Color? backgroundColor;
+  final Color? borderColor;
   final EdgeInsetsGeometry? padding;
   final double borderRadius;
   final VoidCallback? onTap;
@@ -15,8 +15,8 @@ class BCCard extends StatelessWidget {
     super.key,
     required this.child,
     this.shadow = const [],
-    this.backgroundColor = AppColors.white,
-    this.borderColor = AppColors.ink,
+    this.backgroundColor,
+    this.borderColor,
     this.padding,
     this.borderRadius = AppSpacing.radiusLG,
     this.onTap,
@@ -24,13 +24,19 @@ class BCCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor =
+        backgroundColor ?? (isDark ? AppColors.darkSurface : AppColors.lightBg);
+    final bdColor =
+        borderColor ?? (isDark ? AppColors.darkBorder : AppColors.lightBorder);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: padding ?? const EdgeInsets.all(AppSpacing.cardPadding),
         decoration: BoxDecoration(
-          color: backgroundColor,
-          border: Border.all(color: borderColor, width: AppSpacing.borderWidth),
+          color: bgColor,
+          border: Border.all(color: bdColor, width: AppSpacing.borderWidth),
           borderRadius: BorderRadius.circular(borderRadius),
           boxShadow: shadow,
         ),

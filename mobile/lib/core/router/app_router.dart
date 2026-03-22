@@ -44,12 +44,25 @@ class PlaceholderScreen extends StatelessWidget {
       );
 }
 
+final routerRefreshProvider = Provider<ValueNotifier<int>>((ref) {
+  final notifier = ValueNotifier<int>(0);
+
+  ref.listen<AuthState>(authProvider, (_, __) {
+    notifier.value++;
+  });
+
+  ref.onDispose(notifier.dispose);
+  return notifier;
+});
+
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  final refreshListenable = ref.watch(routerRefreshProvider);
 
   final router = GoRouter(
     initialLocation: RouteNames.splash,
+    refreshListenable: refreshListenable,
     redirect: (context, state) {
+      final authState = ref.read(authProvider);
       final isAuthenticated = authState.user != null;
       final isAuthRoute = [
         RouteNames.splash,
@@ -57,6 +70,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         RouteNames.roleSelect,
         RouteNames.signup,
         RouteNames.login,
+        RouteNames.forgotPassword,
       ].contains(state.matchedLocation);
 
       // Not logged in → send to onboarding

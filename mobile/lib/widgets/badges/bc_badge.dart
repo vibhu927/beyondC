@@ -3,7 +3,18 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 
-enum BCBadgeVariant { neon, pink, blue, purple, orange, success, error, warning, dark, outline }
+enum BCBadgeVariant {
+  neon,
+  pink,
+  blue,
+  purple,
+  orange,
+  success,
+  error,
+  warning,
+  dark,
+  outline
+}
 
 class BCBadge extends StatelessWidget {
   final String label;
@@ -19,7 +30,8 @@ class BCBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = _getColors();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = _getColors(isDark);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -29,7 +41,10 @@ class BCBadge extends StatelessWidget {
         color: colors.$1,
         borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
         border: variant == BCBadgeVariant.outline
-            ? Border.all(color: AppColors.ink, width: 1.5)
+            ? Border.all(
+                color: isDark ? AppColors.darkBorder : AppColors.lightBorder,
+                width: 1.5,
+              )
             : null,
       ),
       child: Row(
@@ -48,18 +63,21 @@ class BCBadge extends StatelessWidget {
     );
   }
 
-  (Color, Color) _getColors() {
+  (Color, Color) _getColors(bool isDark) {
     return switch (variant) {
-      BCBadgeVariant.neon    => (AppColors.neon, AppColors.ink),
-      BCBadgeVariant.pink    => (AppColors.pink, AppColors.white),
-      BCBadgeVariant.blue    => (AppColors.blue, AppColors.white),
-      BCBadgeVariant.purple  => (AppColors.purple, AppColors.white),
-      BCBadgeVariant.orange  => (AppColors.orange, AppColors.white),
+      BCBadgeVariant.neon => (AppColors.neon, AppColors.ink),
+      BCBadgeVariant.pink => (AppColors.pink, AppColors.white),
+      BCBadgeVariant.blue => (AppColors.blue, AppColors.white),
+      BCBadgeVariant.purple => (AppColors.purple, AppColors.white),
+      BCBadgeVariant.orange => (AppColors.orange, AppColors.white),
       BCBadgeVariant.success => (AppColors.success, AppColors.white),
-      BCBadgeVariant.error   => (AppColors.error, AppColors.white),
+      BCBadgeVariant.error => (AppColors.error, AppColors.white),
       BCBadgeVariant.warning => (AppColors.warning, AppColors.ink),
-      BCBadgeVariant.dark    => (AppColors.ink, AppColors.white),
-      BCBadgeVariant.outline => (AppColors.white, AppColors.ink),
+      BCBadgeVariant.dark => (AppColors.ink, AppColors.white),
+      BCBadgeVariant.outline => (
+          isDark ? AppColors.darkSurface : AppColors.lightBg,
+          isDark ? AppColors.darkText : AppColors.lightText,
+        ),
     };
   }
 }

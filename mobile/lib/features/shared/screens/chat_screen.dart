@@ -113,7 +113,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           onPressed: () => context.pop(),
@@ -553,8 +553,12 @@ class _ChatShimmer extends StatelessWidget {
             child: Align(
               alignment: left ? Alignment.centerLeft : Alignment.centerRight,
               child: Shimmer.fromColors(
-                baseColor: AppColors.divider,
-                highlightColor: AppColors.surfaceAlt,
+                baseColor: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkSurface
+                    : AppColors.lightDivider,
+                highlightColor: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkSurfaceAlt
+                    : AppColors.lightSurfaceAlt,
                 child: Container(
                   width: MediaQuery.of(context).size.width * 0.54,
                   height: 44,

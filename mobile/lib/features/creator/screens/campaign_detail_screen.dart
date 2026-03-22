@@ -24,7 +24,8 @@ class CampaignDetailScreen extends ConsumerStatefulWidget {
   final String id;
 
   @override
-  ConsumerState<CampaignDetailScreen> createState() => _CampaignDetailScreenState();
+  ConsumerState<CampaignDetailScreen> createState() =>
+      _CampaignDetailScreenState();
 }
 
 class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
@@ -78,7 +79,8 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
     }
 
     final activeBid = bids
-        .where((bid) => bid.campaignId == campaign.id && bid.status != 'withdrawn')
+        .where(
+            (bid) => bid.campaignId == campaign.id && bid.status != 'withdrawn')
         .cast<Bid?>()
         .firstOrNull;
     final hasBid = activeBid != null;
@@ -91,7 +93,7 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
         slivers: [
           SliverAppBar(
             pinned: true,
-            backgroundColor: AppColors.white,
+            backgroundColor: Theme.of(context).colorScheme.surface,
             surfaceTintColor: Colors.transparent,
             elevation: 0,
             leading: IconButton(
@@ -166,13 +168,15 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                                   Row(
                                     children: [
                                       BCBadge(
-                                        label: _collabLabel(campaign.collabType),
+                                        label:
+                                            _collabLabel(campaign.collabType),
                                         variant:
                                             _collabVariant(campaign.collabType),
                                       ),
                                       const SizedBox(width: AppSpacing.sm),
                                       BCBadge(
-                                        label: _deadlineLabel(campaign.deadline),
+                                        label:
+                                            _deadlineLabel(campaign.deadline),
                                         variant: BCBadgeVariant.outline,
                                       ),
                                     ],
@@ -245,7 +249,8 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     'Keep tone native to your page. Focus on clear hooks and product storytelling in the first 3 seconds.',
-                    style: AppTypography.bodySM.copyWith(color: AppColors.muted),
+                    style:
+                        AppTypography.bodySM.copyWith(color: AppColors.muted),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   const Text('Looking for', style: AppTypography.displaySM),
@@ -341,7 +346,8 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                         } catch (_) {
                           if (!context.mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Could not withdraw bid.')),
+                            const SnackBar(
+                                content: Text('Could not withdraw bid.')),
                           );
                         }
                       },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 
@@ -35,7 +36,14 @@ class BCTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTypography.labelMD),
+        Text(
+          label,
+          style: AppTypography.labelMD.copyWith(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkText
+                : AppColors.lightText,
+          ),
+        ),
         const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: controller,
@@ -45,7 +53,9 @@ class BCTextField extends StatelessWidget {
           onChanged: onChanged,
           maxLines: maxLines,
           enabled: enabled,
-          style: AppTypography.bodyMD,
+          style: AppTypography.bodyMD.copyWith(
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefixIcon,

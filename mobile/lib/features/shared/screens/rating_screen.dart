@@ -43,7 +43,7 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         title: const Text('Rate your collab', style: AppTypography.displaySM),
       ),

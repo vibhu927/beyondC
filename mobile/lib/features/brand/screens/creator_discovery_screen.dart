@@ -14,10 +14,12 @@ class CreatorDiscoveryScreen extends ConsumerStatefulWidget {
   const CreatorDiscoveryScreen({super.key});
 
   @override
-  ConsumerState<CreatorDiscoveryScreen> createState() => _CreatorDiscoveryScreenState();
+  ConsumerState<CreatorDiscoveryScreen> createState() =>
+      _CreatorDiscoveryScreenState();
 }
 
-class _CreatorDiscoveryScreenState extends ConsumerState<CreatorDiscoveryScreen> {
+class _CreatorDiscoveryScreenState
+    extends ConsumerState<CreatorDiscoveryScreen> {
   final _searchController = TextEditingController();
   String _activeNiche = 'All';
 
@@ -49,10 +51,11 @@ class _CreatorDiscoveryScreenState extends ConsumerState<CreatorDiscoveryScreen>
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).colorScheme.surface,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        title: const Text('Discover Creators 🔍', style: AppTypography.displaySM),
+        title:
+            const Text('Discover Creators 🔍', style: AppTypography.displaySM),
         actions: [
           IconButton(
             onPressed: _openFilterBottomSheet,
@@ -158,10 +161,13 @@ class _CreatorDiscoveryScreenState extends ConsumerState<CreatorDiscoveryScreen>
 
       final platformMatch = switch (_platform) {
         'Instagram' => creator.contentTypes.any(
-            (item) => item.toLowerCase().contains('reel') || item.toLowerCase().contains('story'),
+            (item) =>
+                item.toLowerCase().contains('reel') ||
+                item.toLowerCase().contains('story'),
           ),
-        'YouTube' => creator.contentTypes
-            .any((item) => item.toLowerCase().contains('youtube') || item.toLowerCase().contains('short')),
+        'YouTube' => creator.contentTypes.any((item) =>
+            item.toLowerCase().contains('youtube') ||
+            item.toLowerCase().contains('short')),
         _ => true,
       };
 
@@ -270,7 +276,8 @@ class _CreatorDiscoveryScreenState extends ConsumerState<CreatorDiscoveryScreen>
                                   label: platform,
                                   active: workingPlatform == platform,
                                   onTap: () {
-                                    setSheetState(() => workingPlatform = platform);
+                                    setSheetState(
+                                        () => workingPlatform = platform);
                                   },
                                 ),
                               )
@@ -296,8 +303,8 @@ class _CreatorDiscoveryScreenState extends ConsumerState<CreatorDiscoveryScreen>
                               _maxBudget =
                                   int.tryParse(maxBudgetController.text.trim());
                               _platform = workingPlatform;
-                              _minEngagement =
-                                  double.tryParse(minEngagementController.text.trim());
+                              _minEngagement = double.tryParse(
+                                  minEngagementController.text.trim());
                             });
                             Navigator.of(context).pop();
                           },

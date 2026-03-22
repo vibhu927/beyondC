@@ -60,7 +60,7 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
 
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius:
             BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLG)),
@@ -115,7 +115,7 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius:
             BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLG)),

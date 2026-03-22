@@ -161,12 +161,25 @@ class AuthNotifier extends Notifier<AuthState> {
         password: password,
       );
 
-      state = state.copyWith(isLoading: false);
+      final signedInUser =
+          response.user ?? Supabase.instance.client.auth.currentUser;
+      final signedInRole = signedInUser?.userMetadata?['role'] as String?;
+
+      state = state.copyWith(
+        user: signedInUser,
+        role: signedInRole,
+        isLoading: false,
+        error: null,
+      );
       return response;
     } catch (e) {
+      final message = e is AuthException
+          ? e.message
+          : e.toString().replaceFirst('Exception: ', '');
+
       state = state.copyWith(
         isLoading: false,
-        error: 'Invalid email or password',
+        error: message.isEmpty ? 'Login failed' : message,
       );
       rethrow;
     }

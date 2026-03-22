@@ -21,7 +21,8 @@ class CreatorProfileScreen extends ConsumerStatefulWidget {
   const CreatorProfileScreen({super.key});
 
   @override
-  ConsumerState<CreatorProfileScreen> createState() => _CreatorProfileScreenState();
+  ConsumerState<CreatorProfileScreen> createState() =>
+      _CreatorProfileScreenState();
 }
 
 class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
@@ -74,8 +75,10 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
       );
     }
 
-    final pastCollabs = collabsAsync.valueOrNull?.take(3).toList() ?? const <Collab>[];
-    final walletBalance = walletAsync.valueOrNull?.balance ?? profile.walletBalancePaise;
+    final pastCollabs =
+        collabsAsync.valueOrNull?.take(3).toList() ?? const <Collab>[];
+    final walletBalance =
+        walletAsync.valueOrNull?.balance ?? profile.walletBalancePaise;
 
     return Scaffold(
       bottomNavigationBar: const BCBottomNav(
@@ -182,7 +185,8 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                         const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: _StatCard(
-                            value: '${profile.engagementRate.toStringAsFixed(1)}%',
+                            value:
+                                '${profile.engagementRate.toStringAsFixed(1)}%',
                             label: 'Engagement',
                           ),
                         ),
@@ -200,7 +204,8 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       profile.bio,
-                      style: AppTypography.bodySM.copyWith(color: AppColors.muted),
+                      style:
+                          AppTypography.bodySM.copyWith(color: AppColors.muted),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Wrap(
@@ -259,7 +264,8 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                               onPressed: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Pricing editor coming soon.'),
+                                    content:
+                                        Text('Pricing editor coming soon.'),
                                   ),
                                 );
                               },
@@ -308,7 +314,8 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                         children: pastCollabs
                             .map(
                               (collab) => Padding(
-                                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                                padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.sm),
                                 child: BCCard(
                                   backgroundColor: AppColors.surfaceAlt,
                                   child: Row(
@@ -322,9 +329,12 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                               '${collab.brandCategory} • ${_collabTypeLabel(collab.collabType)}',
                                               style: AppTypography.labelMD,
                                             ),
-                                            const SizedBox(height: AppSpacing.xs),
+                                            const SizedBox(
+                                                height: AppSpacing.xs),
                                             Text(
-                                              '⭐' * ((collab.rating ?? 4).clamp(1, 5)),
+                                              '⭐' *
+                                                  ((collab.rating ?? 4)
+                                                      .clamp(1, 5)),
                                               style: AppTypography.bodySM,
                                             ),
                                           ],
@@ -376,7 +386,8 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                 color: AppColors.ink,
                                 borderRadius:
                                     BorderRadius.circular(AppSpacing.radiusSM),
-                                border: Border.all(color: AppColors.ink, width: 2),
+                                border:
+                                    Border.all(color: AppColors.ink, width: 2),
                               ),
                               child: Text(
                                 'Top Up →',
@@ -503,8 +514,12 @@ class _PastCollabsShimmerList extends StatelessWidget {
         (index) => Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child: Shimmer.fromColors(
-            baseColor: AppColors.divider,
-            highlightColor: AppColors.surfaceAlt,
+            baseColor: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkSurface
+                : AppColors.lightDivider,
+            highlightColor: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.darkSurfaceAlt
+                : AppColors.lightSurfaceAlt,
             child: BCCard(
               child: Row(
                 children: [

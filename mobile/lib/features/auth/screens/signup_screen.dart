@@ -183,7 +183,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final isLoading = authState.isLoading;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.screenPadding),

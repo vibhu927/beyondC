@@ -24,11 +24,12 @@ class BCAppBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final unreadCount = ref.watch(unreadCountProvider);
-    final themeMode = ref.watch(themeModeProvider);
-    final isDark = themeMode == ThemeMode.dark;
-    final iconColor = isDark ? AppColors.white : AppColors.ink;
-    final appBarColor = isDark ? AppColors.ink : AppColors.white;
-    final borderColor = isDark ? const Color(0xFF2A2A2A) : AppColors.divider;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconColor = Theme.of(context).colorScheme.onSurface;
+    final appBarColor = Theme.of(context).appBarTheme.backgroundColor ??
+        Theme.of(context).colorScheme.surface;
+    final borderColor = Theme.of(context).dividerTheme.color ??
+        (isDark ? AppColors.darkDivider : AppColors.lightDivider);
 
     return AppBar(
       automaticallyImplyLeading: false,
@@ -41,13 +42,20 @@ class BCAppBar extends ConsumerWidget implements PreferredSizeWidget {
           style: AppTypography.displaySM.copyWith(color: iconColor)),
       actions: [
         ...?actions,
-        IconButton(
-          onPressed: () => ref.read(themeModeProvider.notifier).toggleTheme(),
-          icon: Icon(
-            isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-            color: iconColor,
-          ),
-          tooltip: isDark ? 'Switch to light mode' : 'Switch to dark mode',
+        Consumer(
+          builder: (context, ref, _) {
+            final toggledDark =
+                ref.watch(themeProvider.select((m) => m == ThemeMode.dark));
+
+            return IconButton(
+              icon: Icon(
+                isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+                color: isDark ? AppColors.neon : iconColor,
+              ),
+              onPressed: () => ref.read(themeProvider.notifier).toggle(),
+              tooltip: toggledDark ? 'Light mode' : 'Dark mode',
+            );
+          },
         ),
         Padding(
           padding: const EdgeInsets.only(right: 8),
@@ -76,7 +84,7 @@ class BCAppBar extends ConsumerWidget implements PreferredSizeWidget {
                             color: AppColors.error,
                             borderRadius: BorderRadius.circular(999),
                             border: Border.all(
-                              color: isDark ? AppColors.ink : AppColors.white,
+                              color: appBarColor,
                               width: 1.2,
                             ),
                           ),
@@ -96,7 +104,7 @@ class BCAppBar extends ConsumerWidget implements PreferredSizeWidget {
                             color: AppColors.error,
                             borderRadius: BorderRadius.circular(999),
                             border: Border.all(
-                              color: isDark ? AppColors.ink : AppColors.white,
+                              color: appBarColor,
                               width: 1.5,
                             ),
                           ),

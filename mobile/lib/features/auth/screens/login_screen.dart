@@ -57,11 +57,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (e) {
       if (!mounted) return;
 
+      final rawMessage = ref.read(authProvider).error ?? e.toString();
+      final message = rawMessage.replaceFirst('Exception: ', '').trim();
+
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Text(
-            'Invalid email or password',
-            style: TextStyle(color: Colors.white),
+            message.isEmpty ? 'Login failed. Please try again.' : message,
+            style: const TextStyle(color: Colors.white),
           ),
           backgroundColor: AppColors.ink,
         ),
@@ -75,7 +78,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isLoading = authState.isLoading;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.screenPadding),

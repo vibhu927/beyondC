@@ -24,7 +24,7 @@ class BCLogo extends StatelessWidget {
         Text(
           'Beyond',
           style: displayStyle.copyWith(
-            color: isDark ? Colors.white : AppColors.ink,
+            color: isDark ? AppColors.darkText : AppColors.lightText,
             fontWeight: FontWeight.w700,
           ),
         ),

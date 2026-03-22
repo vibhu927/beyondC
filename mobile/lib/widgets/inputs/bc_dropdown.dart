@@ -48,22 +48,28 @@ class _BCDropdownState extends State<BCDropdown> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppColors.darkText : AppColors.lightText;
+    final mutedColor = isDark ? AppColors.darkMuted : AppColors.lightMuted;
+    final surfaceColor = Theme.of(context).colorScheme.surface;
+    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           widget.label,
           style: AppTypography.labelMD.copyWith(
-            color: AppColors.ink,
+            color: textColor,
           ),
         ),
         const SizedBox(height: 8),
         AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: surfaceColor,
             border: Border.all(
-              color: AppColors.ink,
+              color: borderColor,
               width: AppSpacing.borderWidth,
             ),
             borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
@@ -75,7 +81,7 @@ class _BCDropdownState extends State<BCDropdown> {
             decoration: InputDecoration(
               hintText: widget.hint,
               hintStyle: AppTypography.bodyMD.copyWith(
-                color: AppColors.muted,
+                color: mutedColor,
               ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
@@ -85,13 +91,13 @@ class _BCDropdownState extends State<BCDropdown> {
               isDense: true,
             ),
             style: AppTypography.bodyMD.copyWith(
-              color: AppColors.ink,
+              color: textColor,
             ),
-            icon: const Icon(
+            icon: Icon(
               Icons.keyboard_arrow_down,
-              color: AppColors.ink,
+              color: textColor,
             ),
-            dropdownColor: Colors.white,
+            dropdownColor: surfaceColor,
             items: widget.items.map((String item) {
               return DropdownMenuItem<String>(
                 value: item,
