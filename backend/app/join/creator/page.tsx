@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/landing/Navbar'
 import StepProgress from '@/components/join/StepProgress'
-import { setFrontendSession } from '@/lib/frontend-session'
+import { createClient } from '@/lib/supabase/client'
+import { validators } from '@/lib/validators'
 
 type CreatorForm = {
   first_name: string
@@ -14,8 +15,8 @@ type CreatorForm = {
   phone: string
   password: string
   confirmPassword: string
+  niche: string
   instagram_handle: string
-  primary_niche: string
   content_type: string[]
   starting_price: string
   termsAccepted: boolean
@@ -45,16 +46,14 @@ const labelClass = 'mb-2 block font-space text-xs font-bold uppercase tracking-[
 
 type ErrorMap = Record<string, string>
 
-function isEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-}
-
 export default function CreatorJoinPage() {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<ErrorMap>({})
   const [submitError, setSubmitError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [form, setForm] = useState<CreatorForm>({
     first_name: '',
     full_name: '',
@@ -62,8 +61,8 @@ export default function CreatorJoinPage() {
     phone: '',
     password: '',
     confirmPassword: '',
+    niche: '',
     instagram_handle: '',
-    primary_niche: '',
     content_type: [],
     starting_price: '',
     termsAccepted: false,
@@ -77,9 +76,9 @@ export default function CreatorJoinPage() {
       ['Email', form.email],
       ['Phone', form.phone],
       ['Instagram', form.instagram_handle || 'Not provided'],
-      ['Primary Niche', form.primary_niche],
+      ['Primary Niche', form.niche],
       ['Content Type', form.content_type.join(', ')],
-      ['Starting Price', `₹${Number(form.starting_price || 0).toLocaleString()}`],
+      ['Starting Price', form.starting_price ? `₹${Number(form.starting_price).toLocaleString()}` : 'Not provided'],
     ],
     [form]
   )
@@ -97,21 +96,25 @@ export default function CreatorJoinPage() {
   const validateStep1 = () => {
     const nextErrors: ErrorMap = {}
 
-    if (!form.first_name.trim()) nextErrors.first_name = 'First name is required.'
-    if (!form.full_name.trim()) nextErrors.full_name = 'Full name is required.'
-    if (!form.email.trim()) nextErrors.email = 'Email is required.'
-    else if (!isEmail(form.email)) nextErrors.email = 'Enter a valid email address.'
+    nextErrors.first_name = validators.required(form.first_name, 'First name') || ''
+    nextErrors.full_name = validators.required(form.full_name, 'Full name') || ''
 
-    if (!form.phone.trim()) nextErrors.phone = 'Phone is required.'
-    else if (!/^[6-9]\d{9}$/.test(form.phone)) {
-      nextErrors.phone = 'Enter a valid 10-digit Indian phone number.'
-    }
+    const emailRequired = validators.required(form.email, 'Email')
+    nextErrors.email = emailRequired || validators.email(form.email) || ''
 
-    if (!form.password) nextErrors.password = 'Password is required.'
-    else if (form.password.length < 8) nextErrors.password = 'Password must be at least 8 characters.'
+    const phoneRequired = validators.required(form.phone, 'Phone')
+    nextErrors.phone = phoneRequired || validators.phone(form.phone) || ''
 
-    if (!form.confirmPassword) nextErrors.confirmPassword = 'Please confirm your password.'
-    else if (form.confirmPassword !== form.password) nextErrors.confirmPassword = 'Passwords do not match.'
+    const passwordRequired = validators.required(form.password, 'Password')
+    nextErrors.password = passwordRequired || validators.password(form.password) || ''
+
+    const confirmRequired = validators.required(form.confirmPassword, 'Confirm password')
+    nextErrors.confirmPassword =
+      confirmRequired || validators.confirmPassword(form.confirmPassword, form.password) || ''
+
+    Object.keys(nextErrors).forEach((key) => {
+      if (!nextErrors[key]) delete nextErrors[key]
+    })
 
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
@@ -120,10 +123,9 @@ export default function CreatorJoinPage() {
   const validateStep2 = () => {
     const nextErrors: ErrorMap = {}
 
-    if (!form.primary_niche) nextErrors.primary_niche = 'Please select a niche.'
+    if (!form.niche) nextErrors.niche = 'Please select a niche.'
     if (form.content_type.length === 0) nextErrors.content_type = 'Select at least one content type.'
-    if (!form.starting_price.trim()) nextErrors.starting_price = 'Starting price is required.'
-    else if (!/^\d+$/.test(form.starting_price) || Number(form.starting_price) <= 0) {
+    if (form.starting_price.trim() && (!/^\d+$/.test(form.starting_price) || Number(form.starting_price) <= 0)) {
       nextErrors.starting_price = 'Enter a valid positive amount.'
     }
 
@@ -143,6 +145,7 @@ export default function CreatorJoinPage() {
   }
 
   const goNext = () => {
+    if (isLoading) return
     if (step === 1 && !validateStep1()) return
     if (step === 2 && !validateStep2()) return
     setStep((prev) => Math.min(prev + 1, 3))
@@ -179,24 +182,36 @@ export default function CreatorJoinPage() {
           full_name: form.full_name.trim(),
           phone: form.phone.trim(),
           instagram_handle: form.instagram_handle.trim() || null,
-          primary_niche: form.primary_niche,
+          niche: [form.niche],
           content_type: form.content_type,
-          starting_price: Number(form.starting_price),
+          starting_price: form.starting_price ? Number(form.starting_price) : null,
         }),
       })
 
       const payload = await response.json()
       if (!response.ok) {
-        setSubmitError(payload.error || 'Signup failed. Please try again.')
+        const apiError = String(payload?.error || '')
+        if (apiError.toLowerCase().includes('already registered')) {
+          setSubmitError('This email is already registered. Log in instead.')
+        } else if (apiError.toLowerCase().includes('password too short')) {
+          setErrors((prev) => ({ ...prev, password: 'Password must be at least 8 characters' }))
+          setSubmitError('Please fix the password and try again.')
+        } else {
+          setSubmitError('Something went wrong. Please try again.')
+        }
         return
       }
 
-      setFrontendSession({
-        firstName: form.first_name.trim(),
-        fullName: form.full_name.trim(),
+      const supabase = createClient()
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: form.email.trim(),
-        role: 'creator',
+        password: form.password,
       })
+
+      if (signInError) {
+        setSubmitError('Account created, but auto-login failed. Please log in manually.')
+        return
+      }
 
       router.push('/join/success')
     } catch (error) {
@@ -225,13 +240,8 @@ export default function CreatorJoinPage() {
           <div className="mt-8 border-2 border-ink bg-white p-6 shadow-[6px_6px_0_#C8FF00] sm:p-8">
             <StepProgress currentStep={step} />
 
-            {submitError && (
-              <div className="mt-6 border-2 border-[#EF4444] bg-[#FEE2E2] px-4 py-3 font-nunito text-sm text-[#B91C1C]">
-                {submitError}
-              </div>
-            )}
-
             <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+              <fieldset disabled={isLoading} className="space-y-6">
               {step === 1 && (
                 <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <div>
@@ -281,25 +291,43 @@ export default function CreatorJoinPage() {
 
                   <div>
                     <label className={labelClass}>Password</label>
-                    <input
-                      type="password"
-                      className={inputClass}
-                      value={form.password}
-                      onChange={(e) => setField('password', e.target.value)}
-                      placeholder="Minimum 8 characters"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        className={`${inputClass} pr-20`}
+                        value={form.password}
+                        onChange={(e) => setField('password', e.target.value)}
+                        placeholder="Minimum 8 characters"
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 font-space text-[10px] font-bold uppercase tracking-[0.08em] text-ink"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                      >
+                        {showPassword ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
                     {errors.password && <p className="mt-2 text-sm text-[#EF4444]">{errors.password}</p>}
                   </div>
 
                   <div>
                     <label className={labelClass}>Confirm Password</label>
-                    <input
-                      type="password"
-                      className={inputClass}
-                      value={form.confirmPassword}
-                      onChange={(e) => setField('confirmPassword', e.target.value)}
-                      placeholder="Re-enter your password"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        className={`${inputClass} pr-20`}
+                        value={form.confirmPassword}
+                        onChange={(e) => setField('confirmPassword', e.target.value)}
+                        placeholder="Re-enter your password"
+                      />
+                      <button
+                        type="button"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 font-space text-[10px] font-bold uppercase tracking-[0.08em] text-ink"
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                      >
+                        {showConfirmPassword ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
                     {errors.confirmPassword && (
                       <p className="mt-2 text-sm text-[#EF4444]">{errors.confirmPassword}</p>
                     )}
@@ -326,8 +354,8 @@ export default function CreatorJoinPage() {
                     <label className={labelClass}>Primary Niche</label>
                     <select
                       className={inputClass}
-                      value={form.primary_niche}
-                      onChange={(e) => setField('primary_niche', e.target.value)}
+                      value={form.niche}
+                      onChange={(e) => setField('niche', e.target.value)}
                     >
                       <option value="">Select your niche</option>
                       {nicheOptions.map((niche) => (
@@ -336,8 +364,8 @@ export default function CreatorJoinPage() {
                         </option>
                       ))}
                     </select>
-                    {errors.primary_niche && (
-                      <p className="mt-2 text-sm text-[#EF4444]">{errors.primary_niche}</p>
+                    {errors.niche && (
+                      <p className="mt-2 text-sm text-[#EF4444]">{errors.niche}</p>
                     )}
                   </div>
 
@@ -428,6 +456,7 @@ export default function CreatorJoinPage() {
                   <button
                     type="button"
                     onClick={() => setStep((prev) => Math.max(prev - 1, 1))}
+                    disabled={isLoading}
                     className="border-2 border-ink bg-white px-6 py-3 font-space text-sm font-bold uppercase tracking-[0.08em] text-ink shadow-[4px_4px_0_#0D0D0D]"
                   >
                     ← Back
@@ -438,6 +467,7 @@ export default function CreatorJoinPage() {
                   <button
                     type="button"
                     onClick={goNext}
+                    disabled={isLoading}
                     className="ml-auto border-2 border-ink bg-ink px-6 py-3 font-space text-sm font-bold uppercase tracking-[0.08em] text-neon shadow-[4px_4px_0_#C8FF00]"
                   >
                     Next →
@@ -459,6 +489,11 @@ export default function CreatorJoinPage() {
                   </button>
                 )}
               </div>
+
+              {submitError && step === 3 && (
+                <p className="text-sm text-[#EF4444]">{submitError}</p>
+              )}
+              </fieldset>
             </form>
           </div>
         </div>

@@ -5,15 +5,12 @@ import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/landing/Navbar'
 import { createClient } from '@/lib/supabase/client'
+import { validators } from '@/lib/validators'
 
 const inputClass =
   'w-full bg-white border-2 border-ink px-4 py-3 font-nunito text-base text-ink outline-none transition focus:shadow-[4px_4px_0_#C8FF00]'
 
 const labelClass = 'mb-2 block font-space text-xs font-bold uppercase tracking-[0.08em] text-ink'
-
-function isEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -22,14 +19,21 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+
+  const supabase = createClient()
 
   const validate = () => {
     const nextErrors: Record<string, string> = {}
 
-    if (!email.trim()) nextErrors.email = 'Email is required.'
-    else if (!isEmail(email)) nextErrors.email = 'Enter a valid email address.'
+    const emailRequired = validators.required(email, 'Email')
+    nextErrors.email = emailRequired || validators.email(email) || ''
 
-    if (!password) nextErrors.password = 'Password is required.'
+    nextErrors.password = validators.required(password, 'Password') || ''
+
+    Object.keys(nextErrors).forEach((key) => {
+      if (!nextErrors[key]) delete nextErrors[key]
+    })
 
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
@@ -43,20 +47,31 @@ export default function LoginPage() {
     setSubmitError('')
 
     try {
-      const supabase = createClient()
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       })
 
-      if (error) {
-        setSubmitError(error.message)
+      if (error || !data.user) {
+        setSubmitError('Invalid email or password. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_admin, role')
+        .eq('id', data.user.id)
+        .single()
+
+      if (profile?.is_admin) {
+        router.push('/admin/dashboard')
         return
       }
 
       router.push('/join/success')
     } catch {
-      setSubmitError('Unable to log in. Please try again.')
+      setSubmitError('Invalid email or password. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -100,16 +115,25 @@ export default function LoginPage() {
 
             <div>
               <label className={labelClass}>Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value)
-                  setErrors((prev) => ({ ...prev, password: '' }))
-                }}
-                className={inputClass}
-                placeholder="Enter your password"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    setErrors((prev) => ({ ...prev, password: '' }))
+                  }}
+                  className={`${inputClass} pr-20`}
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 font-space text-[10px] font-bold uppercase tracking-[0.08em] text-ink"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
               {errors.password && <p className="mt-2 text-sm text-[#EF4444]">{errors.password}</p>}
             </div>
 

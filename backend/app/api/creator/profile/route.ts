@@ -17,13 +17,14 @@ export async function GET(request: NextRequest) {
       .from('creator_profiles')
       .select(`
         *,
-        profiles:id (*)
+        profiles (*)
       `)
       .eq('id', user.id)
       .single()
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 404 })
+      const status = error.code === 'PGRST116' ? 404 : 400
+      return NextResponse.json({ error: error.message }, { status })
     }
 
     return NextResponse.json({ profile: data })

@@ -1,146 +1,124 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
+import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 
-const webSignupSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  role: z.enum(['creator', 'brand']),
-  first_name: z.string().min(1),
-  full_name: z.string().min(1),
-  phone: z.string().min(10),
+type SignupBody = {
+  email?: string
+  password?: string
+  role?: 'creator' | 'brand'
+  first_name?: string
+  full_name?: string
+  phone?: string
+  instagram_handle?: string | null
+  niche?: string[]
+  content_type?: string[]
+  starting_price?: number | null
+  brand_name?: string
+  brand_category?: string
+  website?: string | null
+  gst_number?: string | null
+  description?: string | null
+}
 
-  // Creator fields
-  instagram_handle: z.string().nullable().optional(),
-  primary_niche: z.string().optional(),
-  content_type: z.array(z.string()).optional(),
-  starting_price: z.number().int().positive().optional(),
-
-  // Brand fields
-  brand_name: z.string().optional(),
-  brand_category: z.string().optional(),
-  website: z.string().url().nullable().optional(),
-  gst_number: z.string().nullable().optional(),
-  description: z.string().optional(),
-})
-
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
   try {
-    const body = await request.json()
-    const parsed = webSignupSchema.parse(body)
+    const body = (await request.json()) as SignupBody
+    const { email, password, role, first_name, full_name, phone, ...roleData } = body
 
-    if (parsed.role === 'creator') {
-      if (!parsed.primary_niche) {
-        return NextResponse.json({ error: 'Primary niche is required for creators.' }, { status: 400 })
-      }
-      if (!parsed.content_type || parsed.content_type.length === 0) {
-        return NextResponse.json({ error: 'Select at least one content type.' }, { status: 400 })
-      }
-      if (!parsed.starting_price) {
-        return NextResponse.json({ error: 'Starting price is required for creators.' }, { status: 400 })
+    if (!email || !password || !role || !first_name || !full_name) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    }
+
+    if (password.length < 8) {
+      return NextResponse.json({ error: 'Password too short' }, { status: 400 })
+    }
+
+    if (role === 'creator') {
+      const creatorNiches = Array.isArray(roleData.niche) ? roleData.niche : []
+      const creatorTypes = Array.isArray(roleData.content_type) ? roleData.content_type : []
+
+      if (creatorNiches.length === 0 || creatorTypes.length === 0) {
+        return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
       }
     }
 
-    if (parsed.role === 'brand') {
-      if (!parsed.brand_name?.trim()) {
-        return NextResponse.json({ error: 'Brand name is required for brands.' }, { status: 400 })
-      }
-      if (!parsed.brand_category?.trim()) {
-        return NextResponse.json({ error: 'Brand category is required for brands.' }, { status: 400 })
-      }
-      if (!parsed.description?.trim()) {
-        return NextResponse.json({ error: 'Brand description is required for brands.' }, { status: 400 })
+    if (role === 'brand') {
+      if (!roleData.brand_name?.trim() || !roleData.brand_category?.trim()) {
+        return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
       }
     }
 
     const supabase = createAdminClient()
 
-    const { data: createUserData, error: createUserError } = await supabase.auth.admin.createUser({
-      email: parsed.email,
-      password: parsed.password,
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email,
+      password,
       email_confirm: true,
       user_metadata: {
-        role: parsed.role,
-        first_name: parsed.first_name,
-        full_name: parsed.full_name,
-        brand_name: parsed.brand_name,
+        role,
+        first_name,
+        full_name,
+        phone: phone ?? null,
       },
     })
 
-    if (createUserError || !createUserData.user) {
-      return NextResponse.json(
-        { error: createUserError?.message || 'Could not create user.' },
-        { status: 400 }
-      )
+    if (authError || !authData.user) {
+      if (authError?.message?.toLowerCase().includes('already registered')) {
+        return NextResponse.json({ error: 'User already registered' }, { status: 409 })
+      }
+      return NextResponse.json({ error: authError?.message || 'Could not create user' }, { status: 400 })
     }
 
-    const userId = createUserData.user.id
+    const userId = authData.user.id
 
     const { error: profileError } = await supabase
       .from('profiles')
-      .upsert(
-        {
-          id: userId,
-          role: parsed.role,
-          first_name: parsed.first_name,
-          full_name: parsed.full_name,
-          email: parsed.email,
-          phone: parsed.phone,
-          is_onboarded: true,
-        },
-        { onConflict: 'id' }
-      )
+      .upsert({
+        id: userId,
+        role,
+        first_name,
+        full_name,
+        email,
+        phone: phone ?? null,
+        is_onboarded: true,
+      })
 
     if (profileError) {
       return NextResponse.json({ error: profileError.message }, { status: 400 })
     }
 
-    if (parsed.role === 'creator') {
-      const { error: creatorError } = await supabase
-        .from('creator_profiles')
-        .upsert(
-          {
-            id: userId,
-            niche: [parsed.primary_niche],
-            content_type: parsed.content_type,
-            instagram_handle: parsed.instagram_handle || null,
-            starting_price: parsed.starting_price,
-          },
-          { onConflict: 'id' }
-        )
+    if (role === 'creator') {
+      const { error: creatorError } = await supabase.from('creator_profiles').upsert({
+        id: userId,
+        niche: Array.isArray(roleData.niche) ? roleData.niche : [],
+        content_type: Array.isArray(roleData.content_type) ? roleData.content_type : [],
+        instagram_handle: roleData.instagram_handle ?? null,
+        starting_price: roleData.starting_price ?? null,
+        wallet_balance: 0,
+      })
 
       if (creatorError) {
         return NextResponse.json({ error: creatorError.message }, { status: 400 })
       }
     }
 
-    if (parsed.role === 'brand') {
-      const { error: brandError } = await supabase
-        .from('brand_profiles')
-        .upsert(
-          {
-            id: userId,
-            brand_name: parsed.brand_name,
-            brand_category: parsed.brand_category,
-            website: parsed.website || null,
-            gst_number: parsed.gst_number || null,
-            description: parsed.description,
-          },
-          { onConflict: 'id' }
-        )
+    if (role === 'brand') {
+      const { error: brandError } = await supabase.from('brand_profiles').upsert({
+        id: userId,
+        brand_name: roleData.brand_name,
+        brand_category: roleData.brand_category,
+        website: roleData.website ?? null,
+        gst_number: roleData.gst_number ?? null,
+        description: roleData.description ?? null,
+        credit_balance: 0,
+      })
 
       if (brandError) {
         return NextResponse.json({ error: brandError.message }, { status: 400 })
       }
     }
 
-    return NextResponse.json({ success: true })
-  } catch (error: unknown) {
-    if (error instanceof z.ZodError) {
-      const message = error.issues[0]?.message || 'Invalid request payload.'
-      return NextResponse.json({ error: message }, { status: 400 })
-    }
-
+    return NextResponse.json({ success: true }, { status: 201 })
+  } catch (error) {
     const message = error instanceof Error ? error.message : 'Signup failed'
     return NextResponse.json({ error: message }, { status: 500 })
   }

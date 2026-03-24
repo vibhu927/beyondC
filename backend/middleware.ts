@@ -1,83 +1,78 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
+import type { CookieOptions } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const response = NextResponse.next()
 
-  // Allow public routes
-  const publicRoutes = [
-    '/api/auth/signup',
-    '/api/auth/login',
-    '/api/auth/web-signup',
-    '/api/waitlist',
-  ]
-  if (publicRoutes.includes(pathname)) {
-    return NextResponse.next()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value
+        },
+        set(name: string, value: string, options: CookieOptions) {
+          response.cookies.set({ name, value, ...options })
+        },
+        remove(name: string, options: CookieOptions) {
+          response.cookies.set({ name, value: '', ...options })
+        },
+      },
+    }
+  )
+
+  const service = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  if (pathname === '/admin') {
+    return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
-  // Check if route requires authentication
-  if (pathname.startsWith('/api/')) {
-    try {
-      const supabase = createClient()
-      
-      // Get current user
-      const { data: { user }, error } = await supabase.auth.getUser()
-      
-      if (error || !user) {
-        return NextResponse.json(
-          { error: 'Authentication required' },
-          { status: 401 }
-        )
-      }
+  const {
+    data: { session },
+  } = await supabase.auth.getSession()
 
-      // Get user profile to check role
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
+  if (pathname === '/join/success' && !session) {
+    return NextResponse.redirect(new URL('/join', request.url))
+  }
 
-      if (profileError || !profile) {
-        return NextResponse.json(
-          { error: 'Profile not found' },
-          { status: 404 }
-        )
-      }
+  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/admin/login', request.url))
+    }
 
-      // Check role-based access
-      if (pathname.startsWith('/api/creator/')) {
-        if (profile.role !== 'creator') {
-          return NextResponse.json(
-            { error: 'Creator access required' },
-            { status: 403 }
-          )
-        }
-      }
+    const { data: profile } = await service
+      .from('profiles')
+      .select('is_admin,is_super_admin,is_suspended')
+      .eq('id', session.user.id)
+      .single()
 
-      if (pathname.startsWith('/api/brand/')) {
-        if (profile.role !== 'brand') {
-          return NextResponse.json(
-            { error: 'Brand access required' },
-            { status: 403 }
-          )
-        }
-      }
+    if (!profile?.is_admin || profile.is_suspended) {
+      return NextResponse.redirect(new URL('/admin/login', request.url))
+    }
 
-      // Allow request to proceed
-      return NextResponse.next()
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'Authentication error' },
-        { status: 401 }
-      )
+    const requiresSuperAdmin =
+      pathname.startsWith('/admin/staff') || pathname.startsWith('/admin/settings')
+
+    if (requiresSuperAdmin && !profile.is_super_admin) {
+      return NextResponse.redirect(new URL('/admin/unauthorized', request.url))
     }
   }
 
-  return NextResponse.next()
+  return response
 }
 
 export const config = {
   matcher: [
-    '/api/:path*',
+    '/join/success',
+    '/admin/:path*',
+    '/admin',
+    '/reset-password',
   ],
 }

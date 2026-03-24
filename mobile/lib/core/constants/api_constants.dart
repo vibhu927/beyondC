@@ -3,6 +3,19 @@ import 'package:flutter/foundation.dart';
 class ApiConstants {
   ApiConstants._();
 
+  // One manual switch point when not using --dart-define.
+  // Allowed: local_device, local_emulator, hosted
+  static const String defaultAppEnv = 'local_device';
+
+  // Optional compile-time env switch:
+  // flutter run --dart-define=APP_ENV=local_emulator
+  // flutter run --dart-define=APP_ENV=local_device
+  // flutter run --dart-define=APP_ENV=hosted
+  static const String appEnv = String.fromEnvironment(
+    'APP_ENV',
+    defaultValue: defaultAppEnv,
+  );
+
   static const String supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
     defaultValue: 'https://dewwodfpevclnvdrhmnt.supabase.co',
@@ -24,17 +37,40 @@ class ApiConstants {
     defaultValue: '',
   );
 
-  static const String defaultDebugApiBaseUrl = 'http://192.168.1.7:3000/api';
+  // Local backend for physical device on same LAN.
+  static const String localDeviceApiBaseUrl = 'http://192.168.1.7:3000/api';
+
+  // Android emulator loopback to host machine backend.
+  static const String localEmulatorApiBaseUrl = 'http://10.0.2.2:3000/api';
+
+  // Hosted testing environment.
+  static const String hostedApiBaseUrl = 'https://beyond-c.vercel.app/api';
 
   // Next.js API base URL
-  // In debug, use LAN URL by default so physical devices can reach the backend.
+  // Priority order:
+  // 1) API_BASE_URL override (if passed)
+  // 2) debug APP_ENV switch
+  // 3) hosted in release builds
   static String get apiBaseUrl {
-    if (!kDebugMode) return 'https://beyond-c-78nm.vercel.app/api';
-
     if (apiBaseUrlOverride.isNotEmpty) {
       return apiBaseUrlOverride;
     }
 
-    return defaultDebugApiBaseUrl;
+    if (!kDebugMode) {
+      return hostedApiBaseUrl;
+    }
+
+    switch (appEnv) {
+      case 'local_emulator':
+        return localEmulatorApiBaseUrl;
+      case 'hosted':
+        return hostedApiBaseUrl;
+      case 'local_device':
+      default:
+        return localDeviceApiBaseUrl;
+    }
   }
+
+  static String get configSummary =>
+      'APP_ENV=$appEnv | API_BASE_URL=$apiBaseUrl | SUPABASE_URL=$supabaseUrl';
 }

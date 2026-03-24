@@ -34,7 +34,7 @@ class ApiErrorHandler {
     }
 
     if (statusCode == 404) {
-      return 'Not found.';
+      return _extractMessage(data) ?? 'Not found.';
     }
 
     if (statusCode == 500) {

@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dio/dio.dart';
+import 'dart:io';
 
 import '../../core/constants/api_constants.dart';
 
@@ -72,8 +73,64 @@ class AuthRepository {
         password: password,
       );
       return response;
+    } on SocketException {
+      // Physical devices can fail DNS lookup for *.supabase.co on some networks.
+      // Fallback to backend login and hydrate local Supabase session from tokens.
+      return await _signInViaBackend(email: email, password: password);
+    } on AuthRetryableFetchException {
+      return await _signInViaBackend(email: email, password: password);
     } catch (e) {
       rethrow;
+    }
+  }
+
+  Future<AuthResponse> _signInViaBackend({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.apiBaseUrl}/auth/login',
+        data: {
+          'email': email,
+          'password': password,
+        },
+      );
+
+      final data = response.data;
+      if (data is! Map<String, dynamic>) {
+        throw Exception('Invalid login response from backend.');
+      }
+
+      final session = data['session'];
+      if (session is! Map<String, dynamic>) {
+        throw Exception('Session missing in backend login response.');
+      }
+
+      final accessToken = (session['access_token'] ?? session['accessToken']) as String?;
+      final refreshToken = (session['refresh_token'] ?? session['refreshToken']) as String?;
+
+      if (accessToken == null || refreshToken == null) {
+        throw Exception('Login tokens missing from backend response.');
+      }
+
+      final authResponse = await _supabase.auth.setSession(refreshToken);
+
+      return authResponse;
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      if (data is Map && data['error'] is String) {
+        throw Exception(data['error'] as String);
+      }
+
+      final code = e.response?.statusCode;
+      if (code == null) {
+        throw Exception(
+          'Network issue: could not reach Supabase or backend. Check internet and API host (${ApiConstants.apiBaseUrl}).',
+        );
+      }
+
+      throw Exception(e.message ?? 'Login failed');
     }
   }
 

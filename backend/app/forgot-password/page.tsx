@@ -4,13 +4,10 @@ import Link from 'next/link'
 import { FormEvent, useState } from 'react'
 import Navbar from '@/components/landing/Navbar'
 import { createClient } from '@/lib/supabase/client'
+import { validators } from '@/lib/validators'
 
 const inputClass =
   'w-full bg-white border-2 border-ink px-4 py-3 font-nunito text-base text-ink outline-none transition focus:shadow-[4px_4px_0_#C8FF00]'
-
-function isEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
-}
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -18,14 +15,15 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
 
+  const supabase = createClient()
+
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    if (!email.trim()) {
-      setError('Email is required.')
-      return
-    }
-    if (!isEmail(email)) {
-      setError('Enter a valid email address.')
+    const emailRequired = validators.required(email, 'Email')
+    const emailInvalid = validators.email(email)
+
+    if (emailRequired || emailInvalid) {
+      setError(emailRequired || emailInvalid || '')
       return
     }
 
@@ -33,10 +31,12 @@ export default function ForgotPasswordPage() {
     setError('')
 
     try {
-      const supabase = createClient()
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim())
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+
       if (resetError) {
-        setError(resetError.message)
+        setError('Could not send reset email. Please check the address and try again.')
         return
       }
 

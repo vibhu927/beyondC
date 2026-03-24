@@ -124,3 +124,30 @@ export const createRatingSchema = z.object({
 export const actionSchema = z.object({
   action: z.enum(['accept', 'reject']),
 })
+
+// Client-side form validators for onboarding/auth pages.
+export const validators = {
+  required: (value: string, field: string) =>
+    !value.trim() ? `${field} is required` : null,
+
+  email: (value: string) =>
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? 'Enter a valid email' : null,
+
+  phone: (value: string) =>
+    !/^[6-9]\d{9}$/.test(value.replace(/\s/g, ''))
+      ? 'Enter a valid 10-digit Indian mobile number'
+      : null,
+
+  password: (value: string) =>
+    value.length < 8
+      ? 'Password must be at least 8 characters'
+      : !/\d/.test(value)
+        ? 'Password must contain at least one number'
+        : null,
+
+  confirmPassword: (value: string, original: string) =>
+    value !== original ? 'Passwords do not match' : null,
+
+  minLength: (value: string, min: number, field: string) =>
+    value.trim().length < min ? `${field} must be at least ${min} characters` : null,
+}
