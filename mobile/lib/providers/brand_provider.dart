@@ -210,6 +210,12 @@ class BrandRequestsNotifier extends AsyncNotifier<List<CollabRequest>> {
       rethrow;
     }
   }
+
+  Future<void> cancelRequest(String requestId) async {
+    await ref.read(brandRepositoryProvider).cancelRequest(requestId);
+    final current = state.valueOrNull ?? const <CollabRequest>[];
+    state = AsyncData(current.where((item) => item.id != requestId).toList());
+  }
 }
 
 class BrandCampaignsNotifier extends AsyncNotifier<List<Campaign>> {
@@ -445,6 +451,7 @@ class BrandState {
     this.brandProfile,
     this.creators = const <CreatorPreview>[],
     this.campaigns = const <Campaign>[],
+    this.activeCollabs = const <ActiveCollabSummary>[],
     this.events = const <BrandEvent>[],
     this.creditBalance = 0,
     this.creditTransactions = const <CreditTransaction>[],
@@ -462,6 +469,7 @@ class BrandState {
   final BrandProfile? brandProfile;
   final List<CreatorPreview> creators;
   final List<Campaign> campaigns;
+  final List<ActiveCollabSummary> activeCollabs;
   final List<BrandEvent> events;
   final int creditBalance;
   final List<CreditTransaction> creditTransactions;
@@ -520,6 +528,7 @@ class BrandState {
     Object? brandProfile = _sentinel,
     List<CreatorPreview>? creators,
     List<Campaign>? campaigns,
+    List<ActiveCollabSummary>? activeCollabs,
     List<BrandEvent>? events,
     int? creditBalance,
     List<CreditTransaction>? creditTransactions,
@@ -539,6 +548,7 @@ class BrandState {
           : brandProfile as BrandProfile?,
       creators: creators ?? this.creators,
       campaigns: campaigns ?? this.campaigns,
+      activeCollabs: activeCollabs ?? this.activeCollabs,
       events: events ?? this.events,
       creditBalance: creditBalance ?? this.creditBalance,
       creditTransactions: creditTransactions ?? this.creditTransactions,
@@ -576,27 +586,56 @@ class BrandNotifier extends Notifier<BrandState> {
   Future<void> fetchBrandHome() async {
     state = state.copyWith(isLoading: true, error: null);
 
+    Object? firstError;
+    BrandProfile? profile;
+    PaginatedResult<CreatorDiscovery>? creators;
+    List<Campaign>? campaigns;
+    List<ActiveCollabSummary>? activeCollabs;
+    CreditsData? credits;
+
     try {
-      final profile = await _repo.getProfile();
-      final creators = await _repo.getCreators(page: 1, limit: 40);
-      final campaigns = await _repo.getCampaigns();
-      final credits = await _repo.getCredits();
-
-      state = state.copyWith(
-        brandProfile: profile,
-        creators: creators.items,
-        campaigns: campaigns,
-        creditBalance: credits.balance,
-        creditTransactions: credits.transactions,
-        isLoading: false,
-      );
-
-      await ref.read(creditsProvider.notifier).setData(credits);
+      profile = await _repo.getProfile();
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      firstError ??= e;
+    }
+
+    try {
+      creators = await _repo.getCreators(page: 1, limit: 40);
+    } catch (e) {
+      firstError ??= e;
+    }
+
+    try {
+      campaigns = await _repo.getCampaigns();
+    } catch (e) {
+      firstError ??= e;
+    }
+
+    try {
+      activeCollabs = await _repo.getActiveCollabs();
+    } catch (e) {
+      firstError ??= e;
+    }
+
+    try {
+      credits = await _repo.getCredits();
+    } catch (e) {
+      firstError ??= e;
+    }
+
+    state = state.copyWith(
+      brandProfile: profile ?? state.brandProfile,
+      creators: creators?.items ?? state.creators,
+      campaigns: campaigns ?? state.campaigns,
+      activeCollabs: activeCollabs ?? state.activeCollabs,
+      creditBalance: credits?.balance ?? state.creditBalance,
+      creditTransactions: credits?.transactions ?? state.creditTransactions,
+      isLoading: false,
+      error: firstError?.toString(),
+    );
+
+    if (credits != null) {
+      await ref.read(creditsProvider.notifier).setData(credits);
     }
   }
 

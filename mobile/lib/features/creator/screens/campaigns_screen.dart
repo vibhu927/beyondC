@@ -70,7 +70,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
     final filter = CreatorCampaignFilters(
       collabType: chipCollabType ??
           (_sheetCollabTypes.length == 1 ? _sheetCollabTypes.first : null),
-      niche: chipNiche ?? (_sheetNiches.length == 1 ? _sheetNiches.first : null),
+      niche:
+          chipNiche ?? (_sheetNiches.length == 1 ? _sheetNiches.first : null),
       minBudget: _minBudgetInr == null ? null : _minBudgetInr! * 100,
       maxBudget: _maxBudgetInr == null ? null : _maxBudgetInr! * 100,
     );
@@ -205,8 +206,10 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                               _sheetNiches
                                 ..clear()
                                 ..addAll(workingNiches);
-                              _minBudgetInr = int.tryParse(minController.text.trim());
-                              _maxBudgetInr = int.tryParse(maxController.text.trim());
+                              _minBudgetInr =
+                                  int.tryParse(minController.text.trim());
+                              _maxBudgetInr =
+                                  int.tryParse(maxController.text.trim());
                             });
                             Navigator.of(context).pop();
                             await _applyServerFilters();
@@ -258,7 +261,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
       };
       if (!chipMatch) return false;
 
-      if (_sheetCollabTypes.isNotEmpty && !_sheetCollabTypes.contains(campaign.collabType)) {
+      if (_sheetCollabTypes.isNotEmpty &&
+          !_sheetCollabTypes.contains(campaign.collabType)) {
         return false;
       }
 
@@ -269,8 +273,10 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
         return false;
       }
 
-      final minBudgetPaise = _minBudgetInr == null ? null : _minBudgetInr! * 100;
-      final maxBudgetPaise = _maxBudgetInr == null ? null : _maxBudgetInr! * 100;
+      final minBudgetPaise =
+          _minBudgetInr == null ? null : _minBudgetInr! * 100;
+      final maxBudgetPaise =
+          _maxBudgetInr == null ? null : _maxBudgetInr! * 100;
 
       if (minBudgetPaise != null && campaign.maxBudget < minBudgetPaise) {
         return false;
@@ -328,11 +334,12 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
           ),
           children: [
             SizedBox(
-              height: 44,
+              height: 36,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _campaignFilterChips.length,
-                separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+                separatorBuilder: (_, __) =>
+                    const SizedBox(width: AppSpacing.sm),
                 itemBuilder: (context, index) {
                   final chip = _campaignFilterChips[index];
                   final isActive = chip == _activeChip;
@@ -357,19 +364,22 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                 _SortPill(
                   label: 'Newest',
                   isActive: _activeSort == _CampaignSort.newest,
-                  onTap: () => setState(() => _activeSort = _CampaignSort.newest),
+                  onTap: () =>
+                      setState(() => _activeSort = _CampaignSort.newest),
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 _SortPill(
                   label: 'Budget ↑',
                   isActive: _activeSort == _CampaignSort.budgetAsc,
-                  onTap: () => setState(() => _activeSort = _CampaignSort.budgetAsc),
+                  onTap: () =>
+                      setState(() => _activeSort = _CampaignSort.budgetAsc),
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 _SortPill(
                   label: 'Budget ↓',
                   isActive: _activeSort == _CampaignSort.budgetDesc,
-                  onTap: () => setState(() => _activeSort = _CampaignSort.budgetDesc),
+                  onTap: () =>
+                      setState(() => _activeSort = _CampaignSort.budgetDesc),
                 ),
               ],
             ),
@@ -417,7 +427,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                       const Padding(
                         padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
                         child: Center(
-                          child: CircularProgressIndicator(color: AppColors.ink),
+                          child:
+                              CircularProgressIndicator(color: AppColors.ink),
                         ),
                       ),
                   ],
@@ -449,7 +460,7 @@ class _NeoPill extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
+          vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
           color: isActive ? AppColors.ink : AppColors.white,
@@ -485,7 +496,7 @@ class _SortPill extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
+          vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
           color: isActive ? AppColors.ink : AppColors.white,

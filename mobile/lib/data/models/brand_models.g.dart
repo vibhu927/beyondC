@@ -104,6 +104,11 @@ _$CollabRequestImpl _$$CollabRequestImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       brandId: json['brandId'] as String,
       creatorId: json['creatorId'] as String,
+      creatorFirstName: json['creatorFirstName'] as String?,
+      creatorFullName: json['creatorFullName'] as String?,
+      creatorInstagramHandle: json['creatorInstagramHandle'] as String?,
+      creatorTier: json['creatorTier'] as String?,
+      collabId: json['collabId'] as String?,
       message: json['message'] as String?,
       budget: (json['budget'] as num?)?.toInt(),
       collabType: $enumDecodeNullable(
@@ -114,6 +119,9 @@ _$CollabRequestImpl _$$CollabRequestImplFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const <String>[],
       status: json['status'] as String? ?? 'pending',
+      expiresAt: json['expiresAt'] == null
+          ? null
+          : DateTime.parse(json['expiresAt'] as String),
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
@@ -127,11 +135,17 @@ Map<String, dynamic> _$$CollabRequestImplToJson(_$CollabRequestImpl instance) =>
       'id': instance.id,
       'brandId': instance.brandId,
       'creatorId': instance.creatorId,
+      'creatorFirstName': instance.creatorFirstName,
+      'creatorFullName': instance.creatorFullName,
+      'creatorInstagramHandle': instance.creatorInstagramHandle,
+      'creatorTier': instance.creatorTier,
+      'collabId': instance.collabId,
       'message': instance.message,
       'budget': instance.budget,
       'collabType': _$CampaignCollabTypeEnumMap[instance.collabType]!,
       'deliverables': instance.deliverables,
       'status': instance.status,
+      'expiresAt': instance.expiresAt?.toIso8601String(),
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
     };

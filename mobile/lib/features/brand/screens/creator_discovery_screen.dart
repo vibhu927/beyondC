@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../providers/brand_provider.dart';
+import '../../../widgets/bc_glass_header_bar.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 import '../widgets/creator_card.dart';
@@ -50,88 +52,101 @@ class _CreatorDiscoveryScreenState
     final creators = _filteredCreators(brandState.creators);
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        title:
-            const Text('Discover Creators 🔍', style: AppTypography.displaySM),
-        actions: [
-          IconButton(
-            onPressed: _openFilterBottomSheet,
-            icon: const Icon(Icons.tune_rounded, color: AppColors.ink),
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.screenPadding,
-          AppSpacing.lg,
-          AppSpacing.screenPadding,
-          AppSpacing.huge,
-        ),
-        children: [
-          BCTextField(
-            label: 'Search',
-            hint: 'Search by niche, name...',
-            controller: _searchController,
-            prefixIcon: const Icon(Icons.search_rounded),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          SizedBox(
-            height: 42,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _niches.length,
-              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
-              itemBuilder: (context, index) {
-                final niche = _niches[index];
-                final active = _activeNiche == niche;
-                return _pill(
-                  label: niche,
-                  active: active,
-                  onTap: () => setState(() => _activeNiche = niche),
-                );
+      body: SafeArea(
+        child: Column(
+          children: [
+            BCGlassHeaderBar(
+              title: 'Find Creators',
+              onBack: () {
+                if (context.canPop()) {
+                  context.pop();
+                }
               },
+              trailing: IconButton(
+                onPressed: _openFilterBottomSheet,
+                icon: const Icon(Icons.tune_rounded, color: Colors.white),
+                tooltip: 'Filters',
+              ),
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          if (brandState.isDiscoveryLoading || brandState.isLoading)
-            Column(
-              children: List.generate(
-                4,
-                (index) => const Padding(
-                  padding: EdgeInsets.only(bottom: AppSpacing.md),
-                  child: CreatorCardSkeleton(),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenPadding,
+                  AppSpacing.lg,
+                  AppSpacing.screenPadding,
+                  AppSpacing.huge,
                 ),
-              ),
-            )
-          else if (creators.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.huge),
-              child: Text(
-                'No creators match these filters.',
-                textAlign: TextAlign.center,
-                style: AppTypography.bodyMD.copyWith(color: AppColors.muted),
-              ),
-            )
-          else
-            Column(
-              children: creators
-                  .map(
-                    (creator) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: CreatorCard(
-                        creator: creator,
-                        onTap: () => _openCreatorDetails(creator),
-                        onSendRequest: () => _openCreatorDetails(creator),
-                      ),
+                children: [
+                  BCTextField(
+                    label: 'Search',
+                    hint: 'Search by niche, name...',
+                    controller: _searchController,
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  SizedBox(
+                    height: 42,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _niches.length,
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(width: AppSpacing.sm),
+                      itemBuilder: (context, index) {
+                        final niche = _niches[index];
+                        final active = _activeNiche == niche;
+                        return _pill(
+                          label: niche,
+                          active: active,
+                          onTap: () => setState(() => _activeNiche = niche),
+                        );
+                      },
                     ),
-                  )
-                  .toList(),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (brandState.isDiscoveryLoading || brandState.isLoading)
+                    Column(
+                      children: List.generate(
+                        4,
+                        (index) => const Padding(
+                          padding: EdgeInsets.only(bottom: AppSpacing.md),
+                          child: CreatorCardSkeleton(),
+                        ),
+                      ),
+                    )
+                  else if (creators.isEmpty)
+                    Padding(
+                      padding:
+                          const EdgeInsets.symmetric(vertical: AppSpacing.huge),
+                      child: Text(
+                        'No creators match these filters.',
+                        textAlign: TextAlign.center,
+                        style: AppTypography.bodyMD
+                            .copyWith(color: AppColors.muted),
+                      ),
+                    )
+                  else
+                    Column(
+                      children: creators
+                          .map(
+                            (creator) => Padding(
+                              padding:
+                                  const EdgeInsets.only(bottom: AppSpacing.md),
+                              child: CreatorCard(
+                                creator: creator,
+                                onTap: () => _openCreatorDetails(creator),
+                                onSendRequest: () =>
+                                    _openCreatorDetails(creator),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                ],
+              ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

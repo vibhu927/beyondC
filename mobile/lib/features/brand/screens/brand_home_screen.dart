@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../core/router/route_names.dart';
@@ -11,12 +10,11 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../providers/notification_provider.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
-import '../../../widgets/bc_app_bar.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
-import '../widgets/creator_card.dart';
 
 class BrandHomeScreen extends ConsumerStatefulWidget {
   const BrandHomeScreen({super.key});
@@ -27,12 +25,140 @@ class BrandHomeScreen extends ConsumerStatefulWidget {
 
 class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
   final ScrollController _scrollController = ScrollController();
-  final GlobalKey _discoveryKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     Future<void>.microtask(_loadInitialData);
+  }
+
+  Future<void> _openNotificationsSheet() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.55,
+          minChildSize: 0.45,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppSpacing.radiusLG),
+                ),
+                border: const Border(
+                  top: BorderSide(color: AppColors.ink, width: 2),
+                ),
+              ),
+              child: Consumer(
+                builder: (context, ref, _) {
+                  final notificationsAsync = ref.watch(notificationProvider);
+                  return notificationsAsync.when(
+                    loading: () => const Center(child: BCAppLoader()),
+                    error: (error, _) => Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.xl),
+                        child: Text(
+                          error.toString(),
+                          textAlign: TextAlign.center,
+                          style: AppTypography.bodyMD,
+                        ),
+                      ),
+                    ),
+                    data: (notifications) {
+                      if (notifications.isEmpty) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(AppSpacing.xl),
+                            child: Text(
+                              'No notifications yet.',
+                              style: AppTypography.bodyMD,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        controller: scrollController,
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.screenPadding,
+                          AppSpacing.lg,
+                          AppSpacing.screenPadding,
+                          AppSpacing.huge,
+                        ),
+                        itemCount: notifications.length,
+                        separatorBuilder: (_, __) => const SizedBox(
+                          height: AppSpacing.sm,
+                        ),
+                        itemBuilder: (context, index) {
+                          final notification = notifications[index];
+                          return BCCard(
+                            child: InkWell(
+                              onTap: () => ref
+                                  .read(notificationProvider.notifier)
+                                  .markRead(notification.id),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          notification.title,
+                                          style: AppTypography.labelMD,
+                                        ),
+                                        const SizedBox(height: AppSpacing.xs),
+                                        Text(
+                                          notification.body.isEmpty
+                                              ? 'New activity'
+                                              : notification.body,
+                                          style: AppTypography.bodySM,
+                                        ),
+                                        const SizedBox(height: AppSpacing.xs),
+                                        Text(
+                                          timeago
+                                              .format(notification.createdAt),
+                                          style: AppTypography.bodyXS,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (!notification.isRead)
+                                    Container(
+                                      margin: const EdgeInsets.only(
+                                        left: AppSpacing.sm,
+                                        top: AppSpacing.sm,
+                                      ),
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.neon,
+                                        borderRadius: BorderRadius.circular(
+                                          AppSpacing.radiusFull,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -55,473 +181,276 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
     ]);
   }
 
-  void _openFiltersSheet() {
-    final activeFilter = ref.read(brandProvider).activeFilter;
-
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLG)),
-        side: BorderSide(color: AppColors.ink, width: 2),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Filter creators', style: AppTypography.displaySM),
-              const SizedBox(height: AppSpacing.lg),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: _filters.map((filter) {
-                  final isActive = filter == activeFilter;
-                  return GestureDetector(
-                    onTap: () {
-                      ref.read(brandProvider.notifier).setActiveFilter(filter);
-                      Navigator.of(context).pop();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        color: isActive ? AppColors.ink : AppColors.white,
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusFull),
-                        border: Border.all(color: AppColors.ink, width: 2),
-                      ),
-                      child: Text(
-                        filter,
-                        style: AppTypography.labelSM.copyWith(
-                          color: isActive ? AppColors.neon : AppColors.ink,
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showCreatorDetails(CreatorPreview creator) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusLG)),
-        side: BorderSide(color: AppColors.ink, width: 2),
-      ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.xl,
-            AppSpacing.xl,
-            AppSpacing.xl,
-            AppSpacing.huge,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: AppColors.blue,
-                      borderRadius:
-                          BorderRadius.circular(AppSpacing.radiusFull),
-                      border: Border.all(color: AppColors.ink, width: 2),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      creator.initials,
-                      style: AppTypography.labelLG
-                          .copyWith(color: AppColors.white),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(creator.firstName, style: AppTypography.displaySM),
-                        const SizedBox(height: AppSpacing.xs),
-                        BCBadge(
-                            label: creator.tier,
-                            variant: _tierBadgeVariant(creator.tier)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: creator.niches
-                    .map((niche) =>
-                        BCBadge(label: niche, variant: BCBadgeVariant.outline))
-                    .toList(),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Text(creator.bio,
-                  style: AppTypography.bodyMD.copyWith(color: AppColors.muted)),
-              const SizedBox(height: AppSpacing.lg),
-              BCCard(
-                shadow: AppShadows.blue,
-                child: Row(
-                  children: [
-                    Expanded(
-                        child: Text(creator.followerRange,
-                            style: AppTypography.labelSM)),
-                    Expanded(
-                      child: Text(
-                        '${creator.engagementRate.toStringAsFixed(1)}% engagement',
-                        style: AppTypography.bodySM,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        _rupees(creator.startingPrice),
-                        style: AppTypography.labelSM,
-                        textAlign: TextAlign.end,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              BCPrimaryButton.dark(
-                label: 'Send Request →',
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  ScaffoldMessenger.of(this.context).showSnackBar(
-                    SnackBar(
-                        content: Text(
-                            'Request sent to ${creator.firstName}. 1 credit used.')),
-                  );
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final brandState = ref.watch(brandProvider);
     final notificationAsync = ref.watch(notificationProvider);
     final brandProfile = brandState.brandProfile;
-    final filteredCreators = brandState.filteredCreators;
     final activityFeed =
         (notificationAsync.valueOrNull ?? const []).take(4).toList();
+    final unreadCount = ref.watch(unreadCountProvider);
 
     return Scaffold(
-      appBar: const BCAppBar(title: 'Brand Home'),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.brand,
         currentIndex: 0,
       ),
-      body: RefreshIndicator(
-        color: AppColors.neon,
-        onRefresh: _refresh,
-        child: CustomScrollView(
-          controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenPadding,
-                AppSpacing.xl,
-                AppSpacing.screenPadding,
-                AppSpacing.huge,
-              ),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  Text(
-                    'Hey, ${brandProfile?.brandName ?? 'Brand'} 👋',
-                    style: AppTypography.displayMD,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Wrap(
-                    spacing: AppSpacing.md,
-                    runSpacing: AppSpacing.md,
-                    children: [
-                      _MiniStatPill(
-                        emoji: '⚡',
-                        label: '${brandState.creditBalance} credits',
-                        backgroundColor: AppColors.blue,
-                        textColor: AppColors.white,
-                      ),
-                      _MiniStatPill(
-                        emoji: '📢',
-                        label: '${brandState.activeCampaignCount} campaigns',
-                        backgroundColor: AppColors.ink,
-                        textColor: AppColors.white,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.xxxl),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _ActionCard(
-                          emoji: '📢',
-                          title: 'Post Campaign',
-                          subtitle: 'Let creators bid for you',
-                          shadow: AppShadows.pink,
-                          onTap: () => context.push(RouteNames.createCampaign),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: _ActionCard(
-                          emoji: '🔍',
-                          title: 'Find Creators',
-                          subtitle: 'Browse and send requests',
-                          shadow: AppShadows.neon,
-                          onTap: () => context.push(RouteNames.brandDiscover),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  BCCard(
-                    shadow: AppShadows.purple,
-                    onTap: () => context.push(RouteNames.createEvent),
-                    child: const Row(
+      body: BCLoadingOverlay(
+        isLoading: brandState.isLoading,
+        child: RefreshIndicator(
+          color: AppColors.neon,
+          onRefresh: _refresh,
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenPadding,
+                  AppSpacing.xl,
+                  AppSpacing.screenPadding,
+                  AppSpacing.huge,
+                ),
+                sliver: SliverList(
+                  delegate: SliverChildListDelegate([
+                    Row(
                       children: [
-                        Text('🎟️', style: TextStyle(fontSize: 30)),
-                        SizedBox(width: AppSpacing.md),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Host an Event',
-                                  style: AppTypography.labelLG),
-                              SizedBox(height: AppSpacing.xs),
-                              Text(
-                                'Invite creators to your IRL event',
-                                style: AppTypography.bodyXS,
-                              ),
-                            ],
+                          child: Text(
+                            'Hey, ${brandProfile?.brandName ?? 'Brand'} 👋',
+                            style: AppTypography.displayMD,
                           ),
                         ),
-                        Icon(Icons.arrow_forward_rounded, color: AppColors.ink),
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            IconButton(
+                              onPressed: _openNotificationsSheet,
+                              icon: const Icon(
+                                Icons.notifications_none_rounded,
+                                color: AppColors.ink,
+                              ),
+                            ),
+                            if (unreadCount > 0)
+                              Positioned(
+                                top: 6,
+                                right: 6,
+                                child: Container(
+                                  width: 9,
+                                  height: 9,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.error,
+                                    borderRadius: BorderRadius.circular(
+                                      AppSpacing.radiusFull,
+                                    ),
+                                    border: Border.all(
+                                      color:
+                                          Theme.of(context).colorScheme.surface,
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.xxxl),
-                  _SectionHeader(
-                    key: _discoveryKey,
-                    title: 'Discover Creators 🔍',
-                    trailing: IconButton(
-                      onPressed: _openFiltersSheet,
-                      icon:
-                          const Icon(Icons.tune_rounded, color: AppColors.ink),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  SizedBox(
-                    height: 44,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _filters.length,
-                      separatorBuilder: (_, __) =>
-                          const SizedBox(width: AppSpacing.sm),
-                      itemBuilder: (context, index) {
-                        final filter = _filters[index];
-                        final isActive = filter == brandState.activeFilter;
-                        return GestureDetector(
-                          onTap: () => ref
-                              .read(brandProvider.notifier)
-                              .setActiveFilter(filter),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.md,
-                                vertical: AppSpacing.sm),
-                            decoration: BoxDecoration(
-                              color: isActive ? AppColors.ink : AppColors.white,
-                              borderRadius:
-                                  BorderRadius.circular(AppSpacing.radiusFull),
-                              border:
-                                  Border.all(color: AppColors.ink, width: 2),
-                            ),
-                            child: Text(
-                              filter,
-                              style: AppTypography.labelSM.copyWith(
-                                color:
-                                    isActive ? AppColors.neon : AppColors.ink,
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  if (brandState.isLoading)
-                    Column(
-                      children: List.generate(
-                        3,
-                        (index) => const Padding(
-                          padding: EdgeInsets.only(bottom: AppSpacing.md),
-                          child: CreatorCardSkeleton(),
+                    const SizedBox(height: AppSpacing.md),
+                    Wrap(
+                      spacing: AppSpacing.md,
+                      runSpacing: AppSpacing.md,
+                      children: [
+                        _MiniStatPill(
+                          emoji: '⚡',
+                          label: '${brandState.creditBalance} credits',
+                          backgroundColor: AppColors.blue,
+                          textColor: AppColors.white,
                         ),
-                      ),
-                    )
-                  else
-                    Column(
-                      children: filteredCreators.map((creator) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                          child: CreatorCard(
-                            creator: creator,
-                            onTap: () => _showCreatorDetails(creator),
-                            onSendRequest: () => _showCreatorDetails(creator),
+                        _MiniStatPill(
+                          emoji: '📢',
+                          label: '${brandState.activeCampaignCount} campaigns',
+                          backgroundColor: AppColors.ink,
+                          textColor: AppColors.white,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xxxl),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _ActionCard(
+                            emoji: '📢',
+                            title: 'Post Campaign',
+                            subtitle: 'Let creators bid for you',
+                            shadow: AppShadows.pink,
+                            onTap: () =>
+                                context.push(RouteNames.createCampaign),
                           ),
-                        );
-                      }).toList(),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Expanded(
+                          child: _ActionCard(
+                            emoji: '🔍',
+                            title: 'Find Creators',
+                            subtitle: 'Browse and send requests',
+                            shadow: AppShadows.neon,
+                            onTap: () => context.push(RouteNames.brandDiscover),
+                          ),
+                        ),
+                      ],
                     ),
-                  const SizedBox(height: AppSpacing.xxxl),
-                  _SectionHeader(
-                    title: 'My Campaigns',
-                    actionLabel: 'Manage →',
-                    onTap: () => context.push(RouteNames.brandCampaigns),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  if (brandState.campaigns.isEmpty)
-                    const _EmptyState(
-                      emoji: '📢',
-                      message: 'No campaigns yet. Post your first one!',
-                    )
-                  else
-                    SizedBox(
-                      height: 196,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) {
-                          final campaign = brandState.campaigns[index];
-                          return SizedBox(
-                            width: 260,
-                            child: BCCard(
-                              shadow: AppShadows.pink,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(campaign.title,
-                                            style: AppTypography.labelLG),
-                                      ),
-                                      BCBadge(
-                                        label: _statusLabel(campaign.status),
-                                        variant:
-                                            _statusVariant(campaign.status),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: AppSpacing.md),
-                                  BCBadge(
-                                    label: '${campaign.bidCount} bids received',
-                                    variant: BCBadgeVariant.neon,
-                                  ),
-                                  const SizedBox(height: AppSpacing.md),
-                                  Text(
-                                    _deadlineCopy(
-                                      campaign.deadline ?? DateTime.now(),
-                                    ),
-                                    style: AppTypography.bodySM
-                                        .copyWith(color: AppColors.muted),
-                                  ),
-                                  const Spacer(),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: BCPrimaryButton.dark(
-                                      label: 'View Bids →',
-                                      onPressed: () => context.push(
-                                        RouteNames.campaignBids
-                                            .replaceFirst(':id', campaign.id),
-                                      ),
-                                      isFullWidth: false,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                    const SizedBox(height: AppSpacing.md),
+                    BCCard(
+                      shadow: AppShadows.purple,
+                      onTap: () => context.push(RouteNames.createEvent),
+                      child: const Row(
+                        children: [
+                          Text('🎟️', style: TextStyle(fontSize: 30)),
+                          SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Host an Event',
+                                    style: AppTypography.labelLG),
+                                SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  'Invite creators to your IRL event',
+                                  style: AppTypography.bodyXS,
+                                ),
+                              ],
                             ),
-                          );
-                        },
-                        separatorBuilder: (_, __) =>
-                            const SizedBox(width: AppSpacing.md),
-                        itemCount: brandState.campaigns.length,
+                          ),
+                          Icon(Icons.arrow_forward_rounded,
+                              color: AppColors.ink),
+                        ],
                       ),
                     ),
-                  const SizedBox(height: AppSpacing.xxxl),
-                  const Text('Recent Activity', style: AppTypography.displaySM),
-                  const SizedBox(height: AppSpacing.lg),
-                  Column(
-                    children: activityFeed.map((activity) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: BCCard(
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 42,
-                                height: 42,
-                                decoration: BoxDecoration(
-                                  color: _activityColor(activity.type),
-                                  borderRadius: BorderRadius.circular(
-                                      AppSpacing.radiusFull),
-                                  border: Border.all(
-                                      color: AppColors.ink, width: 2),
-                                ),
-                                child: Icon(
-                                  _activityIcon(activity.type),
-                                  color: AppColors.white,
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.md),
-                              Expanded(
+                    const SizedBox(height: AppSpacing.xxxl),
+                    _SectionHeader(
+                      title: 'Active Collabs',
+                      actionLabel: 'Manage →',
+                      onTap: () => context.push(RouteNames.brandCollabs),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    if (brandState.activeCollabs.isEmpty)
+                      const _EmptyState(
+                        emoji: '🤝',
+                        message:
+                            'No active collabs yet.\nAccept a bid or request to see live collaborations here.',
+                      )
+                    else
+                      SizedBox(
+                        height: 196,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (context, index) {
+                            final collab = brandState.activeCollabs[index];
+                            return SizedBox(
+                              width: 260,
+                              child: BCCard(
+                                shadow: AppShadows.pink,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(_activityDescription(activity),
-                                        style: AppTypography.bodySM),
-                                    const SizedBox(height: AppSpacing.xs),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(collab.creatorName,
+                                              style: AppTypography.labelLG),
+                                        ),
+                                        BCBadge(
+                                          label:
+                                              _collabStatusLabel(collab.status),
+                                          variant: _collabStatusVariant(
+                                              collab.status),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: AppSpacing.md),
+                                    BCBadge(
+                                      label: collab.campaignTitle,
+                                      variant: BCBadgeVariant.neon,
+                                    ),
+                                    const SizedBox(height: AppSpacing.md),
                                     Text(
-                                      timeago.format(activity.createdAt),
-                                      style: AppTypography.bodyXS,
+                                      _collabMeta(collab),
+                                      style: AppTypography.bodySM
+                                          .copyWith(color: AppColors.muted),
+                                    ),
+                                    const Spacer(),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: BCPrimaryButton.dark(
+                                        label: 'Open Collabs →',
+                                        onPressed: () => context
+                                            .push(RouteNames.brandCollabs),
+                                        isFullWidth: false,
+                                      ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
+                            );
+                          },
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: AppSpacing.md),
+                          itemCount: brandState.activeCollabs.length,
                         ),
-                      );
-                    }).toList(),
-                  ),
-                ]),
+                      ),
+                    const SizedBox(height: AppSpacing.xxxl),
+                    const Text('Recent Activity',
+                        style: AppTypography.displaySM),
+                    const SizedBox(height: AppSpacing.lg),
+                    Column(
+                      children: activityFeed.map((activity) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: BCCard(
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 42,
+                                  height: 42,
+                                  decoration: BoxDecoration(
+                                    color: _activityColor(activity.type),
+                                    borderRadius: BorderRadius.circular(
+                                        AppSpacing.radiusFull),
+                                    border: Border.all(
+                                        color: AppColors.ink, width: 2),
+                                  ),
+                                  child: Icon(
+                                    _activityIcon(activity.type),
+                                    color: AppColors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(_activityDescription(activity),
+                                          style: AppTypography.bodySM),
+                                      const SizedBox(height: AppSpacing.xs),
+                                      Text(
+                                        timeago.format(activity.createdAt),
+                                        style: AppTypography.bodyXS,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ]),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -599,26 +528,21 @@ class _ActionCard extends StatelessWidget {
 
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({
-    super.key,
     required this.title,
     this.actionLabel,
     this.onTap,
-    this.trailing,
   });
 
   final String title;
   final String? actionLabel;
   final VoidCallback? onTap;
-  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Expanded(child: Text(title, style: AppTypography.displaySM)),
-        if (trailing != null)
-          trailing!
-        else if (actionLabel != null && onTap != null)
+        if (actionLabel != null && onTap != null)
           TextButton(
             onPressed: onTap,
             style: TextButton.styleFrom(
@@ -662,19 +586,6 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-const _filters = [
-  'All',
-  'Fashion',
-  'Fitness',
-  'Food',
-  'Tech',
-  'Beauty',
-  'Travel'
-];
-
-String _rupees(int value) =>
-    '₹${NumberFormat.decimalPattern('en_IN').format(value)}';
-
 String _statusLabel(CampaignStatus status) {
   switch (status) {
     case CampaignStatus.active:
@@ -697,20 +608,6 @@ BCBadgeVariant _statusVariant(CampaignStatus status) {
   }
 }
 
-BCBadgeVariant _tierBadgeVariant(String tier) {
-  switch (tier.toLowerCase()) {
-    case 'mid':
-      return BCBadgeVariant.blue;
-    case 'macro':
-      return BCBadgeVariant.purple;
-    case 'nano':
-    case 'micro':
-      return BCBadgeVariant.neon;
-    default:
-      return BCBadgeVariant.outline;
-  }
-}
-
 String _deadlineCopy(DateTime deadline) {
   final duration = deadline.difference(DateTime.now());
   if (duration.isNegative) {
@@ -723,6 +620,40 @@ String _deadlineCopy(DateTime deadline) {
     return '${duration.inHours} hours left';
   }
   return '${duration.inMinutes.clamp(1, 59)} minutes left';
+}
+
+String _collabStatusLabel(String status) {
+  switch (status.toLowerCase()) {
+    case 'in_progress':
+      return 'In Progress';
+    case 'active':
+      return 'Active';
+    default:
+      return 'Live';
+  }
+}
+
+BCBadgeVariant _collabStatusVariant(String status) {
+  switch (status.toLowerCase()) {
+    case 'in_progress':
+      return BCBadgeVariant.blue;
+    case 'active':
+      return BCBadgeVariant.neon;
+    default:
+      return BCBadgeVariant.warning;
+  }
+}
+
+String _collabMeta(ActiveCollabSummary collab) {
+  final amount = collab.agreedAmount;
+  final startedAt = collab.startedAt;
+
+  final amountCopy = amount != null ? 'Rs $amount' : 'Amount not set';
+  final startedCopy = startedAt != null
+      ? 'Started ${timeago.format(startedAt)}'
+      : 'Start date pending';
+
+  return '$amountCopy • $startedCopy';
 }
 
 Color _activityColor(String type) {

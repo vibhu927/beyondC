@@ -1,9 +1,15 @@
-import { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { requireAdminApiContext } from '@/lib/admin/auth'
 import { apiError, apiSuccess } from '@/lib/admin/api'
 import { writeAdminLog } from '@/lib/admin/logs'
 import { createServiceClient } from '@/lib/supabase/service'
 import { parseRequestBody } from '@/lib/admin/request'
+
+function shouldReturnJson(request: NextRequest): boolean {
+  const contentType = request.headers.get('content-type') || ''
+  const accept = request.headers.get('accept') || ''
+  return contentType.includes('application/json') || accept.includes('application/json')
+}
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const auth = await requireAdminApiContext(request)
@@ -56,6 +62,11 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     targetId: params.id,
     details: { amount, reason, nextBalance },
   })
+
+  if (!shouldReturnJson(request)) {
+    const url = new URL('/admin/users?tab=creators', request.url)
+    return NextResponse.redirect(url, 303)
+  }
 
   return apiSuccess({ balance: nextBalance, transaction: tx })
 }

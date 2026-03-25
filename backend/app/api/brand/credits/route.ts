@@ -14,14 +14,40 @@ export async function GET(request: NextRequest) {
     }
 
     // Get credits balance
-    const { data: brandProfile, error: profileError } = await supabase
+    let { data: brandProfile, error: profileError } = await supabase
       .from('brand_profiles')
-      .select('credits_balance')
+      .select('credit_balance')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (profileError) {
       return NextResponse.json({ error: profileError.message }, { status: 400 })
+    }
+
+    if (!brandProfile) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name,display_name,email')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      const fallbackBrandName = profile?.full_name || profile?.display_name || profile?.email?.split('@')?.[0] || 'Brand'
+
+      const created = await supabase
+        .from('brand_profiles')
+        .insert({
+          id: user.id,
+          brand_name: fallbackBrandName,
+          credit_balance: 0,
+        })
+        .select('credit_balance')
+        .single()
+
+      if (created.error) {
+        return NextResponse.json({ error: created.error.message }, { status: 400 })
+      }
+
+      brandProfile = created.data
     }
 
     // Get recent transactions
@@ -37,7 +63,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      balance: brandProfile.credits_balance,
+      balance: brandProfile?.credit_balance ?? 0,
       transactions,
     })
   } catch (error: any) {

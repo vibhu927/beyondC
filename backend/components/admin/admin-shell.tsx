@@ -25,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Collabs', href: '/admin/collabs', page: 'collabs', icon: '🤝' },
   { label: 'Events', href: '/admin/events', page: 'events', icon: '🎟️' },
   { label: 'Payments', href: '/admin/payments', page: 'payments', icon: '💳' },
+  { label: 'Wallets', href: '/admin/wallets', page: 'payments', icon: '🪙' },
   { label: 'Disputes', href: '/admin/disputes', page: 'disputes', icon: '⚠️' },
   { label: 'Notifications', href: '/admin/notifications', page: 'notifications', icon: '🔔' },
   { label: 'Analytics', href: '/admin/analytics', page: 'analytics', icon: '📈' },

@@ -43,9 +43,6 @@ export async function GET(request: NextRequest) {
       query = query.lte('followers_count', parseInt(max_followers))
     }
 
-    // Only show creators who are onboarded
-    query = query.eq('onboarded', true)
-
     // Apply pagination
     query = query
       .order('followers_count', { ascending: false })

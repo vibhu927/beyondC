@@ -12,6 +12,7 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../providers/notification_provider.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_app_bar.dart';
 import '../../../widgets/bc_bottom_nav.dart';
@@ -63,8 +64,9 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
         color: AppColors.neon,
         onRefresh: _refresh,
         child: homeAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.ink),
+          loading: () => const BCLoadingOverlay(
+            isLoading: true,
+            child: SizedBox.expand(),
           ),
           error: (error, _) => BCErrorState(
             message: error.toString(),
@@ -175,13 +177,15 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                       if (home.requests.isEmpty)
                         const BCEmptyState(
                           emoji: '📭',
-                          message: 'No requests yet. Brands will reach out soon!',
+                          message:
+                              'No requests yet. Brands will reach out soon!',
                         )
                       else
                         Column(
                           children: home.requests.take(3).map((request) {
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                              padding:
+                                  const EdgeInsets.only(bottom: AppSpacing.md),
                               child: BCCard(
                                 shadow: AppShadows.blue,
                                 child: Column(
@@ -206,7 +210,8 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                           child: Text(
                                             request.brandInitial,
                                             style: AppTypography.labelMD
-                                                .copyWith(color: AppColors.white),
+                                                .copyWith(
+                                                    color: AppColors.white),
                                           ),
                                         ),
                                         const SizedBox(width: AppSpacing.md),
@@ -219,9 +224,11 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                                 'A brand wants to collab',
                                                 style: AppTypography.labelLG,
                                               ),
-                                              const SizedBox(height: AppSpacing.xs),
+                                              const SizedBox(
+                                                  height: AppSpacing.xs),
                                               Text(
-                                                timeago.format(request.receivedAt),
+                                                timeago
+                                                    .format(request.receivedAt),
                                                 style: AppTypography.bodyXS,
                                               ),
                                             ],
@@ -233,13 +240,16 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                     Row(
                                       children: [
                                         BCBadge(
-                                          label: Formatters.currency(request.budget),
+                                          label: Formatters.currency(
+                                              request.budget),
                                           variant: BCBadgeVariant.neon,
                                         ),
                                         const SizedBox(width: AppSpacing.sm),
                                         BCBadge(
-                                          label: _collabTypeLabel(request.collabType),
-                                          variant: _collabTypeVariant(request.collabType),
+                                          label: _collabTypeLabel(
+                                              request.collabType),
+                                          variant: _collabTypeVariant(
+                                              request.collabType),
                                         ),
                                       ],
                                     ),
@@ -249,8 +259,8 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                         _CompactActionButton(
                                           label: 'View',
                                           isFilled: false,
-                                          onTap: () =>
-                                              context.push(RouteNames.creatorRequests),
+                                          onTap: () => context
+                                              .push(RouteNames.creatorRequests),
                                         ),
                                         const SizedBox(width: AppSpacing.sm),
                                         _CompactActionButton(
@@ -259,22 +269,27 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                           onTap: () async {
                                             try {
                                               await ref
-                                                  .read(creatorActionsProvider.notifier)
+                                                  .read(creatorActionsProvider
+                                                      .notifier)
                                                   .respondToRequest(
                                                     requestId: request.id,
                                                     action: 'accept',
                                                   );
                                               if (!context.mounted) return;
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
                                                 const SnackBar(
-                                                  content: Text('Request accepted.'),
+                                                  content:
+                                                      Text('Request accepted.'),
                                                 ),
                                               );
                                             } catch (_) {
                                               if (!context.mounted) return;
-                                              ScaffoldMessenger.of(context).showSnackBar(
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
                                                 const SnackBar(
-                                                  content: Text('Could not accept request.'),
+                                                  content: Text(
+                                                      'Could not accept request.'),
                                                 ),
                                               );
                                             }
@@ -305,7 +320,8 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                         Column(
                           children: home.activeCollabs.take(2).map((collab) {
                             return Padding(
-                              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                              padding:
+                                  const EdgeInsets.only(bottom: AppSpacing.md),
                               child: BCCard(
                                 shadow: AppShadows.neon,
                                 child: Column(
@@ -334,11 +350,14 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                     Row(
                                       children: List.generate(4, (index) {
                                         final step = index + 1;
-                                        final isCurrent = collab.currentStep == step;
-                                        final isDone = collab.currentStep > step;
+                                        final isCurrent =
+                                            collab.currentStep == step;
+                                        final isDone =
+                                            collab.currentStep > step;
                                         return Padding(
                                           padding: EdgeInsets.only(
-                                            right: index == 3 ? 0 : AppSpacing.sm,
+                                            right:
+                                                index == 3 ? 0 : AppSpacing.sm,
                                           ),
                                           child: Container(
                                             width: 16,
@@ -364,8 +383,8 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                       alignment: Alignment.centerRight,
                                       child: BCPrimaryButton.dark(
                                         label: 'Continue →',
-                                        onPressed: () =>
-                                            context.push(RouteNames.creatorCollabs),
+                                        onPressed: () => context
+                                            .push(RouteNames.creatorCollabs),
                                         isFullWidth: false,
                                       ),
                                     ),
@@ -451,7 +470,8 @@ class _QuickStatCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(label, style: AppTypography.bodyXS, textAlign: TextAlign.center),
+            Text(label,
+                style: AppTypography.bodyXS, textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.sm),
             Text(
               value,

@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
           platforms,
           followers_count,
           avg_rating,
+          instagram_handle,
           tier
         )
       `)
@@ -34,7 +35,38 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    return NextResponse.json({ requests })
+    const requestIds = (requests ?? []).map((item: any) => item.id)
+    const creatorIds = Array.from(new Set((requests ?? []).map((item: any) => item.creator_id).filter(Boolean)))
+
+    const { data: creatorUsers } = creatorIds.length
+      ? await supabase
+          .from('profiles')
+          .select('id,first_name,full_name')
+          .in('id', creatorIds)
+      : { data: [] as any[] }
+    const { data: linkedCollabs } = requestIds.length
+      ? await supabase
+          .from('collabs')
+          .select('id,source_id')
+          .eq('brand_id', user.id)
+          .eq('source', 'direct_request')
+          .in('source_id', requestIds)
+      : { data: [] as any[] }
+
+    const collabByRequestId = new Map((linkedCollabs ?? []).map((row: any) => [row.source_id, row.id]))
+    const creatorUserById = new Map((creatorUsers ?? []).map((row: any) => [row.id, row]))
+
+    const enriched = (requests ?? []).map((item: any) => {
+      const creatorUser = creatorUserById.get(item.creator_id)
+      return {
+        ...item,
+        creator_first_name: creatorUser?.first_name ?? null,
+        creator_full_name: creatorUser?.full_name ?? null,
+        collab_id: collabByRequestId.get(item.id) ?? null,
+      }
+    })
+
+    return NextResponse.json({ requests: enriched })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
@@ -57,7 +89,7 @@ export async function POST(request: NextRequest) {
     // Check if brand has enough credits
     const { data: brandProfile, error: brandError } = await supabase
       .from('brand_profiles')
-      .select('credits_balance')
+      .select('credit_balance')
       .eq('id', user.id)
       .single()
 
@@ -65,19 +97,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Brand profile not found' }, { status: 404 })
     }
 
-    if (brandProfile.credits_balance < 1) {
+    if ((brandProfile.credit_balance ?? 0) < 1) {
       return NextResponse.json(
-        { error: 'Insufficient credits', required: 1, current: brandProfile.credits_balance },
+        { error: 'Insufficient credits', required: 1, current: brandProfile.credit_balance ?? 0 },
         { status: 400 }
       )
     }
 
     // Deduct 1 credit
-    const newCredits = brandProfile.credits_balance - 1
+    const newCredits = (brandProfile.credit_balance ?? 0) - 1
     
     await supabase
       .from('brand_profiles')
-      .update({ credits_balance: newCredits })
+      .update({ credit_balance: newCredits })
       .eq('id', user.id)
 
     // Record credit transaction

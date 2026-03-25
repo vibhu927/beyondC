@@ -27,6 +27,8 @@ export default async function AdminUsersPage({
   const page = Number(searchParams.page ?? '1') || 1
   const from = (page - 1) * PAGE_SIZE
   const to = from + PAGE_SIZE - 1
+  const creatorsTabHref = `/admin/users?tab=creators${query ? `&q=${encodeURIComponent(query)}` : ''}`
+  const brandsTabHref = `/admin/users?tab=brands${query ? `&q=${encodeURIComponent(query)}` : ''}`
 
   const service = createServiceClient()
 
@@ -73,10 +75,10 @@ export default async function AdminUsersPage({
           </form>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue={tab}>
+          <Tabs value={tab}>
             <TabsList>
-              <TabsTrigger value="creators" asChild><Link href="/admin/users?tab=creators">Creators</Link></TabsTrigger>
-              <TabsTrigger value="brands" asChild><Link href="/admin/users?tab=brands">Brands</Link></TabsTrigger>
+              <TabsTrigger value="creators" asChild><Link href={creatorsTabHref}>Creators</Link></TabsTrigger>
+              <TabsTrigger value="brands" asChild><Link href={brandsTabHref}>Brands</Link></TabsTrigger>
             </TabsList>
 
             <TabsContent value="creators">

@@ -11,6 +11,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../../../widgets/bc_glass_header_bar.dart';
 import '../../../widgets/inputs/bc_dropdown.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 
@@ -123,7 +124,11 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Campaign posted successfully.')),
     );
-    context.go(RouteNames.brandCampaigns);
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(RouteNames.brandCampaigns);
+    }
   }
 
   String? _validateStepOne() {
@@ -173,31 +178,35 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.close_rounded, color: AppColors.ink),
-        ),
-        title: const Text('Post Campaign', style: AppTypography.displaySM),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.screenPadding,
-          AppSpacing.lg,
-          AppSpacing.screenPadding,
-          AppSpacing.huge,
-        ),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _StepIndicator(
-                currentStep: _step == _PostStep.campaignInfo ? 0 : 1),
-            const SizedBox(height: AppSpacing.xl),
-            if (_step == _PostStep.campaignInfo) _buildCampaignInfoStep(),
-            if (_step == _PostStep.targetCreator) _buildTargetCreatorStep(),
+            BCGlassHeaderBar(
+              title: 'Post Campaign',
+              onBack: () => context.pop(),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenPadding,
+                  AppSpacing.lg,
+                  AppSpacing.screenPadding,
+                  AppSpacing.huge,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _StepIndicator(
+                        currentStep: _step == _PostStep.campaignInfo ? 0 : 1),
+                    const SizedBox(height: AppSpacing.xl),
+                    if (_step == _PostStep.campaignInfo)
+                      _buildCampaignInfoStep(),
+                    if (_step == _PostStep.targetCreator)
+                      _buildTargetCreatorStep(),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

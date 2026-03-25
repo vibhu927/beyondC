@@ -17,6 +17,7 @@ import '../../features/brand/screens/brand_events_screen.dart';
 import '../../features/brand/screens/create_event_screen.dart';
 import '../../features/brand/screens/event_invites_screen.dart';
 import '../../features/brand/screens/brand_profile_screen.dart';
+import '../../features/brand/screens/brand_requests_screen.dart';
 import '../../features/brand/screens/credits_screen.dart';
 import '../../features/creator/screens/creator_home_screen.dart';
 import '../../features/creator/screens/campaigns_screen.dart';
@@ -62,6 +63,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: RouteNames.splash,
     refreshListenable: refreshListenable,
     redirect: (context, state) {
+      // Always allow splash screen so both logged-in and logged-out users
+      // see the same startup loading experience.
+      if (state.matchedLocation == RouteNames.splash) {
+        return null;
+      }
+
       final authState = ref.read(authProvider);
       final isAuthenticated = authState.user != null;
       final isAuthRoute = [
@@ -132,11 +139,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Creator Portal
       GoRoute(
         path: RouteNames.creatorHome,
-        builder: (c, s) => const CreatorHomeScreen(),
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: CreatorHomeScreen(),
+        ),
       ),
       GoRoute(
         path: RouteNames.creatorCampaigns,
-        builder: (c, s) => const CampaignsScreen(),
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: CampaignsScreen(),
+        ),
       ),
       GoRoute(
         path: RouteNames.campaignDetail,
@@ -144,7 +155,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.myBids,
-        builder: (c, s) => const PlaceholderScreen('My Bids'),
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: PlaceholderScreen('My Bids'),
+        ),
       ),
       GoRoute(
         path: RouteNames.creatorRequests,
@@ -164,7 +177,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.creatorProfile,
-        builder: (c, s) => const CreatorProfileScreen(),
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: CreatorProfileScreen(),
+        ),
       ),
       GoRoute(
         path: RouteNames.creatorWallet,
@@ -183,11 +198,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       // Brand Portal
       GoRoute(
         path: RouteNames.brandHome,
-        builder: (c, s) => const BrandHomeScreen(),
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: BrandHomeScreen(),
+        ),
       ),
       GoRoute(
         path: RouteNames.brandCampaigns,
-        builder: (c, s) => const BrandCampaignsScreen(),
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: BrandCampaignsScreen(),
+        ),
       ),
       GoRoute(
         path: RouteNames.campaignBids,
@@ -203,7 +222,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.brandRequests,
-        builder: (c, s) => const PlaceholderScreen('Brand Requests'),
+        builder: (c, s) => const BrandRequestsScreen(),
       ),
       GoRoute(
         path: RouteNames.brandChat,
@@ -211,7 +230,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.brandProfile,
-        builder: (c, s) => const BrandProfileScreen(),
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: BrandProfileScreen(),
+        ),
       ),
       GoRoute(
         path: RouteNames.brandCredits,

@@ -9,6 +9,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
+import '../../../widgets/bc_glass_header_bar.dart';
 import '../../../widgets/inputs/bc_dropdown.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 
@@ -115,7 +116,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     );
 
     if (eventId == null) return;
-    context.go(RouteNames.brandEvents);
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(RouteNames.brandEvents);
+    }
   }
 
   String? _validate() {
@@ -146,159 +151,173 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        title: const Text('Host an Event 🎟️', style: AppTypography.displaySM),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.screenPadding,
-          AppSpacing.lg,
-          AppSpacing.screenPadding,
-          AppSpacing.huge,
-        ),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            BCTextField(
-              label: 'Event Name',
-              hint: 'Air Max Day Launch Party',
-              controller: _nameController,
+            BCGlassHeaderBar(
+              title: 'Host an Event',
+              onBack: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(RouteNames.brandEvents);
+                }
+              },
             ),
-            const SizedBox(height: AppSpacing.lg),
-            BCDropdown(
-              label: 'Event Type',
-              hint: 'Choose type',
-              value: _eventType,
-              items: _eventTypes,
-              onChanged: (value) => setState(() => _eventType = value),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            GestureDetector(
-              onTap: _pickDateTime,
-              child: AbsorbPointer(
-                child: BCTextField(
-                  label: 'Event Date',
-                  hint: 'Select date and time',
-                  controller: _dateController,
-                  suffixIcon: const Icon(Icons.calendar_today_rounded),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenPadding,
+                  AppSpacing.lg,
+                  AppSpacing.screenPadding,
+                  AppSpacing.huge,
                 ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                const Expanded(
-                  child: Text('Is Virtual?', style: AppTypography.labelMD),
-                ),
-                Switch(
-                  value: _isVirtual,
-                  activeColor: AppColors.neon,
-                  onChanged: (value) => setState(() => _isVirtual = value),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            if (!_isVirtual) ...[
-              BCTextField(
-                label: 'Venue Name',
-                hint: 'Skyline Rooftop',
-                controller: _venueNameController,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              BCTextField(
-                label: 'Venue Address',
-                hint: 'Street and locality',
-                maxLines: 2,
-                controller: _venueAddressController,
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              BCTextField(
-                label: 'City',
-                hint: 'Mumbai',
-                controller: _cityController,
-              ),
-            ] else ...[
-              BCTextField(
-                label: 'Virtual Link',
-                hint: 'https://meet.example.com/abc',
-                controller: _virtualLinkController,
-              ),
-            ],
-            const SizedBox(height: AppSpacing.lg),
-            BCTextField(
-              label: 'Total Creator Slots',
-              hint: '20',
-              keyboardType: TextInputType.number,
-              controller: _slotsController,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            BCTextField(
-              label: 'What Creators Get',
-              hint: 'Goodie bag + INR 2,000 appearance fee',
-              maxLines: 3,
-              controller: _creatorBenefitsController,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const Text('Target Niche', style: AppTypography.labelMD),
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: _niches
-                  .map(
-                    (niche) => _pill(
-                      label: niche,
-                      active: _targetNiches.contains(niche),
-                      onTap: () {
-                        setState(() {
-                          if (_targetNiches.contains(niche)) {
-                            _targetNiches.remove(niche);
-                          } else {
-                            _targetNiches.add(niche);
-                          }
-                        });
-                      },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BCTextField(
+                      label: 'Event Name',
+                      hint: 'Air Max Day Launch Party',
+                      controller: _nameController,
                     ),
-                  )
-                  .toList(),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const Text('Target Tier', style: AppTypography.labelMD),
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: _tiers
-                  .map(
-                    (tier) => _pill(
-                      label: tier,
-                      active: _targetTiers.contains(tier),
-                      onTap: () {
-                        setState(() {
-                          if (_targetTiers.contains(tier)) {
-                            _targetTiers.remove(tier);
-                          } else {
-                            _targetTiers.add(tier);
-                          }
-                        });
-                      },
+                    const SizedBox(height: AppSpacing.lg),
+                    BCDropdown(
+                      label: 'Event Type',
+                      hint: 'Choose type',
+                      value: _eventType,
+                      items: _eventTypes,
+                      onChanged: (value) => setState(() => _eventType = value),
                     ),
-                  )
-                  .toList(),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            BCPrimaryButton.pink(
-              label: 'Create Event →',
-              onPressed: _isSubmitting ? null : _submit,
-              isLoading: _isSubmitting,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'No credit cost on creation. Credits are deducted when invites are sent.',
-              style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                    const SizedBox(height: AppSpacing.lg),
+                    GestureDetector(
+                      onTap: _pickDateTime,
+                      child: AbsorbPointer(
+                        child: BCTextField(
+                          label: 'Event Date',
+                          hint: 'Select date and time',
+                          controller: _dateController,
+                          suffixIcon: const Icon(Icons.calendar_today_rounded),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child:
+                              Text('Is Virtual?', style: AppTypography.labelMD),
+                        ),
+                        Switch(
+                          value: _isVirtual,
+                          activeColor: AppColors.neon,
+                          onChanged: (value) =>
+                              setState(() => _isVirtual = value),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    if (!_isVirtual) ...[
+                      BCTextField(
+                        label: 'Venue Name',
+                        hint: 'Skyline Rooftop',
+                        controller: _venueNameController,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      BCTextField(
+                        label: 'Venue Address',
+                        hint: 'Street and locality',
+                        maxLines: 2,
+                        controller: _venueAddressController,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      BCTextField(
+                        label: 'City',
+                        hint: 'Mumbai',
+                        controller: _cityController,
+                      ),
+                    ] else ...[
+                      BCTextField(
+                        label: 'Virtual Link',
+                        hint: 'https://meet.example.com/abc',
+                        controller: _virtualLinkController,
+                      ),
+                    ],
+                    const SizedBox(height: AppSpacing.lg),
+                    BCTextField(
+                      label: 'Total Creator Slots',
+                      hint: '20',
+                      keyboardType: TextInputType.number,
+                      controller: _slotsController,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    BCTextField(
+                      label: 'What Creators Get',
+                      hint: 'Goodie bag + INR 2,000 appearance fee',
+                      maxLines: 3,
+                      controller: _creatorBenefitsController,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    const Text('Target Niche', style: AppTypography.labelMD),
+                    const SizedBox(height: AppSpacing.sm),
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: _niches
+                          .map(
+                            (niche) => _pill(
+                              label: niche,
+                              active: _targetNiches.contains(niche),
+                              onTap: () {
+                                setState(() {
+                                  if (_targetNiches.contains(niche)) {
+                                    _targetNiches.remove(niche);
+                                  } else {
+                                    _targetNiches.add(niche);
+                                  }
+                                });
+                              },
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    const Text('Target Tier', style: AppTypography.labelMD),
+                    const SizedBox(height: AppSpacing.sm),
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: _tiers
+                          .map(
+                            (tier) => _pill(
+                              label: tier,
+                              active: _targetTiers.contains(tier),
+                              onTap: () {
+                                setState(() {
+                                  if (_targetTiers.contains(tier)) {
+                                    _targetTiers.remove(tier);
+                                  } else {
+                                    _targetTiers.add(tier);
+                                  }
+                                });
+                              },
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    BCPrimaryButton(
+                      label: _isSubmitting ? 'Creating...' : 'Create Event',
+                      onPressed: _isSubmitting ? null : _submit,
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      'No credit cost on creation. Credits are deducted when invites are sent.',
+                      style:
+                          AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

@@ -18,8 +18,9 @@ void main() async {
   // Status bar style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
+      statusBarColor: Colors.white,
       statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
     ),
   );
 
@@ -27,6 +28,10 @@ void main() async {
   await Supabase.initialize(
     url: ApiConstants.supabaseUrl,
     anonKey: ApiConstants.supabaseAnonKey,
+    authOptions: const FlutterAuthClientOptions(
+      autoRefreshToken: true,
+      detectSessionInUri: false,
+    ),
   );
 
   if (kDebugMode) {

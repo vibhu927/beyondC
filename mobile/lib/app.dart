@@ -19,6 +19,13 @@ class BeyondCApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       routerConfig: router,
+      builder: (context, child) {
+        return SafeArea(
+          top: true,
+          bottom: false,
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
   }
 }

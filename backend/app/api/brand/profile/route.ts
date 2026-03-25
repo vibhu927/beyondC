@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get brand profile with all details
-    const { data: profile, error } = await supabase
+    let { data: profile, error } = await supabase
       .from('profiles')
       .select(`
         *,
@@ -24,6 +24,39 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
+    const currentBrand = Array.isArray(profile?.brand) ? profile.brand[0] : profile?.brand
+    if (!currentBrand) {
+      const fallbackBrandName = profile?.full_name || profile?.display_name || profile?.email?.split('@')?.[0] || 'Brand'
+
+      const { error: createBrandError } = await supabase
+        .from('brand_profiles')
+        .insert({
+          id: user.id,
+          brand_name: fallbackBrandName,
+          credit_balance: 0,
+        })
+
+      if (createBrandError) {
+        return NextResponse.json({ error: createBrandError.message }, { status: 400 })
+      }
+
+      const refetch = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          brand:brand_profiles (*)
+        `)
+        .eq('id', user.id)
+        .single()
+
+      profile = refetch.data
+      error = refetch.error
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
     }
 
     return NextResponse.json({ profile })

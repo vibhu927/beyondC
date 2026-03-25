@@ -1012,11 +1012,17 @@ mixin _$CollabRequest {
   String get id => throw _privateConstructorUsedError;
   String get brandId => throw _privateConstructorUsedError;
   String get creatorId => throw _privateConstructorUsedError;
+  String? get creatorFirstName => throw _privateConstructorUsedError;
+  String? get creatorFullName => throw _privateConstructorUsedError;
+  String? get creatorInstagramHandle => throw _privateConstructorUsedError;
+  String? get creatorTier => throw _privateConstructorUsedError;
+  String? get collabId => throw _privateConstructorUsedError;
   String? get message => throw _privateConstructorUsedError;
   int? get budget => throw _privateConstructorUsedError;
   CampaignCollabType get collabType => throw _privateConstructorUsedError;
   List<String> get deliverables => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
+  DateTime? get expiresAt => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
 
@@ -1040,11 +1046,17 @@ abstract class $CollabRequestCopyWith<$Res> {
       {String id,
       String brandId,
       String creatorId,
+      String? creatorFirstName,
+      String? creatorFullName,
+      String? creatorInstagramHandle,
+      String? creatorTier,
+      String? collabId,
       String? message,
       int? budget,
       CampaignCollabType collabType,
       List<String> deliverables,
       String status,
+      DateTime? expiresAt,
       DateTime? createdAt,
       DateTime? updatedAt});
 }
@@ -1067,11 +1079,17 @@ class _$CollabRequestCopyWithImpl<$Res, $Val extends CollabRequest>
     Object? id = null,
     Object? brandId = null,
     Object? creatorId = null,
+    Object? creatorFirstName = freezed,
+    Object? creatorFullName = freezed,
+    Object? creatorInstagramHandle = freezed,
+    Object? creatorTier = freezed,
+    Object? collabId = freezed,
     Object? message = freezed,
     Object? budget = freezed,
     Object? collabType = null,
     Object? deliverables = null,
     Object? status = null,
+    Object? expiresAt = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
@@ -1088,6 +1106,26 @@ class _$CollabRequestCopyWithImpl<$Res, $Val extends CollabRequest>
           ? _value.creatorId
           : creatorId // ignore: cast_nullable_to_non_nullable
               as String,
+      creatorFirstName: freezed == creatorFirstName
+          ? _value.creatorFirstName
+          : creatorFirstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      creatorFullName: freezed == creatorFullName
+          ? _value.creatorFullName
+          : creatorFullName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      creatorInstagramHandle: freezed == creatorInstagramHandle
+          ? _value.creatorInstagramHandle
+          : creatorInstagramHandle // ignore: cast_nullable_to_non_nullable
+              as String?,
+      creatorTier: freezed == creatorTier
+          ? _value.creatorTier
+          : creatorTier // ignore: cast_nullable_to_non_nullable
+              as String?,
+      collabId: freezed == collabId
+          ? _value.collabId
+          : collabId // ignore: cast_nullable_to_non_nullable
+              as String?,
       message: freezed == message
           ? _value.message
           : message // ignore: cast_nullable_to_non_nullable
@@ -1108,6 +1146,10 @@ class _$CollabRequestCopyWithImpl<$Res, $Val extends CollabRequest>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as String,
+      expiresAt: freezed == expiresAt
+          ? _value.expiresAt
+          : expiresAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -1132,11 +1174,17 @@ abstract class _$$CollabRequestImplCopyWith<$Res>
       {String id,
       String brandId,
       String creatorId,
+      String? creatorFirstName,
+      String? creatorFullName,
+      String? creatorInstagramHandle,
+      String? creatorTier,
+      String? collabId,
       String? message,
       int? budget,
       CampaignCollabType collabType,
       List<String> deliverables,
       String status,
+      DateTime? expiresAt,
       DateTime? createdAt,
       DateTime? updatedAt});
 }
@@ -1157,11 +1205,17 @@ class __$$CollabRequestImplCopyWithImpl<$Res>
     Object? id = null,
     Object? brandId = null,
     Object? creatorId = null,
+    Object? creatorFirstName = freezed,
+    Object? creatorFullName = freezed,
+    Object? creatorInstagramHandle = freezed,
+    Object? creatorTier = freezed,
+    Object? collabId = freezed,
     Object? message = freezed,
     Object? budget = freezed,
     Object? collabType = null,
     Object? deliverables = null,
     Object? status = null,
+    Object? expiresAt = freezed,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
   }) {
@@ -1178,6 +1232,26 @@ class __$$CollabRequestImplCopyWithImpl<$Res>
           ? _value.creatorId
           : creatorId // ignore: cast_nullable_to_non_nullable
               as String,
+      creatorFirstName: freezed == creatorFirstName
+          ? _value.creatorFirstName
+          : creatorFirstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      creatorFullName: freezed == creatorFullName
+          ? _value.creatorFullName
+          : creatorFullName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      creatorInstagramHandle: freezed == creatorInstagramHandle
+          ? _value.creatorInstagramHandle
+          : creatorInstagramHandle // ignore: cast_nullable_to_non_nullable
+              as String?,
+      creatorTier: freezed == creatorTier
+          ? _value.creatorTier
+          : creatorTier // ignore: cast_nullable_to_non_nullable
+              as String?,
+      collabId: freezed == collabId
+          ? _value.collabId
+          : collabId // ignore: cast_nullable_to_non_nullable
+              as String?,
       message: freezed == message
           ? _value.message
           : message // ignore: cast_nullable_to_non_nullable
@@ -1198,6 +1272,10 @@ class __$$CollabRequestImplCopyWithImpl<$Res>
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
               as String,
+      expiresAt: freezed == expiresAt
+          ? _value.expiresAt
+          : expiresAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
       createdAt: freezed == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -1217,11 +1295,17 @@ class _$CollabRequestImpl implements _CollabRequest {
       {required this.id,
       required this.brandId,
       required this.creatorId,
+      this.creatorFirstName,
+      this.creatorFullName,
+      this.creatorInstagramHandle,
+      this.creatorTier,
+      this.collabId,
       this.message,
       this.budget,
       this.collabType = CampaignCollabType.paid,
       final List<String> deliverables = const <String>[],
       this.status = 'pending',
+      this.expiresAt,
       this.createdAt,
       this.updatedAt})
       : _deliverables = deliverables;
@@ -1235,6 +1319,16 @@ class _$CollabRequestImpl implements _CollabRequest {
   final String brandId;
   @override
   final String creatorId;
+  @override
+  final String? creatorFirstName;
+  @override
+  final String? creatorFullName;
+  @override
+  final String? creatorInstagramHandle;
+  @override
+  final String? creatorTier;
+  @override
+  final String? collabId;
   @override
   final String? message;
   @override
@@ -1255,13 +1349,15 @@ class _$CollabRequestImpl implements _CollabRequest {
   @JsonKey()
   final String status;
   @override
+  final DateTime? expiresAt;
+  @override
   final DateTime? createdAt;
   @override
   final DateTime? updatedAt;
 
   @override
   String toString() {
-    return 'CollabRequest(id: $id, brandId: $brandId, creatorId: $creatorId, message: $message, budget: $budget, collabType: $collabType, deliverables: $deliverables, status: $status, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'CollabRequest(id: $id, brandId: $brandId, creatorId: $creatorId, creatorFirstName: $creatorFirstName, creatorFullName: $creatorFullName, creatorInstagramHandle: $creatorInstagramHandle, creatorTier: $creatorTier, collabId: $collabId, message: $message, budget: $budget, collabType: $collabType, deliverables: $deliverables, status: $status, expiresAt: $expiresAt, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -1273,6 +1369,16 @@ class _$CollabRequestImpl implements _CollabRequest {
             (identical(other.brandId, brandId) || other.brandId == brandId) &&
             (identical(other.creatorId, creatorId) ||
                 other.creatorId == creatorId) &&
+            (identical(other.creatorFirstName, creatorFirstName) ||
+                other.creatorFirstName == creatorFirstName) &&
+            (identical(other.creatorFullName, creatorFullName) ||
+                other.creatorFullName == creatorFullName) &&
+            (identical(other.creatorInstagramHandle, creatorInstagramHandle) ||
+                other.creatorInstagramHandle == creatorInstagramHandle) &&
+            (identical(other.creatorTier, creatorTier) ||
+                other.creatorTier == creatorTier) &&
+            (identical(other.collabId, collabId) ||
+                other.collabId == collabId) &&
             (identical(other.message, message) || other.message == message) &&
             (identical(other.budget, budget) || other.budget == budget) &&
             (identical(other.collabType, collabType) ||
@@ -1280,6 +1386,8 @@ class _$CollabRequestImpl implements _CollabRequest {
             const DeepCollectionEquality()
                 .equals(other._deliverables, _deliverables) &&
             (identical(other.status, status) || other.status == status) &&
+            (identical(other.expiresAt, expiresAt) ||
+                other.expiresAt == expiresAt) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -1293,11 +1401,17 @@ class _$CollabRequestImpl implements _CollabRequest {
       id,
       brandId,
       creatorId,
+      creatorFirstName,
+      creatorFullName,
+      creatorInstagramHandle,
+      creatorTier,
+      collabId,
       message,
       budget,
       collabType,
       const DeepCollectionEquality().hash(_deliverables),
       status,
+      expiresAt,
       createdAt,
       updatedAt);
 
@@ -1322,11 +1436,17 @@ abstract class _CollabRequest implements CollabRequest {
       {required final String id,
       required final String brandId,
       required final String creatorId,
+      final String? creatorFirstName,
+      final String? creatorFullName,
+      final String? creatorInstagramHandle,
+      final String? creatorTier,
+      final String? collabId,
       final String? message,
       final int? budget,
       final CampaignCollabType collabType,
       final List<String> deliverables,
       final String status,
+      final DateTime? expiresAt,
       final DateTime? createdAt,
       final DateTime? updatedAt}) = _$CollabRequestImpl;
 
@@ -1340,6 +1460,16 @@ abstract class _CollabRequest implements CollabRequest {
   @override
   String get creatorId;
   @override
+  String? get creatorFirstName;
+  @override
+  String? get creatorFullName;
+  @override
+  String? get creatorInstagramHandle;
+  @override
+  String? get creatorTier;
+  @override
+  String? get collabId;
+  @override
   String? get message;
   @override
   int? get budget;
@@ -1349,6 +1479,8 @@ abstract class _CollabRequest implements CollabRequest {
   List<String> get deliverables;
   @override
   String get status;
+  @override
+  DateTime? get expiresAt;
   @override
   DateTime? get createdAt;
   @override

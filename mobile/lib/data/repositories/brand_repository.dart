@@ -17,24 +17,36 @@ class BrandRepository {
       final response = await _dio.get('/brand/profile');
       final root = _asMap(response.data);
       final profile = _asMap(root['profile']);
-      final brand = _asMap(profile['brand']);
+      final profileBrand = _firstMap(profile['brand']);
+      final rootBrand = _firstMap(root['brand']);
+      final brand = profileBrand.isNotEmpty ? profileBrand : rootBrand;
 
       return BrandProfile.fromJson({
         'id': _string(profile['id']) ?? '',
-        'displayName': _string(profile['display_name']),
+        'displayName':
+            _string(profile['display_name']) ?? _string(profile['full_name']),
         'avatarUrl': _string(profile['avatar_url']),
-        'onboarded': _bool(profile['onboarded']) ?? false,
+        'onboarded': _bool(profile['onboarded']) ??
+            _bool(profile['is_onboarded']) ??
+            false,
         'brandName': _string(brand['brand_name']) ??
+            _string(profile['full_name']) ??
             _string(profile['display_name']) ??
             'Brand',
-        'brandCategory': _string(brand['brand_category']) ?? 'General',
+        'brandCategory': _string(brand['brand_category']) ??
+            _string(brand['category']) ??
+            'General',
         'description': _string(brand['description']) ?? '',
         'logoUrl': _string(brand['logo_url']),
         'website': _string(brand['website']) ?? '',
         'contactEmail': _string(brand['contact_email']),
         'size': _string(brand['size']),
-        'creditsBalance': _int(brand['credits_balance']) ?? 0,
-        'verified': _bool(brand['verified']) ?? false,
+        'creditsBalance': _int(brand['credit_balance']) ??
+            _int(brand['credits_balance']) ??
+            0,
+        'verified': _bool(brand['verified']) ??
+            _bool(brand['is_brand_verified']) ??
+            false,
         'totalCollabs': _int(brand['total_collabs']) ?? 0,
         'avgRating': _double(brand['avg_rating']) ?? 0,
         'createdAt': _string(profile['created_at']),
@@ -50,24 +62,36 @@ class BrandRepository {
       final response = await _dio.put('/brand/profile', data: data);
       final root = _asMap(response.data);
       final profile = _asMap(root['profile']);
-      final brand = _asMap(profile['brand']);
+      final profileBrand = _firstMap(profile['brand']);
+      final rootBrand = _firstMap(root['brand']);
+      final brand = profileBrand.isNotEmpty ? profileBrand : rootBrand;
 
       return BrandProfile.fromJson({
         'id': _string(profile['id']) ?? '',
-        'displayName': _string(profile['display_name']),
+        'displayName':
+            _string(profile['display_name']) ?? _string(profile['full_name']),
         'avatarUrl': _string(profile['avatar_url']),
-        'onboarded': _bool(profile['onboarded']) ?? false,
+        'onboarded': _bool(profile['onboarded']) ??
+            _bool(profile['is_onboarded']) ??
+            false,
         'brandName': _string(brand['brand_name']) ??
+            _string(profile['full_name']) ??
             _string(profile['display_name']) ??
             'Brand',
-        'brandCategory': _string(brand['brand_category']) ?? 'General',
+        'brandCategory': _string(brand['brand_category']) ??
+            _string(brand['category']) ??
+            'General',
         'description': _string(brand['description']) ?? '',
         'logoUrl': _string(brand['logo_url']),
         'website': _string(brand['website']) ?? '',
         'contactEmail': _string(brand['contact_email']),
         'size': _string(brand['size']),
-        'creditsBalance': _int(brand['credits_balance']) ?? 0,
-        'verified': _bool(brand['verified']) ?? false,
+        'creditsBalance': _int(brand['credit_balance']) ??
+            _int(brand['credits_balance']) ??
+            0,
+        'verified': _bool(brand['verified']) ??
+            _bool(brand['is_brand_verified']) ??
+            false,
         'totalCollabs': _int(brand['total_collabs']) ?? 0,
         'avgRating': _double(brand['avg_rating']) ?? 0,
         'createdAt': _string(profile['created_at']),
@@ -151,11 +175,17 @@ class BrandRepository {
         'id': _string(request['id']) ?? '',
         'brandId': _string(request['brand_id']) ?? '',
         'creatorId': _string(request['creator_id']) ?? '',
+        'creatorFirstName': _string(request['creator_first_name']),
+        'creatorFullName': _string(request['creator_full_name']),
+        'creatorInstagramHandle': _string(request['creator_instagram_handle']),
+        'creatorTier': _string(request['creator_tier']),
+        'collabId': _string(request['collab_id']),
         'message': _string(request['message']),
         'budget': _int(request['budget']),
         'collabType': _string(request['collab_type']) ?? 'paid',
         'deliverables': _stringList(request['deliverables']),
         'status': _string(request['status']) ?? 'pending',
+        'expiresAt': _string(request['expires_at']),
         'createdAt': _string(request['created_at']),
         'updatedAt': _string(request['updated_at']),
       });
@@ -169,22 +199,34 @@ class BrandRepository {
       final response = await _dio.get('/brand/requests');
       final root = _asMap(response.data);
 
-      return _asMapList(root['requests'])
-          .map(
-            (item) => CollabRequest.fromJson({
-              'id': _string(item['id']) ?? '',
-              'brandId': _string(item['brand_id']) ?? '',
-              'creatorId': _string(item['creator_id']) ?? '',
-              'message': _string(item['message']),
-              'budget': _int(item['budget']),
-              'collabType': _string(item['collab_type']) ?? 'paid',
-              'deliverables': _stringList(item['deliverables']),
-              'status': _string(item['status']) ?? 'pending',
-              'createdAt': _string(item['created_at']),
-              'updatedAt': _string(item['updated_at']),
-            }),
-          )
-          .toList();
+      return _asMapList(root['requests']).map(
+        (item) {
+          final creator = _asMap(item['creator']);
+          final creatorUser = _asMap(item['creator_user']);
+          return CollabRequest.fromJson({
+            'id': _string(item['id']) ?? '',
+            'brandId': _string(item['brand_id']) ?? '',
+            'creatorId': _string(item['creator_id']) ?? '',
+            'creatorFirstName': _string(creatorUser['first_name']) ??
+                _string(creatorUser['full_name']) ??
+                'Creator',
+            'creatorFullName': _string(creatorUser['full_name']) ??
+                _string(creatorUser['first_name']) ??
+                'Creator',
+            'creatorInstagramHandle': _string(creator['instagram_handle']),
+            'creatorTier': _string(creator['tier']) ?? 'micro',
+            'collabId': _string(item['collab_id']),
+            'message': _string(item['message']),
+            'budget': _int(item['budget']),
+            'collabType': _string(item['collab_type']) ?? 'paid',
+            'deliverables': _stringList(item['deliverables']),
+            'status': _string(item['status']) ?? 'pending',
+            'expiresAt': _string(item['expires_at']),
+            'createdAt': _string(item['created_at']),
+            'updatedAt': _string(item['updated_at']),
+          });
+        },
+      ).toList();
     } on DioException catch (e) {
       throw Exception(ApiErrorHandler.parseError(e));
     }
@@ -206,6 +248,63 @@ class BrandRepository {
       final response = await _dio.get('/brand/campaigns');
       final root = _asMap(response.data);
       return _asMapList(root['campaigns']).map(_campaignFromApi).toList();
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
+  Future<List<ActiveCollabSummary>> getActiveCollabs() async {
+    try {
+      final response = await _dio.get('/brand/collabs');
+      final root = _asMap(response.data);
+
+      return _asMapList(root['collabs']).map((item) {
+        return ActiveCollabSummary.fromJson({
+          'id': _string(item['id']) ?? '',
+          'creatorId': _string(item['creator_id']) ?? '',
+          'creatorName': _string(item['creator_name']) ?? 'Creator',
+          'campaignId': _string(item['campaign_id']),
+          'campaignTitle': _string(item['campaign_title']) ?? 'Campaign',
+          'status': _string(item['status']) ?? 'active',
+          'agreedAmount': _int(item['agreed_amount']),
+          'startedAt':
+              _string(item['started_at']) ?? _string(item['created_at']),
+        });
+      }).toList();
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
+  Future<List<ActiveCollabSummary>> getCompletedCollabs() async {
+    try {
+      final response = await _dio.get(
+        '/brand/collabs',
+        queryParameters: {'status': 'completed'},
+      );
+      final root = _asMap(response.data);
+
+      return _asMapList(root['collabs']).map((item) {
+        return ActiveCollabSummary.fromJson({
+          'id': _string(item['id']) ?? '',
+          'creatorId': _string(item['creator_id']) ?? '',
+          'creatorName': _string(item['creator_name']) ?? 'Creator',
+          'campaignId': _string(item['campaign_id']),
+          'campaignTitle': _string(item['campaign_title']) ?? 'Campaign',
+          'status': _string(item['status']) ?? 'completed',
+          'agreedAmount': _int(item['agreed_amount']),
+          'startedAt':
+              _string(item['started_at']) ?? _string(item['created_at']),
+        });
+      }).toList();
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
+  Future<void> cancelRequest(String requestId) async {
+    try {
+      await _dio.delete('/brand/requests/$requestId');
     } on DioException catch (e) {
       throw Exception(ApiErrorHandler.parseError(e));
     }
@@ -548,6 +647,13 @@ class BrandRepository {
     if (value is Map<String, dynamic>) return value;
     if (value is Map) return value.map((k, v) => MapEntry(k.toString(), v));
     return <String, dynamic>{};
+  }
+
+  Map<String, dynamic> _firstMap(dynamic value) {
+    if (value is List && value.isNotEmpty) {
+      return _asMap(value.first);
+    }
+    return _asMap(value);
   }
 
   List<Map<String, dynamic>> _asMapList(dynamic value) {

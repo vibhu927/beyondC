@@ -96,7 +96,7 @@ class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.huge),
               child: Text(
-                'No campaigns found for this filter.',
+                'No campaigns found for this brand account.\nSample campaigns are tied to the seeded sample brand login.',
                 textAlign: TextAlign.center,
                 style: AppTypography.bodyMD.copyWith(color: AppColors.muted),
               ),

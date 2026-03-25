@@ -120,11 +120,17 @@ class CollabRequest with _$CollabRequest {
     required String id,
     required String brandId,
     required String creatorId,
+    String? creatorFirstName,
+    String? creatorFullName,
+    String? creatorInstagramHandle,
+    String? creatorTier,
+    String? collabId,
     String? message,
     int? budget,
     @Default(CampaignCollabType.paid) CampaignCollabType collabType,
     @Default(<String>[]) List<String> deliverables,
     @Default('pending') String status,
+    DateTime? expiresAt,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _CollabRequest;
@@ -353,4 +359,41 @@ class RazorpayOrder with _$RazorpayOrder {
 
   factory RazorpayOrder.fromJson(Map<String, dynamic> json) =>
       _$RazorpayOrderFromJson(json);
+}
+
+class ActiveCollabSummary {
+  const ActiveCollabSummary({
+    required this.id,
+    required this.creatorId,
+    required this.creatorName,
+    this.campaignId,
+    required this.campaignTitle,
+    required this.status,
+    this.agreedAmount,
+    this.startedAt,
+  });
+
+  final String id;
+  final String creatorId;
+  final String creatorName;
+  final String? campaignId;
+  final String campaignTitle;
+  final String status;
+  final int? agreedAmount;
+  final DateTime? startedAt;
+
+  factory ActiveCollabSummary.fromJson(Map<String, dynamic> json) {
+    return ActiveCollabSummary(
+      id: (json['id'] ?? '').toString(),
+      creatorId: (json['creatorId'] ?? '').toString(),
+      creatorName: (json['creatorName'] ?? 'Creator').toString(),
+      campaignId: json['campaignId']?.toString(),
+      campaignTitle: (json['campaignTitle'] ?? 'Campaign').toString(),
+      status: (json['status'] ?? 'active').toString(),
+      agreedAmount: json['agreedAmount'] is int
+          ? json['agreedAmount'] as int
+          : int.tryParse('${json['agreedAmount'] ?? ''}'),
+      startedAt: DateTime.tryParse('${json['startedAt'] ?? ''}'),
+    );
+  }
 }
