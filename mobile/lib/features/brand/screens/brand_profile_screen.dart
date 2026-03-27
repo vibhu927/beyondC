@@ -36,12 +36,6 @@ class BrandProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
-  @override
-  void initState() {
-    super.initState();
-    Future<void>.microtask(_refresh);
-  }
-
   Future<void> _refresh() async {
     await Future.wait([
       ref.read(brandProvider.notifier).fetchBrandHome(),

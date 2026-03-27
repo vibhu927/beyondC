@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/theme/app_spacing.dart';
 import '../../../core/router/route_names.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../widgets/bc_logo.dart';
@@ -96,8 +95,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _checkAuthAndNavigate() async {
-    await Future.delayed(const Duration(milliseconds: 2500));
-
     if (!mounted) return;
 
     final auth = ref.read(authProvider);

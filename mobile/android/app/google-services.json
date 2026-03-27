@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "416255105564",
+    "project_id": "beyondc-592e0",
+    "storage_bucket": "beyondc-592e0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:416255105564:android:7f65365b813ae25e669dd9",
+        "android_client_info": {
+          "package_name": "com.example.beyondc"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyClbYcrLMVq2Tz_mNT4oZDnSoUg_JJ6Gmw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

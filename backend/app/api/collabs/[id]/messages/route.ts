@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { sendPushNotification } from '@/app/api/notifications/send-push/route'
 
 const sendMessageSchema = z.object({
   content: z.string().min(1).max(2000),
@@ -108,6 +109,16 @@ export async function POST(
       body: content.substring(0, 100),
       reference_id: params.id,
       reference_type: 'collab',
+    })
+
+    await sendPushNotification({
+      userId: recipient_id,
+      title: 'New Message',
+      body: content.substring(0, 100),
+      data: {
+        type: 'new_message',
+        collab_id: params.id,
+      },
     })
 
     return NextResponse.json({ message })

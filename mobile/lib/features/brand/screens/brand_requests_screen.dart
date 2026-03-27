@@ -12,6 +12,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
+import '../../../widgets/bc_app_bar.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/cards/bc_card.dart';
 import '../../../widgets/bc_empty_state.dart';
@@ -257,8 +258,8 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
     final requestsAsync = ref.watch(brandRequestsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('My Requests 📩', style: AppTypography.displaySM),
+      appBar: BCAppBar(
+        title: 'My Requests 📩',
         actions: [
           IconButton(
             onPressed: _openFilters,

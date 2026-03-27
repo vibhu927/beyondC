@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
+import { sendPushNotification } from '@/app/api/notifications/send-push/route'
 
 const sendInvitesSchema = z.object({
   creator_ids: z.array(z.string().uuid()).min(1).max(100),
@@ -78,6 +79,20 @@ export async function POST(
     }))
 
     await supabase.from('notifications').insert(notifications)
+
+    await Promise.all(
+      newCreatorIds.map((creator_id: string) =>
+        sendPushNotification({
+          userId: creator_id,
+          title: 'Event Invitation',
+          body: `You're invited to ${event.title}`,
+          data: {
+            type: 'event_invite',
+            event_id: params.id,
+          },
+        })
+      )
+    )
 
     return NextResponse.json({
       message: 'Invites sent successfully',

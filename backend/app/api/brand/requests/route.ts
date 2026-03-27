@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createCollabRequestSchema } from '@/lib/validators'
+import { sendPushNotification } from '@/app/api/notifications/send-push/route'
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,9 +21,9 @@ export async function GET(request: NextRequest) {
         creator:creator_profiles!collab_requests_creator_id_fkey (
           id,
           bio,
-          niches,
           platforms,
-          followers_count,
+          niche,
+          follower_count,
           avg_rating,
           instagram_handle,
           tier
@@ -147,6 +148,16 @@ export async function POST(request: NextRequest) {
       body: 'A brand sent you a collaboration request',
       reference_id: collabRequest.id,
       reference_type: 'request',
+    })
+
+    await sendPushNotification({
+      userId: validatedData.creator_id,
+      title: 'New Collab Request',
+      body: 'A brand sent you a collaboration request',
+      data: {
+        type: 'request_received',
+        request_id: collabRequest.id,
+      },
     })
 
     return NextResponse.json({ 

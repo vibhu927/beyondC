@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,12 +11,14 @@ import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../providers/brand_provider.dart';
+import '../../../providers/chat_modal_provider.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../../../widgets/chat_modal/chat_modal.dart';
 
 class BrandHomeScreen extends ConsumerStatefulWidget {
   const BrandHomeScreen({super.key});
@@ -98,9 +102,17 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                           final notification = notifications[index];
                           return BCCard(
                             child: InkWell(
-                              onTap: () => ref
-                                  .read(notificationProvider.notifier)
-                                  .markRead(notification.id),
+                              onTap: () {
+                                unawaited(ref
+                                    .read(notificationProvider.notifier)
+                                    .markRead(notification.id));
+
+                                final route = _routeForNotification(notification);
+                                if (route == null) return;
+
+                                Navigator.of(context).pop();
+                                context.push(route);
+                              },
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -168,10 +180,8 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
   }
 
   Future<void> _loadInitialData() async {
-    await Future.wait([
-      ref.read(brandProvider.notifier).fetchBrandHome(),
-      ref.read(notificationProvider.notifier).fetchNotifications(),
-    ]);
+    await ref.read(brandProvider.notifier).fetchBrandHome(showLoader: true);
+    unawaited(ref.read(notificationProvider.notifier).fetchNotifications());
   }
 
   Future<void> _refresh() async {
@@ -179,6 +189,31 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
       ref.read(brandProvider.notifier).refreshBrandHome(),
       ref.read(notificationProvider.notifier).refreshNotifications(),
     ]);
+  }
+
+  String? _routeForNotification(dynamic notification) {
+    final referenceType = notification.referenceType?.toString();
+    final referenceId = notification.referenceId?.toString();
+
+    switch (referenceType) {
+      case 'collab':
+        if (referenceId == null || referenceId.isEmpty) return null;
+        return RouteNames.brandChat.replaceFirst(':id', referenceId);
+      case 'bid':
+        if (referenceId == null || referenceId.isEmpty) {
+          return RouteNames.brandCampaigns;
+        }
+        return RouteNames.campaignBids.replaceFirst(':id', referenceId);
+      case 'event_invite':
+        if (referenceId == null || referenceId.isEmpty) {
+          return RouteNames.brandEvents;
+        }
+        return RouteNames.eventInvites.replaceFirst(':id', referenceId);
+      case 'campaign':
+        return RouteNames.brandCampaigns;
+      default:
+        return null;
+    }
   }
 
   @override
@@ -189,6 +224,7 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
     final activityFeed =
         (notificationAsync.valueOrNull ?? const []).take(4).toList();
     final unreadCount = ref.watch(unreadCountProvider);
+    final unreadChats = ref.watch(chatModalUnreadCountProvider);
 
     return Scaffold(
       bottomNavigationBar: const BCBottomNav(
@@ -221,36 +257,75 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                             style: AppTypography.displayMD,
                           ),
                         ),
-                        Stack(
-                          clipBehavior: Clip.none,
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(
-                              onPressed: _openNotificationsSheet,
-                              icon: const Icon(
-                                Icons.notifications_none_rounded,
-                                color: AppColors.ink,
-                              ),
-                            ),
-                            if (unreadCount > 0)
-                              Positioned(
-                                top: 6,
-                                right: 6,
-                                child: Container(
-                                  width: 9,
-                                  height: 9,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.error,
-                                    borderRadius: BorderRadius.circular(
-                                      AppSpacing.radiusFull,
-                                    ),
-                                    border: Border.all(
-                                      color:
-                                          Theme.of(context).colorScheme.surface,
-                                      width: 1,
-                                    ),
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                IconButton(
+                                  onPressed: () => openChatModal(context),
+                                  icon: const Icon(
+                                    Icons.mark_chat_unread_rounded,
+                                    color: AppColors.ink,
                                   ),
                                 ),
-                              ),
+                                if (unreadChats > 0)
+                                  Positioned(
+                                    top: 6,
+                                    right: 6,
+                                    child: Container(
+                                      width: 9,
+                                      height: 9,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.error,
+                                        borderRadius: BorderRadius.circular(
+                                          AppSpacing.radiusFull,
+                                        ),
+                                        border: Border.all(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .surface,
+                                          width: 1,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                IconButton(
+                                  onPressed: _openNotificationsSheet,
+                                  icon: const Icon(
+                                    Icons.notifications_none_rounded,
+                                    color: AppColors.ink,
+                                  ),
+                                ),
+                                if (unreadCount > 0)
+                                  Positioned(
+                                    top: 6,
+                                    right: 6,
+                                    child: Container(
+                                      width: 9,
+                                      height: 9,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.error,
+                                        borderRadius: BorderRadius.circular(
+                                          AppSpacing.radiusFull,
+                                        ),
+                                        border: Border.all(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .surface,
+                                          width: 1,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ],
                         ),
                       ],

@@ -8,6 +8,7 @@ import '../data/models/brand_models.dart';
 import '../data/models/paginated_result.dart';
 import '../data/repositories/brand_repository.dart';
 import '../data/services/api_service.dart';
+import 'chat_modal_provider.dart';
 
 export '../data/models/brand_models.dart';
 
@@ -295,6 +296,7 @@ class CampaignBidsNotifier extends FamilyAsyncNotifier<List<Bid>, String> {
 
       if (isAccept) {
         ref.invalidate(brandCampaignsProvider);
+        ref.invalidate(chatModalProvider);
       }
 
       return response;
@@ -463,6 +465,7 @@ class BrandState {
     this.isBidsLoading = false,
     this.isEventsLoading = false,
     this.isCreditsLoading = false,
+    this.lastHomeSyncedAt,
     this.error,
   });
 
@@ -481,6 +484,7 @@ class BrandState {
   final bool isBidsLoading;
   final bool isEventsLoading;
   final bool isCreditsLoading;
+  final DateTime? lastHomeSyncedAt;
   final String? error;
 
   List<CreatorPreview> get filteredCreators {
@@ -540,6 +544,7 @@ class BrandState {
     bool? isBidsLoading,
     bool? isEventsLoading,
     bool? isCreditsLoading,
+    Object? lastHomeSyncedAt = _sentinel,
     Object? error = _sentinel,
   }) {
     return BrandState(
@@ -560,6 +565,9 @@ class BrandState {
       isBidsLoading: isBidsLoading ?? this.isBidsLoading,
       isEventsLoading: isEventsLoading ?? this.isEventsLoading,
       isCreditsLoading: isCreditsLoading ?? this.isCreditsLoading,
+      lastHomeSyncedAt: identical(lastHomeSyncedAt, _sentinel)
+          ? this.lastHomeSyncedAt
+          : lastHomeSyncedAt as DateTime?,
       error: identical(error, _sentinel) ? this.error : error as String?,
     );
   }
@@ -583,45 +591,49 @@ class BrandNotifier extends Notifier<BrandState> {
     return const BrandState();
   }
 
-  Future<void> fetchBrandHome() async {
-    state = state.copyWith(isLoading: true, error: null);
+  Future<void> fetchBrandHome({
+    bool showLoader = false,
+    bool force = false,
+  }) async {
+    final now = DateTime.now();
+    final hasCachedHome = _hasCachedHomeData(state);
+    final recentlySynced = state.lastHomeSyncedAt != null &&
+        now.difference(state.lastHomeSyncedAt!) < const Duration(seconds: 45);
 
-    Object? firstError;
-    BrandProfile? profile;
-    PaginatedResult<CreatorDiscovery>? creators;
-    List<Campaign>? campaigns;
-    List<ActiveCollabSummary>? activeCollabs;
-    CreditsData? credits;
-
-    try {
-      profile = await _repo.getProfile();
-    } catch (e) {
-      firstError ??= e;
+    if (!force && hasCachedHome && recentlySynced) {
+      return;
     }
 
-    try {
-      creators = await _repo.getCreators(page: 1, limit: 40);
-    } catch (e) {
-      firstError ??= e;
+    final shouldShowLoader = showLoader || !hasCachedHome;
+    if (shouldShowLoader) {
+      state = state.copyWith(isLoading: true, error: null);
+    } else {
+      state = state.copyWith(error: null);
     }
 
-    try {
-      campaigns = await _repo.getCampaigns();
-    } catch (e) {
-      firstError ??= e;
-    }
+    final profileFuture = _safe(() => _repo.getProfile());
+    final creatorsFuture = _safe(() => _repo.getCreators(page: 1, limit: 40));
+    final campaignsFuture = _safe(() => _repo.getCampaigns());
+    final activeCollabsFuture = _safe(() => _repo.getActiveCollabs());
+    final creditsFuture = _safe(() => _repo.getCredits());
 
-    try {
-      activeCollabs = await _repo.getActiveCollabs();
-    } catch (e) {
-      firstError ??= e;
-    }
+    final profileResult = await profileFuture;
+    final creatorsResult = await creatorsFuture;
+    final campaignsResult = await campaignsFuture;
+    final activeCollabsResult = await activeCollabsFuture;
+    final creditsResult = await creditsFuture;
 
-    try {
-      credits = await _repo.getCredits();
-    } catch (e) {
-      firstError ??= e;
-    }
+    final firstError = profileResult.error ??
+        creatorsResult.error ??
+        campaignsResult.error ??
+        activeCollabsResult.error ??
+        creditsResult.error;
+
+    final profile = profileResult.data;
+    final creators = creatorsResult.data;
+    final campaigns = campaignsResult.data;
+    final activeCollabs = activeCollabsResult.data;
+    final credits = creditsResult.data;
 
     state = state.copyWith(
       brandProfile: profile ?? state.brandProfile,
@@ -631,6 +643,7 @@ class BrandNotifier extends Notifier<BrandState> {
       creditBalance: credits?.balance ?? state.creditBalance,
       creditTransactions: credits?.transactions ?? state.creditTransactions,
       isLoading: false,
+      lastHomeSyncedAt: now,
       error: firstError?.toString(),
     );
 
@@ -640,7 +653,20 @@ class BrandNotifier extends Notifier<BrandState> {
   }
 
   Future<void> refreshBrandHome() async {
-    await fetchBrandHome();
+    await fetchBrandHome(force: true);
+  }
+
+  bool _hasCachedHomeData(BrandState current) {
+    return current.brandProfile != null;
+  }
+
+  Future<_SafeResult<T>> _safe<T>(Future<T> Function() run) async {
+    try {
+      final data = await run();
+      return _SafeResult<T>(data: data);
+    } catch (error) {
+      return _SafeResult<T>(error: error);
+    }
   }
 
   void setActiveFilter(String filter) {
@@ -648,7 +674,11 @@ class BrandNotifier extends Notifier<BrandState> {
   }
 
   Future<void> fetchDiscovery() async {
-    state = state.copyWith(isDiscoveryLoading: true, error: null);
+    final shouldShowLoader = state.creators.isEmpty;
+    state = state.copyWith(
+      isDiscoveryLoading: shouldShowLoader,
+      error: null,
+    );
 
     try {
       final niche =
@@ -673,7 +703,11 @@ class BrandNotifier extends Notifier<BrandState> {
   }
 
   Future<void> fetchCampaignBids(String campaignId) async {
-    state = state.copyWith(isBidsLoading: true, error: null);
+    final shouldShowLoader = (state.bidsByCampaign[campaignId] ?? const <CampaignBid>[]).isEmpty;
+    state = state.copyWith(
+      isBidsLoading: shouldShowLoader,
+      error: null,
+    );
 
     try {
       final bids = await _repo.getCampaignBids(campaignId);
@@ -770,6 +804,7 @@ class BrandNotifier extends Notifier<BrandState> {
 
       state = state.copyWith(campaigns: [campaign, ...state.campaigns]);
       ref.invalidate(brandCampaignsProvider);
+      ref.invalidate(chatModalProvider);
       return true;
     } on InsufficientCreditsException {
       return false;
@@ -835,7 +870,11 @@ class BrandNotifier extends Notifier<BrandState> {
   }
 
   Future<void> fetchCredits() async {
-    state = state.copyWith(isCreditsLoading: true, error: null);
+    final shouldShowLoader = state.creditTransactions.isEmpty;
+    state = state.copyWith(
+      isCreditsLoading: shouldShowLoader,
+      error: null,
+    );
 
     try {
       final credits = await _repo.getCredits();
@@ -855,7 +894,11 @@ class BrandNotifier extends Notifier<BrandState> {
   }
 
   Future<void> fetchEvents() async {
-    state = state.copyWith(isEventsLoading: true, error: null);
+    final shouldShowLoader = state.events.isEmpty;
+    state = state.copyWith(
+      isEventsLoading: shouldShowLoader,
+      error: null,
+    );
 
     try {
       final events = await _repo.getEvents();
@@ -1107,6 +1150,13 @@ EventInviteStatus _inviteStatusFromString(String statusRaw) {
 }
 
 const _sentinel = Object();
+
+class _SafeResult<T> {
+  const _SafeResult({this.data, this.error});
+
+  final T? data;
+  final Object? error;
+}
 
 extension _IterableFirstOrNull<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;

@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { FormEvent, useState } from 'react'
 import Navbar from '@/components/landing/Navbar'
-import { createClient } from '@/lib/supabase/client'
 import { validators } from '@/lib/validators'
 
 const inputClass =
@@ -14,8 +13,6 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [sent, setSent] = useState(false)
-
-  const supabase = createClient()
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -31,11 +28,13 @@ export default function ForgotPasswordPage() {
     setError('')
 
     try {
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const response = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
       })
 
-      if (resetError) {
+      if (!response.ok) {
         setError('Could not send reset email. Please check the address and try again.')
         return
       }

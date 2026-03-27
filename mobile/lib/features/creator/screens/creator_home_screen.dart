@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -33,14 +35,10 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future<void>.microtask(_loadInitialData);
-  }
-
-  Future<void> _loadInitialData() async {
-    await Future.wait([
-      ref.read(creatorHomeProvider.notifier).refresh(),
-      ref.read(notificationProvider.notifier).fetchNotifications(),
-    ]);
+    Future<void>.microtask(() {
+      unawaited(ref.read(notificationProvider.notifier).fetchNotifications());
+      unawaited(ref.read(creatorHomeProvider.notifier).refreshSilently());
+    });
   }
 
   Future<void> _refresh() async {

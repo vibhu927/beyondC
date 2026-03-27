@@ -154,23 +154,29 @@ class CreatorRepository {
       final response = await _dio.get('/creator/requests');
       final root = _asMap(response.data);
 
-      return _asMapList(root['requests'])
-          .map((item) {
-            final brand = _asMap(item['brand']);
-            return CollabRequest.fromJson({
+      final parsed = <CollabRequest>[];
+      for (final item in _asMapList(root['requests'])) {
+        try {
+          final brand = _asMap(item['brand']);
+          parsed.add(
+            CollabRequest.fromJson({
               'id': _string(item['id']) ?? '',
               'brandId': _string(item['brand_id']) ?? '',
               'brandName': _string(brand['brand_name']) ?? 'Brand',
               'brandCategory': _string(brand['brand_category']) ?? 'General',
               'brandInitial': _brandInitial(brand),
               'budgetPaise': _int(item['budget']) ?? 0,
-              'collabType': _string(item['collab_type']) ?? 'paid',
+              'collabType': _normalizeCollabType(_string(item['collab_type'])),
               'deliverables': _stringList(item['deliverables']),
               'status': _string(item['status']) ?? 'pending',
               'createdAt': _string(item['created_at']),
-            });
-          })
-          .toList();
+            }),
+          );
+        } catch (_) {
+          // Skip malformed rows instead of failing requests UI.
+        }
+      }
+      return parsed;
     } on DioException catch (e) {
       throw Exception(ApiErrorHandler.parse(e));
     }
@@ -196,7 +202,7 @@ class CreatorRepository {
         'creatorId': _string(collabRaw['creator_id']) ?? '',
         'brandCategory': 'General',
         'agreedAmountPaise': _int(collabRaw['agreed_amount']) ?? 0,
-        'collabType': _string(collabRaw['collab_type']) ?? 'paid',
+        'collabType': _normalizeCollabType(_string(collabRaw['collab_type'])),
         'status': _string(collabRaw['status']) ?? 'in_progress',
         'milestoneStatus': _string(collabRaw['milestone_status']),
         'createdAt': _string(collabRaw['created_at']),
@@ -254,7 +260,7 @@ class CreatorRepository {
         'creatorId': _string(collabRaw['creator_id']) ?? '',
         'brandCategory': 'General',
         'agreedAmountPaise': _int(collabRaw['agreed_amount']) ?? 0,
-        'collabType': _string(collabRaw['collab_type']) ?? 'paid',
+        'collabType': _normalizeCollabType(_string(collabRaw['collab_type'])),
         'status': _string(collabRaw['status']) ?? 'in_progress',
         'milestoneStatus': _string(collabRaw['milestone_status']) ?? milestone,
         'createdAt': _string(collabRaw['created_at']),
@@ -434,7 +440,7 @@ class CreatorRepository {
       'brandSize': _string(brand['size']),
       'minBudget': _int(item['budget_min']) ?? _int(item['min_budget']) ?? 0,
       'maxBudget': _int(item['budget_max']) ?? _int(item['max_budget']) ?? 0,
-      'collabType': _string(item['collab_type']) ?? 'paid',
+      'collabType': _normalizeCollabType(_string(item['collab_type'])),
       'deliverables': _stringList(item['deliverables']),
       'bidCount': _extractBidCount(bidCountRaw),
       'deadline': _string(item['deadline']) ?? DateTime.now().add(const Duration(days: 7)).toIso8601String(),
@@ -462,6 +468,19 @@ class CreatorRepository {
   String _brandInitial(Map<String, dynamic> brand) {
     final name = _string(brand['brand_name']) ?? _string(brand['name']) ?? 'Brand';
     return name.trim().isEmpty ? 'B' : name.trim().substring(0, 1).toUpperCase();
+  }
+
+  String _normalizeCollabType(String? rawType) {
+    switch ((rawType ?? '').toLowerCase()) {
+      case 'paid':
+        return 'paid';
+      case 'barter':
+        return 'barter';
+      case 'hybrid':
+        return 'hybrid';
+      default:
+        return 'paid';
+    }
   }
 
   Map<String, dynamic> _asMap(dynamic value) {

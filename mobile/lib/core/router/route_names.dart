@@ -43,5 +43,6 @@ class RouteNames {
   static const String collabDetail = '/collabs/:id';
   static const String collabMilestones = '/collabs/:id/milestones';
   static const String collabRating = '/collabs/:id/rate';
+  static const String partnerProfile = '/partner-profile';
   static const String settings = '/settings';
 }

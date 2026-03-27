@@ -31,9 +31,9 @@ export async function GET(
         creator:creator_profiles!collabs_creator_id_fkey (
           id,
           bio,
-          niches,
+          niche,
           platforms,
-          followers_count,
+          follower_count,
           avg_rating,
           tier
         )
@@ -46,7 +46,22 @@ export async function GET(
       return NextResponse.json({ error: 'Collab not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ collab })
+    const creatorId = (collab as any).creator_id
+    const { data: creatorUser } = creatorId
+      ? await supabase
+          .from('profiles')
+          .select('first_name,full_name')
+          .eq('id', creatorId)
+          .maybeSingle()
+      : { data: null as any }
+
+    const enriched = {
+      ...collab,
+      creator_first_name: creatorUser?.first_name ?? null,
+      creator_full_name: creatorUser?.full_name ?? null,
+    }
+
+    return NextResponse.json({ collab: enriched })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }

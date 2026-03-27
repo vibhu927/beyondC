@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { actionSchema } from '@/lib/validators'
 import { getCollabFee } from '@/lib/collabFee'
+import { sendPushNotification } from '@/app/api/notifications/send-push/route'
 
 export async function PUT(
   request: NextRequest,
@@ -114,6 +115,16 @@ export async function PUT(
         body: 'A creator accepted your collab request',
         reference_id: collab.id,
         reference_type: 'collab',
+      })
+
+      await sendPushNotification({
+        userId: collabRequest.brand_id,
+        title: 'Collab Request Accepted',
+        body: 'A creator accepted your collab request',
+        data: {
+          type: 'collab_matched',
+          collab_id: collab.id,
+        },
       })
 
       return NextResponse.json({ 

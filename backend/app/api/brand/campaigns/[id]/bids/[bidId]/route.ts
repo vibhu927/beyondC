@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { actionSchema } from '@/lib/validators'
 import { getCollabFee } from '@/lib/collabFee'
+import { sendPushNotification } from '@/app/api/notifications/send-push/route'
 
 export async function PUT(
   request: NextRequest,
@@ -84,6 +85,16 @@ export async function PUT(
         body: `Your bid on "${bid.campaign.title}" was accepted`,
         reference_id: collab.id,
         reference_type: 'collab',
+      })
+
+      await sendPushNotification({
+        userId: bid.creator_id,
+        title: 'Bid Accepted!',
+        body: `Your bid on "${bid.campaign.title}" was accepted`,
+        data: {
+          type: 'bid_accepted',
+          collab_id: collab.id,
+        },
       })
 
       return NextResponse.json({ 

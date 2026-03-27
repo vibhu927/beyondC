@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { actionSchema } from '@/lib/validators'
 import crypto from 'crypto'
+import { sendPushNotification } from '@/app/api/notifications/send-push/route'
 
 export async function PUT(
   request: NextRequest,
@@ -75,6 +76,16 @@ export async function PUT(
       body: `A creator ${action === 'accept' ? 'accepted' : 'declined'} your event invite`,
       reference_id: invite.event.id,
       reference_type: 'event',
+    })
+
+    await sendPushNotification({
+      userId: invite.event.brand_id,
+      title: `Event Invite ${action === 'accept' ? 'Accepted' : 'Declined'}`,
+      body: `A creator ${action === 'accept' ? 'accepted' : 'declined'} your event invite`,
+      data: {
+        type: action === 'accept' ? 'invite_accepted' : 'invite_declined',
+        event_id: invite.event.id,
+      },
     })
 
     return NextResponse.json({ 

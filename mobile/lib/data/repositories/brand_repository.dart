@@ -182,7 +182,7 @@ class BrandRepository {
         'collabId': _string(request['collab_id']),
         'message': _string(request['message']),
         'budget': _int(request['budget']),
-        'collabType': _string(request['collab_type']) ?? 'paid',
+        'collabType': _normalizeCollabType(_string(request['collab_type'])),
         'deliverables': _stringList(request['deliverables']),
         'status': _string(request['status']) ?? 'pending',
         'expiresAt': _string(request['expires_at']),
@@ -199,34 +199,40 @@ class BrandRepository {
       final response = await _dio.get('/brand/requests');
       final root = _asMap(response.data);
 
-      return _asMapList(root['requests']).map(
-        (item) {
+      final parsed = <CollabRequest>[];
+      for (final item in _asMapList(root['requests'])) {
+        try {
           final creator = _asMap(item['creator']);
           final creatorUser = _asMap(item['creator_user']);
-          return CollabRequest.fromJson({
-            'id': _string(item['id']) ?? '',
-            'brandId': _string(item['brand_id']) ?? '',
-            'creatorId': _string(item['creator_id']) ?? '',
-            'creatorFirstName': _string(creatorUser['first_name']) ??
-                _string(creatorUser['full_name']) ??
-                'Creator',
-            'creatorFullName': _string(creatorUser['full_name']) ??
-                _string(creatorUser['first_name']) ??
-                'Creator',
-            'creatorInstagramHandle': _string(creator['instagram_handle']),
-            'creatorTier': _string(creator['tier']) ?? 'micro',
-            'collabId': _string(item['collab_id']),
-            'message': _string(item['message']),
-            'budget': _int(item['budget']),
-            'collabType': _string(item['collab_type']) ?? 'paid',
-            'deliverables': _stringList(item['deliverables']),
-            'status': _string(item['status']) ?? 'pending',
-            'expiresAt': _string(item['expires_at']),
-            'createdAt': _string(item['created_at']),
-            'updatedAt': _string(item['updated_at']),
-          });
-        },
-      ).toList();
+          parsed.add(
+            CollabRequest.fromJson({
+              'id': _string(item['id']) ?? '',
+              'brandId': _string(item['brand_id']) ?? '',
+              'creatorId': _string(item['creator_id']) ?? '',
+              'creatorFirstName': _string(creatorUser['first_name']) ??
+                  _string(creatorUser['full_name']) ??
+                  'Creator',
+              'creatorFullName': _string(creatorUser['full_name']) ??
+                  _string(creatorUser['first_name']) ??
+                  'Creator',
+              'creatorInstagramHandle': _string(creator['instagram_handle']),
+              'creatorTier': _string(creator['tier']) ?? 'micro',
+              'collabId': _string(item['collab_id']),
+              'message': _string(item['message']),
+              'budget': _int(item['budget']),
+              'collabType': _normalizeCollabType(_string(item['collab_type'])),
+              'deliverables': _stringList(item['deliverables']),
+              'status': _string(item['status']) ?? 'pending',
+              'expiresAt': _string(item['expires_at']),
+              'createdAt': _string(item['created_at']),
+              'updatedAt': _string(item['updated_at']),
+            }),
+          );
+        } catch (_) {
+          // Skip malformed rows instead of failing the whole requests screen.
+        }
+      }
+      return parsed;
     } on DioException catch (e) {
       throw Exception(ApiErrorHandler.parseError(e));
     }

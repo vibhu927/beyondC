@@ -4,19 +4,74 @@ import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/router/route_names.dart';
+import '../../../core/router/router_holder.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/repositories/message_repository.dart';
+import '../../../data/services/api_service.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/chat_provider.dart';
+import '../../../providers/chat_modal_provider.dart';
 import '../../../providers/collab_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../../../widgets/chat_modal/chat_modal.dart';
+
+class _ChatPartner {
+  const _ChatPartner({
+    required this.name,
+    required this.profileRole,
+    this.profileId,
+    this.tier,
+    this.bio,
+    this.followers,
+  });
+
+  final String name;
+  final String profileRole;
+  final String? profileId;
+  final String? tier;
+  final String? bio;
+  final int? followers;
+}
+
+final chatPartnerProvider = FutureProvider.family<_ChatPartner, String>((ref, collabId) async {
+  final role = ref.read(authProvider).role ?? 'creator';
+  final response = await ref.read(apiServiceProvider).client.get('/collabs/$collabId');
+
+  final root = _asMap(response.data);
+  final collab = _asMap(root['collab']);
+  final brand = _asMap(collab['brand']);
+  final creator = _asMap(collab['creator']);
+
+  if (role == 'creator') {
+    final brandName = _string(brand['brand_name']) ?? _string(collab['brand_name']) ?? 'Brand partner';
+    return _ChatPartner(
+      name: brandName,
+      profileRole: 'brand',
+      profileId: _string(collab['brand_id']),
+    );
+  }
+
+  final creatorName = _string(collab['creator_full_name']) ??
+      _string(collab['creator_first_name']) ??
+      _string(collab['creator_name']) ??
+      'Creator partner';
+
+  return _ChatPartner(
+    name: creatorName,
+    profileRole: 'creator',
+    profileId: _string(collab['creator_id']),
+    tier: _string(creator['tier']),
+    bio: _string(creator['bio']),
+    followers: _int(creator['follower_count']) ?? _int(creator['followers_count']),
+  );
+});
 
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key, required this.collabId});
@@ -34,6 +89,40 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   bool _isBriefExpanded = false;
   bool _didInitialScroll = false;
   int _lastRenderedMessageCount = 0;
+
+  void _openMessagesModalAfterBack() {
+    final rootContext = RouterHolder.rootNavigatorKey?.currentContext;
+    if (rootContext == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      openChatModal(rootContext);
+    });
+  }
+
+  void _onBackPressed() {
+    if (context.canPop()) {
+      context.pop();
+      _openMessagesModalAfterBack();
+    }
+  }
+
+  void _openPartnerProfile(_ChatPartner partner) {
+    final payload = {
+      'id': partner.profileId,
+      'name': partner.name,
+      'role': partner.profileRole,
+      'tier': partner.tier,
+      'bio': partner.bio,
+      'followers': partner.followers,
+    };
+
+    final router = RouterHolder.router;
+    if (router != null) {
+      router.push(RouteNames.partnerProfile, extra: payload);
+      return;
+    }
+
+    context.push(RouteNames.partnerProfile, extra: payload);
+  }
 
   @override
   void initState() {
@@ -101,61 +190,53 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final role = authState.role ?? 'creator';
+    final onSurfaceColor = Theme.of(context).colorScheme.onSurface;
 
     final collabAsync = ref.watch(collabProvider(widget.collabId));
     final chatAsync = ref.watch(chatProvider(widget.collabId));
+    final partnerAsync = ref.watch(chatPartnerProvider(widget.collabId));
 
     final collab = collabAsync.valueOrNull;
-    final otherPartyName = _otherPartyName(role, collab);
-    final initials = _initials(otherPartyName);
-
-    return Scaffold(
+    final modalState = ref.watch(chatModalProvider).valueOrNull;
+    final fallbackPartner = _fallbackPartner(
+      role: role,
+      collab: collab,
+      modalState: modalState,
+    );
+    final partner = partnerAsync.valueOrNull ?? fallbackPartner;
+    final otherPartyName = partner.name;
+    return PopScope(
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) {
+          _openMessagesModalAfterBack();
+        }
+      },
+      child: Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: const Icon(Icons.arrow_back_rounded, color: AppColors.ink),
+          onPressed: _onBackPressed,
+          icon: Icon(Icons.arrow_back_rounded, color: onSurfaceColor),
         ),
         titleSpacing: 0,
-        title: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                border: Border.all(color: AppColors.ink, width: 2),
-              ),
-              child: Text(initials, style: AppTypography.labelSM),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    otherPartyName,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTypography.labelLG,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    role == 'creator' ? 'Brand partner' : 'Creator partner',
-                    style: AppTypography.bodyXS,
-                  ),
-                ],
-              ),
-            ),
-            const BCBadge(label: 'Matched', variant: BCBadgeVariant.success),
-            const SizedBox(width: AppSpacing.sm),
-          ],
+        title: Text(
+          otherPartyName,
+          overflow: TextOverflow.ellipsis,
+          style: AppTypography.labelLG.copyWith(color: onSurfaceColor),
         ),
+        actions: [
+          IconButton(
+            onPressed: () => _openPartnerProfile(partner),
+            icon: Icon(Icons.info_outline_rounded, color: onSurfaceColor),
+            tooltip: partner.profileRole == 'creator'
+                ? 'Open creator profile'
+                : 'Open brand profile',
+          ),
+          const SizedBox(width: AppSpacing.xs),
+        ],
       ),
       body: Column(
         children: [
@@ -235,27 +316,37 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
         ],
       ),
+    ));
+  }
+
+  _ChatPartner _fallbackPartner({
+    required String role,
+    required dynamic collab,
+    required ChatModalState? modalState,
+  }) {
+    dynamic match;
+    for (final item in (modalState?.collabs ?? const <dynamic>[])) {
+      if (item.collabId == widget.collabId) {
+        match = item;
+        break;
+      }
+    }
+
+    if (role == 'brand') {
+      final creatorName = _string(match?.otherPartyName) ?? 'Creator';
+      return _ChatPartner(
+        name: creatorName,
+        profileRole: 'creator',
+        profileId: _string(collab?.creatorId),
+      );
+    }
+
+    final brandName = _string(match?.otherPartyName) ?? 'Brand';
+    return _ChatPartner(
+      name: brandName,
+      profileRole: 'brand',
+      profileId: _string(collab?.brandId),
     );
-  }
-
-  String _otherPartyName(String role, dynamic collab) {
-    if (role == 'creator') {
-      return 'HealthPlus 🏢';
-    }
-    return 'Priya S. 🎨';
-  }
-
-  String _initials(String value) {
-    final cleaned = value.replaceAll(RegExp(r'[^A-Za-z ]'), '').trim();
-    if (cleaned.isEmpty) return 'U';
-
-    final parts = cleaned.split(RegExp(r'\s+'));
-    if (parts.length == 1) {
-      return parts.first.substring(0, 1).toUpperCase();
-    }
-
-    return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
-        .toUpperCase();
   }
 
   bool _isSameDay(DateTime first, DateTime second) {
@@ -263,6 +354,27 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         first.month == second.month &&
         first.day == second.day;
   }
+}
+
+Map<String, dynamic> _asMap(dynamic value) {
+  if (value is Map<String, dynamic>) return value;
+  if (value is Map) {
+    return value.map((key, val) => MapEntry(key.toString(), val));
+  }
+  return <String, dynamic>{};
+}
+
+String? _string(dynamic value) {
+  if (value == null) return null;
+  final parsed = value.toString();
+  return parsed.isEmpty ? null : parsed;
+}
+
+int? _int(dynamic value) {
+  if (value is int) return value;
+  if (value is double) return value.toInt();
+  if (value is String) return int.tryParse(value);
+  return null;
 }
 
 class _BriefCard extends StatelessWidget {

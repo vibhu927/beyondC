@@ -30,9 +30,13 @@ import '../../features/shared/screens/chat_screen.dart';
 import '../../features/shared/screens/collab_detail_screen.dart';
 import '../../features/shared/screens/milestone_screen.dart';
 import '../../features/shared/screens/notifications_screen.dart';
+import '../../features/shared/screens/partner_profile_screen.dart';
 import '../../features/shared/screens/rating_screen.dart';
+import '../../widgets/bc_app_bar.dart';
 import 'route_names.dart';
 import 'router_holder.dart';
+
+final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 
 // Placeholder screen widgets — replace as screens are built
 class PlaceholderScreen extends StatelessWidget {
@@ -40,7 +44,7 @@ class PlaceholderScreen extends StatelessWidget {
   const PlaceholderScreen(this.name, {super.key});
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(name)),
+        appBar: BCAppBar(title: name),
         body: Center(child: Text(name)),
       );
 }
@@ -60,6 +64,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final refreshListenable = ref.watch(routerRefreshProvider);
 
   final router = GoRouter(
+    navigatorKey: _rootNavigatorKey,
     initialLocation: RouteNames.splash,
     refreshListenable: refreshListenable,
     redirect: (context, state) {
@@ -273,9 +278,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RouteNames.settings,
         builder: (c, s) => const PlaceholderScreen('Settings'),
       ),
+      GoRoute(
+        path: RouteNames.partnerProfile,
+        builder: (c, s) => PartnerProfileScreen(
+          data: (s.extra as Map<String, dynamic>?) ?? const <String, dynamic>{},
+        ),
+      ),
     ],
   );
 
   RouterHolder.router = router;
+  RouterHolder.rootNavigatorKey = _rootNavigatorKey;
   return router;
 });
