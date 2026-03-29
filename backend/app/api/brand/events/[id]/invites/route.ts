@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { z } from 'zod'
-import { sendPushNotification } from '@/app/api/notifications/send-push/route'
+import { sendPushNotification } from '@/lib/notifications/push'
 
 const sendInvitesSchema = z.object({
   creator_ids: z.array(z.string().uuid()).min(1).max(100),

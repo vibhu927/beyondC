@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createCollabRequestSchema } from '@/lib/validators'
-import { sendPushNotification } from '@/app/api/notifications/send-push/route'
+import { sendPushNotification } from '@/lib/notifications/push'
 
 export async function GET(request: NextRequest) {
   try {

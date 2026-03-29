@@ -1,9 +1,10 @@
 import sanitizeHtml from 'sanitize-html'
-import { renderToStaticMarkup } from 'react-dom/server'
+import nodemailer, { type Transporter } from 'nodemailer'
 
 import { emailConfig, resend } from '@/lib/email/resend-client'
 import { ForgotPasswordEmail } from '@/lib/email/templates/forgot-password'
 import { PromotionalEmail } from '@/lib/email/templates/promotional'
+import { buildWaitlistWelcomeHtml } from '@/lib/email/templates/waitlist-welcome'
 
 type SendForgotPasswordArgs = {
   to: string
@@ -28,13 +29,68 @@ type SendBulkPromotionalArgs = {
   ctaLink?: string
 }
 
+type SendWaitlistWelcomeArgs = {
+  to: string
+  firstName: string
+}
+
+type ResendSendResult = {
+  data?: { id?: string } | null
+  error?: { message?: string; name?: string } | null
+}
+
+type EmailProvider = 'resend' | 'gmail_smtp'
+
+let smtpTransporter: Transporter | null = null
+
+function getEmailProvider(): EmailProvider {
+  const provider = (process.env.EMAIL_PROVIDER || '').toLowerCase().trim()
+
+  if (provider === 'gmail_smtp') {
+    return 'gmail_smtp'
+  }
+
+  if (provider === 'resend') {
+    return 'resend'
+  }
+
+  // Auto-pick Gmail when credentials are present, otherwise keep Resend default.
+  const hasGmailCreds = Boolean(
+    process.env.GMAIL_SMTP_USER?.trim() && process.env.GMAIL_SMTP_APP_PASSWORD?.trim()
+  )
+  return hasGmailCreds ? 'gmail_smtp' : 'resend'
+}
+
+function getSmtpTransporter() {
+  if (smtpTransporter) {
+    return smtpTransporter
+  }
+
+  const user = process.env.GMAIL_SMTP_USER?.trim()
+  const pass = process.env.GMAIL_SMTP_APP_PASSWORD?.replace(/\s+/g, '')
+
+  if (!user || !pass) {
+    throw new Error('GMAIL_SMTP_USER or GMAIL_SMTP_APP_PASSWORD is missing')
+  }
+
+  smtpTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user,
+      pass,
+    },
+  })
+
+  return smtpTransporter
+}
+
 export const emailService = {
   async sendForgotPassword({ to, firstName, resetLink }: SendForgotPasswordArgs) {
     return resend.emails.send({
       from: emailConfig.from,
       to,
       subject: 'Reset your BeyondC password 🔑',
-      html: renderToStaticMarkup(ForgotPasswordEmail({ firstName, resetLink })),
+      react: ForgotPasswordEmail({ firstName, resetLink }),
     })
   },
 
@@ -51,14 +107,12 @@ export const emailService = {
       from: emailConfig.from,
       to,
       subject,
-      html: renderToStaticMarkup(
-        PromotionalEmail({
-          firstName,
-          bodyHtml: cleanHtml,
-          ctaText,
-          ctaLink,
-        })
-      ),
+      react: PromotionalEmail({
+        firstName,
+        bodyHtml: cleanHtml,
+        ctaText,
+        ctaLink,
+      }),
     })
   },
 
@@ -93,5 +147,52 @@ export const emailService = {
       failed: results.filter((r) => r.status === 'rejected').length,
       total: recipients.length,
     }
+  },
+
+  async sendWaitlistWelcome({ to, firstName }: SendWaitlistWelcomeArgs) {
+    if (getEmailProvider() === 'gmail_smtp') {
+      const smtpUser = process.env.GMAIL_SMTP_USER?.trim()
+      const smtpFromEmail = process.env.GMAIL_FROM_EMAIL?.trim() || smtpUser
+      const smtpFromName = process.env.GMAIL_FROM_NAME || 'BeyondC'
+
+      if (!smtpFromEmail) {
+        throw new Error('GMAIL_FROM_EMAIL or GMAIL_SMTP_USER is required for gmail_smtp provider')
+      }
+
+      const transporter = getSmtpTransporter()
+      const info = await transporter.sendMail({
+        from: `${smtpFromName} <${smtpFromEmail}>`,
+        to,
+        subject: 'You are on the BeyondC waitlist',
+        html: buildWaitlistWelcomeHtml({ firstName }),
+      })
+
+      if (!info.messageId) {
+        throw new Error('Gmail SMTP did not return a message id for waitlist email')
+      }
+
+      return { data: { id: info.messageId } }
+    }
+
+    const waitlistFrom = process.env.RESEND_WAITLIST_FROM || 'BeyondC <onboarding@resend.dev>'
+
+    const result = await resend.emails.send({
+      from: waitlistFrom,
+      to,
+      subject: 'You are on the BeyondC waitlist',
+      html: buildWaitlistWelcomeHtml({ firstName }),
+    })
+
+    const typedResult = result as ResendSendResult
+    if (typedResult?.error) {
+      const reason = typedResult.error.message || typedResult.error.name || 'Unknown Resend error'
+      throw new Error(`Resend rejected waitlist email: ${reason}`)
+    }
+
+    if (!typedResult?.data?.id) {
+      throw new Error('Resend did not return a message id for waitlist email')
+    }
+
+    return typedResult
   },
 }

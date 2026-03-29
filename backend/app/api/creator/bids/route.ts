@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createBidSchema } from '@/lib/validators'
 import { getCollabFee } from '@/lib/collabFee'
-import { sendPushNotification } from '@/app/api/notifications/send-push/route'
+import { sendPushNotification } from '@/lib/notifications/push'
 
 export async function POST(request: NextRequest) {
   try {

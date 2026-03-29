@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 
+import { emailService } from '@/lib/email/email-service'
+
 const waitlistSchema = z.object({
   email: z.string().email(),
 })
+
+function deriveFirstNameFromEmail(email: string) {
+  const localPart = email.split('@')[0] || 'there'
+  const cleaned = localPart
+    .replace(/[._-]+/g, ' ')
+    .replace(/\d+/g, ' ')
+    .trim()
+
+  if (!cleaned) {
+    return 'there'
+  }
+
+  const firstToken = cleaned.split(/\s+/)[0] || 'there'
+  return firstToken.charAt(0).toUpperCase() + firstToken.slice(1).toLowerCase()
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -81,7 +98,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ success: true })
+    let emailSent = false
+    let emailErrorMessage: string | null = null
+    let emailMessageId: string | null = null
+
+    try {
+      const sendResult = await emailService.sendWaitlistWelcome({
+        to: parsed.data.email,
+        firstName: deriveFirstNameFromEmail(parsed.data.email),
+      })
+      emailSent = true
+      emailMessageId = sendResult.data?.id || null
+    } catch (emailError) {
+      console.error('[waitlist] welcome email send failed', emailError)
+      emailErrorMessage = emailError instanceof Error ? emailError.message : 'Unknown email error'
+    }
+
+    return NextResponse.json({
+      success: true,
+      emailSent,
+      ...(emailMessageId ? { emailMessageId } : {}),
+      ...(!emailSent && emailErrorMessage ? { emailErrorMessage } : {}),
+      message: emailSent
+        ? 'You have been added to the waitlist and a confirmation email was sent.'
+        : 'You have been added to the waitlist. Confirmation email could not be sent right now.',
+    })
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || 'Unexpected error' },
