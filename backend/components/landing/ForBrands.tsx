@@ -52,14 +52,14 @@ export default function ForBrands() {
               <div className="space-y-3">
                 <div className="p-3 bg-white/5 border border-gray-700 rounded">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="font-jakarta font-bold text-white text-sm">Rahul M.</p>
+                    <p className="font-jakarta font-bold text-white text-sm">Varun D</p>
                     <p className="font-jakarta font-bold text-neon text-sm">₹1,800</p>
                   </div>
                   <p className="font-nunito text-xs text-gray-400">2 Reels + 3 Stories</p>
                 </div>
                 <div className="p-3 bg-white/5 border border-gray-700 rounded">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="font-jakarta font-bold text-white text-sm">Ananya K.</p>
+                    <p className="font-jakarta font-bold text-white text-sm">Shraddha K</p>
                     <p className="font-jakarta font-bold text-neon text-sm">₹2,200</p>
                   </div>
                   <p className="font-nunito text-xs text-gray-400">3 Reels + reel cover design</p>

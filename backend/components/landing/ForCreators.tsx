@@ -71,10 +71,10 @@ export default function ForCreators() {
               {/* Profile Header */}
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-16 h-16 rounded-full bg-neon flex items-center justify-center font-jakarta font-bold text-ink text-2xl">
-                  PS
+                  RK
                 </div>
                 <div>
-                  <h3 className="font-jakarta font-bold text-ink text-xl">Priya S.</h3>
+                  <h3 className="font-jakarta font-bold text-ink text-xl">Ranbir K</h3>
                   <span className="inline-block px-2 py-1 bg-neon text-ink text-xs font-jakarta font-bold rounded-full">
                     Micro Creator 🎨
                   </span>

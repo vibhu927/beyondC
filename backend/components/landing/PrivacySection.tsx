@@ -30,7 +30,7 @@ export default function PrivacySection() {
               </div>
               <div className="space-y-3">
                 <div>
-                  <p className="font-jakarta font-bold text-white text-lg">Priya S.</p>
+                  <p className="font-jakarta font-bold text-white text-lg">Varun D</p>
                   <p className="font-nunito text-sm text-gray-400">████████</p>
                 </div>
                 <div>
@@ -60,12 +60,12 @@ export default function PrivacySection() {
               </div>
               <div className="space-y-3">
                 <div>
-                  <p className="font-jakarta font-bold text-white text-lg">Priya Sharma</p>
+                  <p className="font-jakarta font-bold text-white text-lg">Varun D</p>
                   <p className="font-nunito text-sm text-gray-300">Fashion Creator</p>
                 </div>
                 <div>
                   <p className="font-nunito text-xs text-gray-500">Handle</p>
-                  <p className="font-nunito text-sm text-neon">@priyacreates</p>
+                  <p className="font-nunito text-sm text-neon">@varunn</p>
                 </div>
                 <div>
                   <p className="font-nunito text-xs text-gray-500">Stats</p>

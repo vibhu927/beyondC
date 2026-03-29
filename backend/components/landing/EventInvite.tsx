@@ -87,7 +87,7 @@ export default function EventInvite() {
               {/* Bottom Half */}
               <div className="p-6">
                 <div className="mb-4">
-                  <p className="font-jakarta font-bold text-ink text-lg">Priya Sharma</p>
+                  <p className="font-jakarta font-bold text-ink text-lg">Kiara A</p>
                   <p className="font-nunito text-sm text-muted">Micro Creator 🎨</p>
                 </div>
 

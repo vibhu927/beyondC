@@ -141,10 +141,10 @@ export default function Hero() {
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full bg-neon flex items-center justify-center font-jakarta font-bold text-ink text-lg">
-                PS
+                RK
               </div>
               <div>
-                <h3 className="font-jakarta font-bold text-ink text-lg">Priya S.</h3>
+                <h3 className="font-jakarta font-bold text-ink text-lg">Ranbir K</h3>
                 <p className="font-nunito text-sm text-muted">Fashion & Lifestyle</p>
               </div>
             </div>

@@ -63,7 +63,7 @@ export default function Footer() {
         </div>
 
         {/* Download Section */}
-        <div className="py-8 border-t border-gray-800">
+        {/* <div className="py-8 border-t border-gray-800">
           <div className="flex flex-col items-center gap-4">
             <h4 className="font-jakarta font-bold text-white text-lg">Download the App</h4>
             <div className="flex flex-col sm:flex-row gap-4">
@@ -97,7 +97,7 @@ export default function Footer() {
               </a>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Bottom Section */}
         <div className="pt-8 border-t border-gray-800 text-center">
