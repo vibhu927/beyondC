@@ -113,7 +113,7 @@ export default function ForBrands() {
             </div>
 
             {/* CTA */}
-            {hasSession ? (
+            {/* {hasSession ? (
               <p className="inline-flex items-center rounded-full border-2 border-white bg-neon px-4 py-2 font-space text-xs font-bold uppercase tracking-[0.08em] text-ink">
                 Account ready, {session?.firstName}
               </p>
@@ -124,7 +124,7 @@ export default function ForBrands() {
               >
                 Start as Brand →
               </Link>
-            )}
+            )} */}
           </div>
         </div>
       </div>
