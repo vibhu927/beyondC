@@ -31,37 +31,51 @@ class ChatModalHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            height: 28,
-            child: Center(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                switchInCurve: Curves.easeOutBack,
-                switchOutCurve: Curves.easeIn,
-                child: isExpanded
-                    ? Align(
-                        key: const ValueKey<String>('back-arrow'),
-                        alignment: Alignment.centerLeft,
-                        child: IconButton(
+            height: 32,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 40,
+                  child: isExpanded
+                      ? IconButton(
                           onPressed: onClose,
                           icon: const Icon(Icons.arrow_back_rounded),
                           color: isDark ? AppColors.darkText : AppColors.ink,
                           splashRadius: 20,
-                        ),
-                      )
-                    : Container(
-                        key: const ValueKey<String>('drag-handle'),
+                        )
+                      : null,
+                ),
+                Expanded(
+                  child: Center(
+                    child: AnimatedOpacity(
+                      duration: const Duration(milliseconds: 180),
+                      opacity: isExpanded ? 0 : 1,
+                      child: Container(
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.darkMuted : AppColors.lightMuted,
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                          color: isDark
+                              ? AppColors.darkMuted
+                              : AppColors.lightMuted,
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusFull),
                         ),
                       ),
-              ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  onPressed: onClose,
+                  icon: const Icon(Icons.close_rounded),
+                  color: isDark ? AppColors.darkText : AppColors.ink,
+                  splashRadius: 20,
+                  tooltip: 'Close chat',
+                ),
+              ],
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text('Messages', style: AppTypography.displaySM),
+          const Text('Messages', style: AppTypography.displaySM),
           const SizedBox(height: AppSpacing.sm),
           TextField(
             onChanged: onSearchChanged,
@@ -70,7 +84,8 @@ class ChatModalHeader extends StatelessWidget {
               prefixIcon: const Icon(Icons.search_rounded),
               isDense: true,
               filled: true,
-              fillColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+              fillColor:
+                  isDark ? AppColors.darkSurface : AppColors.lightSurface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
                 borderSide: BorderSide(

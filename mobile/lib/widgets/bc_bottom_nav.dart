@@ -81,11 +81,11 @@ class _BCBottomNavState extends State<BCBottomNav> {
           builder: (context, constraints) {
             final width = constraints.maxWidth;
             final itemWidth = width / items.length;
-            final capsuleWidth = itemWidth - 10;
+            final capsuleWidth = itemWidth - 6;
             final targetCenterX =
                 _dragX ?? (widget.currentIndex * itemWidth + itemWidth / 2);
             final capsuleLeft = (targetCenterX - capsuleWidth / 2)
-                .clamp(5.0, width - capsuleWidth - 5.0)
+                .clamp(3.0, width - capsuleWidth - 3.0)
                 .toDouble();
             final isDragging = _dragX != null;
 
@@ -129,9 +129,9 @@ class _BCBottomNavState extends State<BCBottomNav> {
                               : const Duration(milliseconds: 220),
                           curve: Curves.easeOutCubic,
                           left: capsuleLeft,
-                          top: 8,
+                          top: 6,
                           width: capsuleWidth,
-                          height: 58,
+                          height: 62,
                           child: Container(
                             decoration: BoxDecoration(
                               color: tint.withValues(alpha: 0.34),

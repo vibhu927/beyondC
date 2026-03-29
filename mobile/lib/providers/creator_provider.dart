@@ -34,12 +34,10 @@ class CreatorCampaignFilters {
       collabType: identical(collabType, _sentinel)
           ? this.collabType
           : collabType as CampaignCollabType?,
-      minBudget: identical(minBudget, _sentinel)
-          ? this.minBudget
-          : minBudget as int?,
-      maxBudget: identical(maxBudget, _sentinel)
-          ? this.maxBudget
-          : maxBudget as int?,
+      minBudget:
+          identical(minBudget, _sentinel) ? this.minBudget : minBudget as int?,
+      maxBudget:
+          identical(maxBudget, _sentinel) ? this.maxBudget : maxBudget as int?,
     );
   }
 }
@@ -93,8 +91,9 @@ class CreatorHomeData {
   final List<Collab> activeCollabs;
   final List<Campaign> campaigns;
 
-  int get activeBidsCount =>
-      bids.where((bid) => bid.status != 'withdrawn' && bid.status != 'rejected').length;
+  int get activeBidsCount => bids
+      .where((bid) => bid.status != 'withdrawn' && bid.status != 'rejected')
+      .length;
 
   bool hasBidForCampaign(String campaignId) {
     return bids.any(
@@ -112,6 +111,21 @@ class CreatorProfileNotifier extends AsyncNotifier<CreatorProfile> {
   Future<void> refresh() async {
     ref.invalidateSelf();
     await future;
+  }
+
+  Future<void> updateProfile(Map<String, dynamic> data) async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      final updated =
+          await ref.read(creatorRepositoryProvider).updateProfile(data);
+      return updated;
+    });
+    ref.invalidate(walletProvider);
+    ref.invalidate(creatorHomeProvider);
+  }
+
+  Future<void> updateStartingPrice(int pricePaise) {
+    return updateProfile({'starting_price': pricePaise});
   }
 }
 
@@ -206,7 +220,8 @@ class CreatorCampaignsNotifier extends AsyncNotifier<CreatorCampaignsState> {
   }
 
   Future<void> refresh() async {
-    final currentFilters = state.valueOrNull?.filters ?? const CreatorCampaignFilters();
+    final currentFilters =
+        state.valueOrNull?.filters ?? const CreatorCampaignFilters();
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final result = await _fetchPage(page: 1, filters: currentFilters);
@@ -227,7 +242,8 @@ class CreatorCampaignsNotifier extends AsyncNotifier<CreatorCampaignsState> {
 
     final result = await AsyncValue.guard(() async {
       final nextPage = current.page + 1;
-      final nextResult = await _fetchPage(page: nextPage, filters: current.filters);
+      final nextResult =
+          await _fetchPage(page: nextPage, filters: current.filters);
       return current.copyWith(
         campaigns: [...current.campaigns, ...nextResult.items],
         page: nextResult.page,
@@ -384,11 +400,12 @@ class CreatorActionsNotifier extends AsyncNotifier<void> {
     required String paymentId,
     required String signature,
   }) async {
-    final newBalance = await ref.read(creatorRepositoryProvider).verifyWalletTopup(
-          orderId: orderId,
-          paymentId: paymentId,
-          signature: signature,
-        );
+    final newBalance =
+        await ref.read(creatorRepositoryProvider).verifyWalletTopup(
+              orderId: orderId,
+              paymentId: paymentId,
+              signature: signature,
+            );
     ref.invalidate(walletProvider);
     ref.invalidate(creatorProfileProvider);
     ref.invalidate(creatorHomeProvider);
@@ -427,7 +444,8 @@ final myBidsProvider = AsyncNotifierProvider<MyBidsNotifier, List<Bid>>(
   MyBidsNotifier.new,
 );
 
-final requestsProvider = AsyncNotifierProvider<RequestsNotifier, List<CollabRequest>>(
+final requestsProvider =
+    AsyncNotifierProvider<RequestsNotifier, List<CollabRequest>>(
   RequestsNotifier.new,
 );
 
@@ -445,7 +463,8 @@ final eventInvitesProvider =
   EventInvitesNotifier.new,
 );
 
-final ticketsProvider = AsyncNotifierProvider<TicketsNotifier, List<EventTicket>>(
+final ticketsProvider =
+    AsyncNotifierProvider<TicketsNotifier, List<EventTicket>>(
   TicketsNotifier.new,
 );
 
@@ -459,20 +478,25 @@ final creatorHomeProvider =
   CreatorHomeNotifier.new,
 );
 
-final creatorActionsProvider = AsyncNotifierProvider<CreatorActionsNotifier, void>(
+final creatorActionsProvider =
+    AsyncNotifierProvider<CreatorActionsNotifier, void>(
   CreatorActionsNotifier.new,
 );
 
-final campaignDetailProvider = FutureProvider.family<Campaign?, String>((ref, id) async {
+final campaignDetailProvider =
+    FutureProvider.family<Campaign?, String>((ref, id) async {
   final existing = ref.watch(creatorCampaignsProvider).valueOrNull;
   if (existing != null) {
-    final fromList = existing.campaigns.where((campaign) => campaign.id == id).toList();
+    final fromList =
+        existing.campaigns.where((campaign) => campaign.id == id).toList();
     if (fromList.isNotEmpty) {
       return fromList.first;
     }
   }
 
-  final page = await ref.read(creatorRepositoryProvider).fetchCampaigns(page: 1, limit: 50);
+  final page = await ref
+      .read(creatorRepositoryProvider)
+      .fetchCampaigns(page: 1, limit: 50);
   final matches = page.items.where((campaign) => campaign.id == id).toList();
   return matches.isEmpty ? null : matches.first;
 });

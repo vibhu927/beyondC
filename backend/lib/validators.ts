@@ -20,6 +20,7 @@ export const updateCreatorProfileSchema = z.object({
   bio: z.string().optional(),
   niches: z.array(z.string()).optional(),
   platforms: z.array(z.string()).optional(),
+  starting_price: z.number().int().min(0).optional(),
   instagram_handle: z.string().optional(),
   youtube_handle: z.string().optional(),
   twitter_handle: z.string().optional(),

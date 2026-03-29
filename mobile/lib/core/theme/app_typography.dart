@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
 
 class AppTypography {
   AppTypography._();
@@ -9,7 +8,6 @@ class AppTypography {
     fontFamily: 'PlusJakartaSans',
     fontSize: 40,
     fontWeight: FontWeight.w800,
-    color: AppColors.ink,
     height: 1.1,
     letterSpacing: -1.0,
   );
@@ -18,7 +16,6 @@ class AppTypography {
     fontFamily: 'PlusJakartaSans',
     fontSize: 32,
     fontWeight: FontWeight.w800,
-    color: AppColors.ink,
     height: 1.15,
     letterSpacing: -0.5,
   );
@@ -27,7 +24,6 @@ class AppTypography {
     fontFamily: 'PlusJakartaSans',
     fontSize: 26,
     fontWeight: FontWeight.w700,
-    color: AppColors.ink,
     height: 1.2,
   );
 
@@ -35,7 +31,6 @@ class AppTypography {
     fontFamily: 'PlusJakartaSans',
     fontSize: 22,
     fontWeight: FontWeight.w700,
-    color: AppColors.ink,
     height: 1.25,
   );
 
@@ -44,7 +39,6 @@ class AppTypography {
     fontFamily: 'Nunito',
     fontSize: 18,
     fontWeight: FontWeight.w400,
-    color: AppColors.ink,
     height: 1.6,
   );
 
@@ -52,7 +46,6 @@ class AppTypography {
     fontFamily: 'Nunito',
     fontSize: 16,
     fontWeight: FontWeight.w400,
-    color: AppColors.ink,
     height: 1.5,
   );
 
@@ -60,7 +53,6 @@ class AppTypography {
     fontFamily: 'Nunito',
     fontSize: 14,
     fontWeight: FontWeight.w400,
-    color: AppColors.ink,
     height: 1.5,
   );
 
@@ -68,7 +60,6 @@ class AppTypography {
     fontFamily: 'Nunito',
     fontSize: 12,
     fontWeight: FontWeight.w400,
-    color: AppColors.muted,
     height: 1.4,
   );
 
@@ -77,7 +68,6 @@ class AppTypography {
     fontFamily: 'SpaceGrotesk',
     fontSize: 16,
     fontWeight: FontWeight.w700,
-    color: AppColors.ink,
     letterSpacing: 0.2,
   );
 
@@ -85,7 +75,6 @@ class AppTypography {
     fontFamily: 'SpaceGrotesk',
     fontSize: 14,
     fontWeight: FontWeight.w600,
-    color: AppColors.ink,
     letterSpacing: 0.1,
   );
 
@@ -93,7 +82,6 @@ class AppTypography {
     fontFamily: 'SpaceGrotesk',
     fontSize: 12,
     fontWeight: FontWeight.w600,
-    color: AppColors.ink,
     letterSpacing: 0.2,
   );
 
@@ -101,7 +89,6 @@ class AppTypography {
     fontFamily: 'SpaceGrotesk',
     fontSize: 10,
     fontWeight: FontWeight.w700,
-    color: AppColors.ink,
     letterSpacing: 0.5,
   );
 

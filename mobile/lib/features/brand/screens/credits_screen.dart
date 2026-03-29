@@ -105,8 +105,8 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                     Expanded(
                       child: _CreditPackCard(
                         name: 'Starter',
-                        credits: 5,
-                        price: 199,
+                        credits: 3,
+                        price: 149,
                         shadow: AppShadows.neon,
                         badge: null,
                         buttonColor: AppColors.neon,
@@ -116,8 +116,8 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                     Expanded(
                       child: _CreditPackCard(
                         name: 'Growth',
-                        credits: 15,
-                        price: 499,
+                        credits: 7,
+                        price: 299,
                         shadow: AppShadows.pink,
                         badge: 'Most Popular',
                         buttonColor: AppColors.pink,
@@ -126,9 +126,9 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: _CreditPackCard(
-                        name: 'Scale',
-                        credits: 35,
-                        price: 999,
+                        name: 'Pro',
+                        credits: 12,
+                        price: 499,
                         shadow: AppShadows.blue,
                         badge: null,
                         buttonColor: AppColors.blue,
@@ -142,8 +142,8 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                 children: [
                   _CreditPackCard(
                     name: 'Starter',
-                    credits: 5,
-                    price: 199,
+                    credits: 3,
+                    price: 149,
                     shadow: AppShadows.neon,
                     badge: null,
                     buttonColor: AppColors.neon,
@@ -151,17 +151,17 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                   const SizedBox(height: AppSpacing.md),
                   _CreditPackCard(
                     name: 'Growth',
-                    credits: 15,
-                    price: 499,
+                    credits: 7,
+                    price: 299,
                     shadow: AppShadows.pink,
                     badge: 'Most Popular',
                     buttonColor: AppColors.pink,
                   ),
                   const SizedBox(height: AppSpacing.md),
                   _CreditPackCard(
-                    name: 'Scale',
-                    credits: 35,
-                    price: 999,
+                    name: 'Pro',
+                    credits: 12,
+                    price: 499,
                     shadow: AppShadows.blue,
                     badge: null,
                     buttonColor: AppColors.blue,

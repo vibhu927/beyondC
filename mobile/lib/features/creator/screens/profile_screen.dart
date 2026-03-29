@@ -15,7 +15,9 @@ import '../../../providers/creator_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_error_state.dart';
+import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../../../widgets/inputs/bc_text_field.dart';
 
 class CreatorProfileScreen extends ConsumerStatefulWidget {
   const CreatorProfileScreen({super.key});
@@ -45,6 +47,251 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
         const SnackBar(content: Text('Unable to logout. Please try again.')),
       );
     }
+  }
+
+  Future<void> _openEditProfileSheet(CreatorProfile profile) async {
+    final displayNameController = TextEditingController(
+      text: profile.displayName ?? profile.fullName,
+    );
+    final bioController = TextEditingController(text: profile.bio);
+    final nichesController =
+        TextEditingController(text: profile.niches.join(', '));
+    final contentTypesController =
+        TextEditingController(text: profile.contentTypes.join(', '));
+    final instagramController =
+        TextEditingController(text: profile.instagramHandle ?? '');
+    final youtubeController =
+        TextEditingController(text: profile.youtubeHandle ?? '');
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.78,
+          minChildSize: 0.6,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, controller) {
+            bool isSaving = false;
+            return StatefulBuilder(
+              builder: (context, setSheetState) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppSpacing.radiusLG),
+                    ),
+                    border: const Border(
+                      top: BorderSide(color: AppColors.ink, width: 2),
+                    ),
+                  ),
+                  child: ListView(
+                    controller: controller,
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    children: [
+                      const Text('Edit Creator Profile',
+                          style: AppTypography.displaySM),
+                      const SizedBox(height: AppSpacing.lg),
+                      BCTextField(
+                        label: 'Display Name',
+                        controller: displayNameController,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      BCTextField(
+                        label: 'Bio',
+                        maxLines: 4,
+                        controller: bioController,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      BCTextField(
+                        label: 'Niches',
+                        hint: 'Fashion, Lifestyle, Beauty',
+                        controller: nichesController,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      BCTextField(
+                        label: 'Content Types',
+                        hint: 'Instagram, Reels, YouTube',
+                        controller: contentTypesController,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      BCTextField(
+                        label: 'Instagram Handle',
+                        hint: '@yourhandle',
+                        controller: instagramController,
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      BCTextField(
+                        label: 'YouTube Handle',
+                        hint: '@yourchannel',
+                        controller: youtubeController,
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      BCPrimaryButton.pink(
+                        label: 'Save Changes →',
+                        isLoading: isSaving,
+                        onPressed: isSaving
+                            ? null
+                            : () async {
+                                setSheetState(() => isSaving = true);
+                                try {
+                                  await ref
+                                      .read(creatorProfileProvider.notifier)
+                                      .updateProfile({
+                                    'display_name':
+                                        displayNameController.text.trim(),
+                                    'bio': bioController.text.trim(),
+                                    'niches':
+                                        _parseTagList(nichesController.text),
+                                    'platforms': _parseTagList(
+                                        contentTypesController.text),
+                                    'instagram_handle': _normalizeHandle(
+                                        instagramController.text),
+                                    'youtube_handle': _normalizeHandle(
+                                        youtubeController.text),
+                                  });
+
+                                  await _refresh();
+                                  if (!mounted) return;
+                                  Navigator.of(this.context).pop();
+                                } catch (e) {
+                                  if (!mounted) return;
+                                  setSheetState(() => isSaving = false);
+                                  ScaffoldMessenger.of(this.context)
+                                      .showSnackBar(
+                                    SnackBar(content: Text(e.toString())),
+                                  );
+                                }
+                              },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _openEditPricingSheet(CreatorProfile profile) async {
+    final startPriceRupees = (profile.startingPricePaise / 100).round();
+    final priceController = TextEditingController(
+      text: startPriceRupees > 0 ? '$startPriceRupees' : '',
+    );
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.46,
+          minChildSize: 0.35,
+          maxChildSize: 0.7,
+          expand: false,
+          builder: (context, controller) {
+            bool isSavingFee = false;
+            return StatefulBuilder(
+              builder: (context, setSheetState) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppSpacing.radiusLG),
+                    ),
+                    border: const Border(
+                      top: BorderSide(color: AppColors.ink, width: 2),
+                    ),
+                  ),
+                  child: ListView(
+                    controller: controller,
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    children: [
+                      const Text('Edit Collab Fee',
+                          style: AppTypography.displaySM),
+                      const SizedBox(height: AppSpacing.lg),
+                      BCTextField(
+                        label: 'Starting Price (INR)',
+                        hint: 'e.g. 2500',
+                        controller: priceController,
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'This is your minimum fee shown to brands.',
+                        style: AppTypography.bodySM
+                            .copyWith(color: AppColors.muted),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      BCPrimaryButton.pink(
+                        label: 'Update Fee →',
+                        isLoading: isSavingFee,
+                        onPressed: isSavingFee
+                            ? null
+                            : () async {
+                                final rupees =
+                                    int.tryParse(priceController.text.trim());
+                                if (rupees == null || rupees < 0) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Enter a valid non-negative amount.'),
+                                    ),
+                                  );
+                                  return;
+                                }
+
+                                setSheetState(() => isSavingFee = true);
+                                try {
+                                  await ref
+                                      .read(creatorProfileProvider.notifier)
+                                      .updateStartingPrice(rupees * 100);
+                                  await _refresh();
+                                  if (!mounted) return;
+                                  Navigator.of(this.context).pop();
+                                } catch (e) {
+                                  if (!mounted) return;
+                                  setSheetState(() => isSavingFee = false);
+                                  ScaffoldMessenger.of(this.context)
+                                      .showSnackBar(
+                                    SnackBar(content: Text(e.toString())),
+                                  );
+                                }
+                              },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  List<String> _parseTagList(String value) {
+    final seen = <String>{};
+    final parsed = <String>[];
+    for (final raw in value.split(',')) {
+      final normalized = raw.trim();
+      if (normalized.isEmpty) continue;
+      final key = normalized.toLowerCase();
+      if (seen.contains(key)) continue;
+      seen.add(key);
+      parsed.add(normalized);
+    }
+    return parsed;
+  }
+
+  String _normalizeHandle(String value) {
+    final normalized = value.trim();
+    if (normalized.isEmpty) return '';
+    return normalized.startsWith('@') ? normalized.substring(1) : normalized;
   }
 
   @override
@@ -145,13 +392,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                         right: AppSpacing.lg,
                         top: AppSpacing.lg,
                         child: IconButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Edit profile coming soon.'),
-                              ),
-                            );
-                          },
+                          onPressed: () => _openEditProfileSheet(profile),
                           icon: const Icon(
                             Icons.edit_rounded,
                             color: AppColors.white,
@@ -180,6 +421,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                           child: _StatCard(
                             value: Formatters.followerCount(profile.followers),
                             label: 'Followers',
+                            shadow: AppShadows.neon,
                           ),
                         ),
                         const SizedBox(width: AppSpacing.sm),
@@ -188,6 +430,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                             value:
                                 '${profile.engagementRate.toStringAsFixed(1)}%',
                             label: 'Engagement',
+                            shadow: AppShadows.blue,
                           ),
                         ),
                         const SizedBox(width: AppSpacing.sm),
@@ -195,6 +438,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                           child: _StatCard(
                             value: Formatters.currency(profile.avgCollabPaise),
                             label: 'Avg Collab',
+                            shadow: AppShadows.pink,
                           ),
                         ),
                       ],
@@ -212,12 +456,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                       spacing: AppSpacing.sm,
                       runSpacing: AppSpacing.sm,
                       children: profile.niches
-                          .map(
-                            (niche) => BCBadge(
-                              label: niche,
-                              variant: BCBadgeVariant.outline,
-                            ),
-                          )
+                          .map((niche) => _ThemedWordPill(label: niche))
                           .toList(),
                     ),
                     const SizedBox(height: AppSpacing.xl),
@@ -242,15 +481,15 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                       spacing: AppSpacing.sm,
                       runSpacing: AppSpacing.sm,
                       children: profile.contentTypes
-                          .map((contentType) => BCBadge(
-                                label: contentType,
-                                variant: BCBadgeVariant.outline,
-                              ))
+                          .map(
+                            (contentType) =>
+                                _ThemedWordPill(label: contentType),
+                          )
                           .toList(),
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     BCCard(
-                      shadow: AppShadows.neon,
+                      shadow: AppShadows.purple,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -261,18 +500,11 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content:
-                                        Text('Pricing editor coming soon.'),
-                                  ),
-                                );
-                              },
+                              onPressed: () => _openEditPricingSheet(profile),
                               style: TextButton.styleFrom(
-                                foregroundColor: AppColors.pink,
+                                foregroundColor: AppColors.blue,
                               ),
-                              child: const Text('Edit pricing →'),
+                              child: const Text('Edit collab fee →'),
                             ),
                           ),
                         ],
@@ -296,7 +528,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                             );
                           },
                           style: TextButton.styleFrom(
-                            foregroundColor: AppColors.pink,
+                            foregroundColor: AppColors.blue,
                           ),
                           child: const Text('See all'),
                         ),
@@ -353,7 +585,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                       ),
                     const SizedBox(height: AppSpacing.xl),
                     BCCard(
-                      shadow: AppShadows.neon,
+                      shadow: AppShadows.orange,
                       onTap: () => context.push(RouteNames.creatorWallet),
                       child: Row(
                         children: [
@@ -369,7 +601,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                 Text(
                                   Formatters.currency(walletBalance),
                                   style: AppTypography.displaySM
-                                      .copyWith(color: AppColors.neon),
+                                      .copyWith(color: AppColors.purple),
                                 ),
                               ],
                             ),
@@ -392,7 +624,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                               child: Text(
                                 'Top Up →',
                                 style: AppTypography.labelSM
-                                    .copyWith(color: AppColors.neon),
+                                    .copyWith(color: AppColors.orange),
                               ),
                             ),
                           ),
@@ -446,15 +678,17 @@ class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.value,
     required this.label,
+    required this.shadow,
   });
 
   final String value;
   final String label;
+  final List<BoxShadow> shadow;
 
   @override
   Widget build(BuildContext context) {
     return BCCard(
-      shadow: AppShadows.neon,
+      shadow: shadow,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,
         vertical: AppSpacing.md,
@@ -550,6 +784,64 @@ class _PastCollabsShimmerList extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ThemedWordPill extends StatelessWidget {
+  const _ThemedWordPill({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final tone = _tagToneForWord(label);
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: tone.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        border: Border.all(color: tone.withValues(alpha: 0.8), width: 1.5),
+      ),
+      child: Text(
+        label,
+        style: AppTypography.labelSM.copyWith(color: AppColors.ink),
+      ),
+    );
+  }
+}
+
+Color _tagToneForWord(String label) {
+  final value = label.trim().toLowerCase();
+
+  bool hasAny(List<String> keys) => keys.any(value.contains);
+
+  if (hasAny(['fashion', 'beauty', 'style', 'makeup', 'lifestyle'])) {
+    return AppColors.pink;
+  }
+  if (hasAny(['food', 'recipe', 'cooking', 'drink', 'travel'])) {
+    return AppColors.orange;
+  }
+  if (hasAny(['tech', 'gaming', 'youtube', 'stream', 'podcast'])) {
+    return AppColors.blue;
+  }
+  if (hasAny(['fitness', 'health', 'wellness', 'gym', 'sport'])) {
+    return AppColors.success;
+  }
+  if (hasAny(['instagram', 'reel', 'short', 'ugc', 'photo'])) {
+    return AppColors.purple;
+  }
+
+  const fallback = [
+    AppColors.neon,
+    AppColors.pink,
+    AppColors.blue,
+    AppColors.purple,
+    AppColors.orange,
+  ];
+  final hash = value.codeUnits.fold<int>(0, (sum, ch) => sum + ch);
+  return fallback[hash % fallback.length];
 }
 
 String _avatarInitials(String fullName) {

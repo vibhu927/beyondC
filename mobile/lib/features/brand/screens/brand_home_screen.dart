@@ -74,93 +74,132 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                       ),
                     ),
                     data: (notifications) {
-                      if (notifications.isEmpty) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(AppSpacing.xl),
-                            child: Text(
-                              'No notifications yet.',
-                              style: AppTypography.bodyMD,
+                      return Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.screenPadding,
+                              AppSpacing.md,
+                              AppSpacing.sm,
+                              AppSpacing.sm,
+                            ),
+                            child: Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Notifications',
+                                    style: AppTypography.displaySM,
+                                  ),
+                                ),
+                                IconButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  icon: const Icon(Icons.close_rounded),
+                                  tooltip: 'Close notifications',
+                                ),
+                              ],
                             ),
                           ),
-                        );
-                      }
-
-                      return ListView.separated(
-                        controller: scrollController,
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.screenPadding,
-                          AppSpacing.lg,
-                          AppSpacing.screenPadding,
-                          AppSpacing.huge,
-                        ),
-                        itemCount: notifications.length,
-                        separatorBuilder: (_, __) => const SizedBox(
-                          height: AppSpacing.sm,
-                        ),
-                        itemBuilder: (context, index) {
-                          final notification = notifications[index];
-                          return BCCard(
-                            child: InkWell(
-                              onTap: () {
-                                unawaited(ref
-                                    .read(notificationProvider.notifier)
-                                    .markRead(notification.id));
-
-                                final route = _routeForNotification(notification);
-                                if (route == null) return;
-
-                                Navigator.of(context).pop();
-                                context.push(route);
-                              },
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          notification.title,
-                                          style: AppTypography.labelMD,
-                                        ),
-                                        const SizedBox(height: AppSpacing.xs),
-                                        Text(
-                                          notification.body.isEmpty
-                                              ? 'New activity'
-                                              : notification.body,
-                                          style: AppTypography.bodySM,
-                                        ),
-                                        const SizedBox(height: AppSpacing.xs),
-                                        Text(
-                                          timeago
-                                              .format(notification.createdAt),
-                                          style: AppTypography.bodyXS,
-                                        ),
-                                      ],
+                          Expanded(
+                            child: notifications.isEmpty
+                                ? const Center(
+                                    child: Padding(
+                                      padding: EdgeInsets.all(AppSpacing.xl),
+                                      child: Text(
+                                        'No notifications yet.',
+                                        style: AppTypography.bodyMD,
+                                      ),
                                     ),
+                                  )
+                                : ListView.separated(
+                                    controller: scrollController,
+                                    padding: const EdgeInsets.fromLTRB(
+                                      AppSpacing.screenPadding,
+                                      AppSpacing.lg,
+                                      AppSpacing.screenPadding,
+                                      AppSpacing.huge,
+                                    ),
+                                    itemCount: notifications.length,
+                                    separatorBuilder: (_, __) => const SizedBox(
+                                      height: AppSpacing.sm,
+                                    ),
+                                    itemBuilder: (context, index) {
+                                      final notification = notifications[index];
+                                      return BCCard(
+                                        child: InkWell(
+                                          onTap: () {
+                                            unawaited(ref
+                                                .read(notificationProvider
+                                                    .notifier)
+                                                .markRead(notification.id));
+
+                                            final route = _routeForNotification(
+                                                notification);
+                                            if (route == null) return;
+
+                                            Navigator.of(context).pop();
+                                            context.push(route);
+                                          },
+                                          child: Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      notification.title,
+                                                      style:
+                                                          AppTypography.labelMD,
+                                                    ),
+                                                    const SizedBox(
+                                                      height: AppSpacing.xs,
+                                                    ),
+                                                    Text(
+                                                      notification.body.isEmpty
+                                                          ? 'New activity'
+                                                          : notification.body,
+                                                      style:
+                                                          AppTypography.bodySM,
+                                                    ),
+                                                    const SizedBox(
+                                                      height: AppSpacing.xs,
+                                                    ),
+                                                    Text(
+                                                      timeago.format(
+                                                          notification
+                                                              .createdAt),
+                                                      style:
+                                                          AppTypography.bodyXS,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              if (!notification.isRead)
+                                                Container(
+                                                  margin: const EdgeInsets.only(
+                                                    left: AppSpacing.sm,
+                                                    top: AppSpacing.sm,
+                                                  ),
+                                                  width: 8,
+                                                  height: 8,
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.neon,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                      AppSpacing.radiusFull,
+                                                    ),
+                                                  ),
+                                                ),
+                                            ],
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
-                                  if (!notification.isRead)
-                                    Container(
-                                      margin: const EdgeInsets.only(
-                                        left: AppSpacing.sm,
-                                        top: AppSpacing.sm,
-                                      ),
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.neon,
-                                        borderRadius: BorderRadius.circular(
-                                          AppSpacing.radiusFull,
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
+                          ),
+                        ],
                       );
                     },
                   );

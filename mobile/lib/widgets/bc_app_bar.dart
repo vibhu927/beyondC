@@ -24,8 +24,7 @@ class BCAppBar extends ConsumerWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeProvider);
-    final isDark = themeMode == ThemeMode.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final unreadNotifications = ref.watch(unreadCountProvider);
     final unreadChats = ref.watch(chatModalUnreadCountProvider);
 
@@ -33,9 +32,10 @@ class BCAppBar extends ConsumerWidget implements PreferredSizeWidget {
       IconButton(
         icon: Icon(
           isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
-          color: isDark ? AppColors.darkText : AppColors.ink,
+          color: isDark ? AppColors.neon : AppColors.lightText,
         ),
         onPressed: () => ref.read(themeProvider.notifier).toggle(),
+        tooltip: isDark ? 'Light mode' : 'Dark mode',
       ),
       Stack(
         children: [

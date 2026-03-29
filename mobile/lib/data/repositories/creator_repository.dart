@@ -12,6 +12,15 @@ class CreatorRepository {
 
   Dio get _dio => _apiService.client;
 
+  Future<CreatorProfile> updateProfile(Map<String, dynamic> data) async {
+    try {
+      await _dio.put('/creator/profile', data: data);
+      return fetchCreatorProfile();
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parse(e));
+    }
+  }
+
   Future<CreatorProfile> fetchCreatorProfile() async {
     try {
       final response = await _dio.get('/creator/profile');
@@ -20,9 +29,12 @@ class CreatorRepository {
       final baseProfile = _asMap(profile['profiles']);
 
       final displayName = _string(baseProfile['display_name']);
-      final fullName = _string(baseProfile['full_name']) ?? displayName ?? 'Creator';
+      final fullName =
+          _string(baseProfile['full_name']) ?? displayName ?? 'Creator';
       final firstName = _string(baseProfile['first_name']) ??
-          (fullName.trim().isEmpty ? 'Creator' : fullName.trim().split(' ').first);
+          (fullName.trim().isEmpty
+              ? 'Creator'
+              : fullName.trim().split(' ').first);
 
       final normalized = <String, dynamic>{
         'id': _string(profile['id']) ?? _string(baseProfile['id']) ?? '',
@@ -30,7 +42,9 @@ class CreatorRepository {
         'fullName': fullName,
         'displayName': displayName,
         'tier': _string(profile['tier']) ?? 'Rising Creator',
-        'followersCount': _int(profile['followers_count']) ?? _int(profile['follower_count']) ?? 0,
+        'followersCount': _int(profile['followers_count']) ??
+            _int(profile['follower_count']) ??
+            0,
         'engagementRate': _double(profile['engagement_rate']) ?? 0,
         'avgCollabPaise': _int(profile['avg_collab_price']) ?? 0,
         'bio': _string(profile['bio']) ?? '',
@@ -91,21 +105,21 @@ class CreatorRepository {
     try {
       final response = await _dio.get('/creator/bids');
       final root = _asMap(response.data);
-      final bids = _asMapList(root['bids'])
-          .map((item) {
-            final campaignMap = _asMap(item['campaign']);
-            final normalized = <String, dynamic>{
-              'id': _string(item['id']) ?? '',
-              'campaignId': _string(item['campaign_id']) ?? _string(campaignMap['id']) ?? '',
-              'creatorId': _string(item['creator_id']),
-              'status': _string(item['status']) ?? 'pending',
-              'message': _string(item['message']),
-              'createdAt': _string(item['created_at']),
-              if (campaignMap.isNotEmpty) 'campaign': _campaignFromApi(campaignMap).toJson(),
-            };
-            return Bid.fromJson(normalized);
-          })
-          .toList();
+      final bids = _asMapList(root['bids']).map((item) {
+        final campaignMap = _asMap(item['campaign']);
+        final normalized = <String, dynamic>{
+          'id': _string(item['id']) ?? '',
+          'campaignId':
+              _string(item['campaign_id']) ?? _string(campaignMap['id']) ?? '',
+          'creatorId': _string(item['creator_id']),
+          'status': _string(item['status']) ?? 'pending',
+          'message': _string(item['message']),
+          'createdAt': _string(item['created_at']),
+          if (campaignMap.isNotEmpty)
+            'campaign': _campaignFromApi(campaignMap).toJson(),
+        };
+        return Bid.fromJson(normalized);
+      }).toList();
 
       return bids;
     } on DioException catch (e) {
@@ -215,28 +229,33 @@ class CreatorRepository {
 
   Future<List<Collab>> fetchCreatorCollabs() async {
     try {
-      final bids = await fetchMyBids();
-      return bids
-          .where(
-            (bid) =>
-                bid.status == 'accepted' ||
-                bid.status == 'in_progress' ||
-                bid.status == 'completed',
-          )
-          .map(
-            (bid) => Collab(
-              id: bid.id,
-              brandId: bid.campaign?.id ?? '',
-              creatorId: bid.creatorId ?? '',
-              brandCategory: bid.campaign?.brandCategory ?? 'General',
-              agreedAmountPaise: bid.campaign?.maxBudget ?? 0,
-              collabType: bid.campaign?.collabType ?? CampaignCollabType.paid,
-              status: bid.status,
-              milestoneStatus: null,
-              createdAt: bid.createdAt,
-            ),
-          )
-          .toList();
+      final response = await _dio.get('/creator/collabs');
+      final root = _asMap(response.data);
+
+      final parsed = <Collab>[];
+      for (final item in _asMapList(root['collabs'])) {
+        final brand = _asMap(item['brand']);
+
+        parsed.add(
+          Collab.fromJson({
+            'id': _string(item['id']) ?? '',
+            'brandId': _string(item['brand_id']) ?? '',
+            'creatorId': _string(item['creator_id']) ?? '',
+            'brandCategory': _string(item['brand_category']) ??
+                _string(brand['brand_category']) ??
+                'General',
+            'agreedAmountPaise': _int(item['agreed_amount']) ?? 0,
+            'collabType': _normalizeCollabType(_string(item['collab_type'])),
+            'status': _string(item['status']) ?? 'in_progress',
+            'milestoneStatus': _string(item['milestone_status']),
+            'createdAt': _string(item['created_at']),
+            'completedAt': _string(item['completed_at']),
+            'rating': _int(item['rating']),
+          }),
+        );
+      }
+
+      return parsed;
     } on DioException catch (e) {
       throw Exception(ApiErrorHandler.parse(e));
     }
@@ -345,26 +364,25 @@ class CreatorRepository {
       );
       final root = _asMap(response.data);
 
-      return _asMapList(root['invites'])
-          .map(
-            (item) {
-              final event = _asMap(item['event']);
-              final brand = _asMap(event['brand']);
-              return EventInvite.fromJson({
-                'id': _string(item['id']) ?? '',
-                'eventId': _string(item['event_id']) ?? _string(event['id']) ?? '',
-                'status': _string(item['status']) ?? 'pending',
-                'qrCodeData': _string(item['qr_code_data']),
-                'createdAt': _string(item['created_at']),
-                'eventTitle': _string(event['title']) ?? 'Event',
-                'eventDate': _string(event['event_date']),
-                'location': _string(event['location']) ?? _string(event['venue_address']),
-                'brandName': _string(brand['brand_name']),
-                'brandLogoUrl': _string(brand['logo_url']),
-              });
-            },
-          )
-          .toList();
+      return _asMapList(root['invites']).map(
+        (item) {
+          final event = _asMap(item['event']);
+          final brand = _asMap(event['brand']);
+          return EventInvite.fromJson({
+            'id': _string(item['id']) ?? '',
+            'eventId': _string(item['event_id']) ?? _string(event['id']) ?? '',
+            'status': _string(item['status']) ?? 'pending',
+            'qrCodeData': _string(item['qr_code_data']),
+            'createdAt': _string(item['created_at']),
+            'eventTitle': _string(event['title']) ?? 'Event',
+            'eventDate': _string(event['event_date']),
+            'location':
+                _string(event['location']) ?? _string(event['venue_address']),
+            'brandName': _string(brand['brand_name']),
+            'brandLogoUrl': _string(brand['logo_url']),
+          });
+        },
+      ).toList();
     } on DioException catch (e) {
       throw Exception(ApiErrorHandler.parse(e));
     }
@@ -385,7 +403,8 @@ class CreatorRepository {
       return EventInvite.fromJson({
         'id': _string(invite['id']) ?? inviteId,
         'eventId': _string(invite['event_id']) ?? '',
-        'status': _string(invite['status']) ?? (action == 'accept' ? 'accepted' : 'declined'),
+        'status': _string(invite['status']) ??
+            (action == 'accept' ? 'accepted' : 'declined'),
         'qrCodeData': _string(invite['qr_code_data']),
         'createdAt': _string(invite['created_at']),
         'eventTitle': 'Event',
@@ -400,29 +419,28 @@ class CreatorRepository {
       final response = await _dio.get('/creator/events/tickets');
       final root = _asMap(response.data);
 
-      return _asMapList(root['tickets'])
-          .map(
-            (item) {
-              final event = _asMap(item['event']);
-              final brand = _asMap(event['brand']);
-              return EventTicket.fromJson({
-                'id': _string(item['id']) ?? '',
-                'ticketCode': _string(item['ticket_code']),
-                'qrCodeData': _string(item['qr_code_data']),
-                'status': _string(item['status']) ?? 'accepted',
-                'createdAt': _string(item['created_at']),
-                'eventId': _string(event['id']) ?? '',
-                'eventTitle': _string(event['title']) ?? 'Event',
-                'eventDescription': _string(event['description']),
-                'eventDate': _string(event['event_date']),
-                'location': _string(event['location']) ?? _string(event['venue_address']),
-                'imageUrl': _string(event['image_url']),
-                'brandName': _string(brand['brand_name']),
-                'brandLogoUrl': _string(brand['logo_url']),
-              });
-            },
-          )
-          .toList();
+      return _asMapList(root['tickets']).map(
+        (item) {
+          final event = _asMap(item['event']);
+          final brand = _asMap(event['brand']);
+          return EventTicket.fromJson({
+            'id': _string(item['id']) ?? '',
+            'ticketCode': _string(item['ticket_code']),
+            'qrCodeData': _string(item['qr_code_data']),
+            'status': _string(item['status']) ?? 'accepted',
+            'createdAt': _string(item['created_at']),
+            'eventId': _string(event['id']) ?? '',
+            'eventTitle': _string(event['title']) ?? 'Event',
+            'eventDescription': _string(event['description']),
+            'eventDate': _string(event['event_date']),
+            'location':
+                _string(event['location']) ?? _string(event['venue_address']),
+            'imageUrl': _string(event['image_url']),
+            'brandName': _string(brand['brand_name']),
+            'brandLogoUrl': _string(brand['logo_url']),
+          });
+        },
+      ).toList();
     } on DioException catch (e) {
       throw Exception(ApiErrorHandler.parse(e));
     }
@@ -443,7 +461,8 @@ class CreatorRepository {
       'collabType': _normalizeCollabType(_string(item['collab_type'])),
       'deliverables': _stringList(item['deliverables']),
       'bidCount': _extractBidCount(bidCountRaw),
-      'deadline': _string(item['deadline']) ?? DateTime.now().add(const Duration(days: 7)).toIso8601String(),
+      'deadline': _string(item['deadline']) ??
+          DateTime.now().add(const Duration(days: 7)).toIso8601String(),
       'status': _string(item['status']) ?? 'active',
       'createdAt': _string(item['created_at']),
     };
@@ -466,8 +485,11 @@ class CreatorRepository {
   }
 
   String _brandInitial(Map<String, dynamic> brand) {
-    final name = _string(brand['brand_name']) ?? _string(brand['name']) ?? 'Brand';
-    return name.trim().isEmpty ? 'B' : name.trim().substring(0, 1).toUpperCase();
+    final name =
+        _string(brand['brand_name']) ?? _string(brand['name']) ?? 'Brand';
+    return name.trim().isEmpty
+        ? 'B'
+        : name.trim().substring(0, 1).toUpperCase();
   }
 
   String _normalizeCollabType(String? rawType) {

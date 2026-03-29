@@ -5,7 +5,7 @@ import HowItWorks from '@/components/landing/HowItWorks'
 import PrivacySection from '@/components/landing/PrivacySection'
 import CollabTypes from '@/components/landing/CollabTypes'
 import EventInvite from '@/components/landing/EventInvite'
-import Stats from '@/components/landing/Stats'
+// import Stats from '@/components/landing/Stats'
 import ForCreators from '@/components/landing/ForCreators'
 import ForBrands from '@/components/landing/ForBrands'
 import Pricing from '@/components/landing/Pricing'
@@ -23,7 +23,7 @@ export default function Home() {
       <PrivacySection />
       <CollabTypes />
       <EventInvite />
-      <Stats />
+      {/* <Stats /> */}
       <ForCreators />
       <ForBrands />
       <Pricing />

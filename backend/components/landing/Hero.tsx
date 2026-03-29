@@ -60,6 +60,7 @@ export default function Hero() {
               </>
             ) : (
               <>
+                {/*
                 <Link
                   href="/join/creator"
                   className="px-8 py-4 bg-ink text-neon border-2 border-ink shadow-neo-neon font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#C8FF00] hover:-translate-y-1 transition-all"
@@ -72,12 +73,28 @@ export default function Hero() {
                 >
                   I&apos;m a Brand →
                 </Link>
+                */}
+                <div className="max-w-2xl border-2 border-ink bg-neon px-6 py-4 text-center shadow-neo">
+                  <p className="font-jakarta text-base font-bold text-ink sm:text-lg">
+                    Creator/Brand onboarding is paused for now.
+                  </p>
+                  <p className="mt-1 font-nunito text-sm text-ink sm:text-base">
+                    Please add your email in the Join the waitlist section to get access.
+                  </p>
+                </div>
+                <Link
+                  href="#waitlist"
+                  className="px-8 py-4 bg-ink text-neon border-2 border-ink shadow-neo-neon font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#C8FF00] hover:-translate-y-1 transition-all"
+                >
+                  Join the Waitlist ↓
+                </Link>
               </>
             )}
           </div>
 
           {/* Download Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animate-delay-400">
+            {/*
             <a 
               href="https://apps.apple.com" 
               target="_blank" 
@@ -106,6 +123,10 @@ export default function Hero() {
                 <p className="font-jakarta font-bold text-sm text-ink leading-none">Google Play</p>
               </div>
             </a>
+            */}
+            <p className="rounded-full border-2 border-ink bg-white px-5 py-2.5 text-center font-space text-xs font-bold uppercase tracking-[0.08em] text-ink">
+              App downloads are coming soon. Join the waitlist with your email below.
+            </p>
           </div>
         </div>
 

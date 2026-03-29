@@ -188,7 +188,9 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         Text(
-                          'Posted ${Formatters.timeAgo(_mockPostedAt(campaign))}',
+                          campaign.createdAt == null
+                              ? 'Recently posted'
+                              : 'Posted ${Formatters.timeAgo(campaign.createdAt!)}',
                           style: AppTypography.bodyXS,
                         ),
                       ],
@@ -367,11 +369,6 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
       ),
     );
   }
-}
-
-DateTime _mockPostedAt(Campaign campaign) {
-  final days = (campaign.id.codeUnits.fold<int>(0, (a, b) => a + b) % 5) + 1;
-  return DateTime.now().subtract(Duration(days: days));
 }
 
 String _collabLabel(CampaignCollabType type) {

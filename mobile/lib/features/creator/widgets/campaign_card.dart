@@ -16,10 +16,12 @@ class CampaignCard extends StatelessWidget {
     super.key,
     required this.campaign,
     this.onTap,
+    this.width = 280,
   });
 
   final Campaign campaign;
   final VoidCallback? onTap;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +30,7 @@ class CampaignCard extends StatelessWidget {
         campaign.deliverables.length - visibleDeliverables.length;
 
     return SizedBox(
-      width: 280,
+      width: width,
       child: BCCard(
         onTap: onTap,
         shadow: AppShadows.pink,
@@ -121,7 +123,12 @@ class CampaignCard extends StatelessWidget {
 }
 
 class CampaignCardSkeleton extends StatelessWidget {
-  const CampaignCardSkeleton({super.key});
+  const CampaignCardSkeleton({
+    super.key,
+    this.width = 280,
+  });
+
+  final double width;
 
   @override
   Widget build(BuildContext context) {
@@ -133,7 +140,7 @@ class CampaignCardSkeleton extends StatelessWidget {
           ? AppColors.darkSurfaceAlt
           : AppColors.lightSurfaceAlt,
       child: SizedBox(
-        width: 280,
+        width: width,
         child: BCCard(
           shadow: AppShadows.pink,
           padding: const EdgeInsets.all(AppSpacing.lg),

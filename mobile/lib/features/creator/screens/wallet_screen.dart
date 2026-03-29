@@ -27,8 +27,9 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
 
   Future<void> _createTopupOrder(int amountInr) async {
     try {
-      final order =
-          await ref.read(creatorActionsProvider.notifier).topUpWallet(amountInr * 100);
+      final order = await ref
+          .read(creatorActionsProvider.notifier)
+          .topUpWallet(amountInr * 100);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Top-up order created: ${order.orderId}')),
@@ -130,7 +131,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                             .map(
                               (amount) => Expanded(
                                 child: Padding(
-                                  padding: const EdgeInsets.only(right: AppSpacing.sm),
+                                  padding: const EdgeInsets.only(
+                                      right: AppSpacing.sm),
                                   child: _QuickTopUpButton(
                                     amount: amount,
                                     onTap: () => _createTopupOrder(amount),
@@ -159,23 +161,26 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('How fees work 💡', style: AppTypography.displaySM),
+                      const Text('How fees work 💡',
+                          style: AppTypography.displaySM),
                       const SizedBox(height: AppSpacing.md),
-                      _feeRow('Micro Brand', '₹10–₹30'),
+                      _feeRow('Micro Brand', '₹10–₹20'),
                       const SizedBox(height: AppSpacing.xs),
-                      _feeRow('Mid Brand', '₹50–₹100'),
+                      _feeRow('Mid Brand', '₹50–₹70'),
                       const SizedBox(height: AppSpacing.xs),
-                      _feeRow('Big Brand', '₹150–₹300'),
+                      _feeRow('Big Brand', '₹100–₹150'),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         'Fee deducted only when you accept a collab',
-                        style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                        style: AppTypography.bodyXS
+                            .copyWith(color: AppColors.muted),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
-                const Text('Transaction History', style: AppTypography.displaySM),
+                const Text('Transaction History',
+                    style: AppTypography.displaySM),
                 const SizedBox(height: AppSpacing.md),
                 if (wallet.transactions.isEmpty)
                   const BCEmptyState(message: 'No transactions yet')
@@ -200,7 +205,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                               isTopUp
                                   ? Icons.arrow_upward_rounded
                                   : Icons.arrow_downward_rounded,
-                              color: isTopUp ? AppColors.success : AppColors.error,
+                              color:
+                                  isTopUp ? AppColors.success : AppColors.error,
                             ),
                             const SizedBox(width: AppSpacing.sm),
                             Expanded(

@@ -29,16 +29,49 @@ class BCPrimaryButton extends StatefulWidget {
   });
 
   // Named constructors for common variants
-  factory BCPrimaryButton.neon({required String label, VoidCallback? onPressed, bool isLoading = false, bool isFullWidth = true}) {
-    return BCPrimaryButton(label: label, onPressed: onPressed, backgroundColor: AppColors.neon, textColor: AppColors.ink, shadow: AppShadows.ink, isLoading: isLoading, isFullWidth: isFullWidth);
+  factory BCPrimaryButton.neon(
+      {required String label,
+      VoidCallback? onPressed,
+      bool isLoading = false,
+      bool isFullWidth = true}) {
+    return BCPrimaryButton(
+        label: label,
+        onPressed: onPressed,
+        backgroundColor: AppColors.neon,
+        textColor: AppColors.ink,
+        shadow: AppShadows.ink,
+        isLoading: isLoading,
+        isFullWidth: isFullWidth);
   }
 
-  factory BCPrimaryButton.pink({required String label, VoidCallback? onPressed, bool isLoading = false, bool isFullWidth = true}) {
-    return BCPrimaryButton(label: label, onPressed: onPressed, backgroundColor: AppColors.pink, textColor: AppColors.white, shadow: AppShadows.ink, isLoading: isLoading, isFullWidth: isFullWidth);
+  factory BCPrimaryButton.pink(
+      {required String label,
+      VoidCallback? onPressed,
+      bool isLoading = false,
+      bool isFullWidth = true}) {
+    return BCPrimaryButton(
+        label: label,
+        onPressed: onPressed,
+        backgroundColor: AppColors.pink,
+        textColor: AppColors.white,
+        shadow: AppShadows.ink,
+        isLoading: isLoading,
+        isFullWidth: isFullWidth);
   }
 
-  factory BCPrimaryButton.dark({required String label, VoidCallback? onPressed, bool isLoading = false, bool isFullWidth = true}) {
-    return BCPrimaryButton(label: label, onPressed: onPressed, backgroundColor: AppColors.ink, textColor: AppColors.neon, shadow: AppShadows.neon, isLoading: isLoading, isFullWidth: isFullWidth);
+  factory BCPrimaryButton.dark(
+      {required String label,
+      VoidCallback? onPressed,
+      bool isLoading = false,
+      bool isFullWidth = true}) {
+    return BCPrimaryButton(
+        label: label,
+        onPressed: onPressed,
+        backgroundColor: AppColors.ink,
+        textColor: AppColors.neon,
+        shadow: AppShadows.neon,
+        isLoading: isLoading,
+        isFullWidth: isFullWidth);
   }
 
   @override
@@ -50,6 +83,9 @@ class _BCPrimaryButtonState extends State<BCPrimaryButton> {
 
   @override
   Widget build(BuildContext context) {
+    final resolvedShadow =
+        widget.shadow.isEmpty ? AppShadows.softTight(context) : widget.shadow;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) {
@@ -65,13 +101,17 @@ class _BCPrimaryButtonState extends State<BCPrimaryButton> {
           vertical: AppSpacing.lg,
         ),
         decoration: BoxDecoration(
-          color: widget.onPressed == null ? AppColors.muted : widget.backgroundColor,
-          border: Border.all(color: AppColors.ink, width: AppSpacing.borderWidth),
+          color: widget.onPressed == null
+              ? AppColors.muted
+              : widget.backgroundColor,
+          border:
+              Border.all(color: AppColors.ink, width: AppSpacing.borderWidth),
           borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
-          boxShadow: _isPressed ? AppShadows.pressed : widget.shadow,
+          boxShadow: _isPressed ? AppShadows.pressed : resolvedShadow,
         ),
         transform: _isPressed
-            ? Matrix4.translationValues(AppSpacing.shadowOffset, AppSpacing.shadowOffset, 0)
+            ? Matrix4.translationValues(
+                AppSpacing.shadowOffset, AppSpacing.shadowOffset, 0)
             : Matrix4.identity(),
         child: widget.isLoading
             ? Center(
@@ -85,7 +125,8 @@ class _BCPrimaryButtonState extends State<BCPrimaryButton> {
                 ),
               )
             : Row(
-                mainAxisSize: widget.isFullWidth ? MainAxisSize.max : MainAxisSize.min,
+                mainAxisSize:
+                    widget.isFullWidth ? MainAxisSize.max : MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (widget.prefixIcon != null) ...[
@@ -94,7 +135,8 @@ class _BCPrimaryButtonState extends State<BCPrimaryButton> {
                   ],
                   Text(
                     widget.label,
-                    style: AppTypography.buttonLG.copyWith(color: widget.textColor),
+                    style: AppTypography.buttonLG
+                        .copyWith(color: widget.textColor),
                   ),
                   if (widget.suffixIcon != null) ...[
                     const SizedBox(width: AppSpacing.sm),

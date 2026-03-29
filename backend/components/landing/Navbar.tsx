@@ -65,6 +65,7 @@ export default function Navbar() {
               </>
             ) : (
               <>
+                {/*
                 <Link
                   href="/join/creator"
                   className="hidden sm:block shrink-0 cursor-pointer px-4 py-2 bg-ink text-neon border-2 border-ink font-jakarta font-semibold text-sm hover:bg-transparent hover:text-ink transition-all"
@@ -77,6 +78,16 @@ export default function Navbar() {
                 >
                   Join as Brand
                 </Link>
+                */}
+                  {/* <span className="hidden md:inline-flex items-center rounded-full border-2 border-ink bg-neon px-3 py-2 font-space text-[10px] font-bold uppercase tracking-[0.08em] text-ink">
+                    Join via waitlist
+                  </span> */}
+                <a
+                  href="#waitlist"
+                  className="shrink-0 cursor-pointer px-4 py-2 bg-ink text-neon border-2 border-ink font-jakarta font-semibold text-sm hover:bg-transparent hover:text-ink transition-all"
+                >
+                  Join Waitlist
+                </a>
               </>
             )}
           </div>

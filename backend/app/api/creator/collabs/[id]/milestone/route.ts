@@ -35,14 +35,30 @@ export async function PUT(
       return NextResponse.json({ error: 'Collab not found' }, { status: 404 })
     }
 
-    if (collab.status !== 'in_progress') {
-      return NextResponse.json({ error: 'Collab is not in progress' }, { status: 400 })
+    if (collab.status !== 'in_progress' && collab.status !== 'active') {
+      return NextResponse.json({ error: 'Collab is not active' }, { status: 400 })
     }
 
-    // Update milestone
+    // Update milestone using existing boolean milestone columns.
+    const milestonePatch: Record<string, unknown> = {
+      status: 'in_progress',
+    }
+
+    switch (milestone) {
+      case 'brief_reviewed':
+        milestonePatch.brief_shared = true
+        break
+      case 'draft_submitted':
+        milestonePatch.draft_submitted = true
+        break
+      case 'content_posted':
+        milestonePatch.content_posted = true
+        break
+    }
+
     const { data: updatedCollab, error: updateError } = await supabase
       .from('collabs')
-      .update({ milestone_status: milestone })
+      .update(milestonePatch)
       .eq('id', params.id)
       .select()
       .single()
@@ -69,7 +85,10 @@ export async function PUT(
 
     return NextResponse.json({ 
       message: 'Milestone updated',
-      collab: updatedCollab,
+      collab: {
+        ...updatedCollab,
+        milestone_status: milestone,
+      },
     })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 })

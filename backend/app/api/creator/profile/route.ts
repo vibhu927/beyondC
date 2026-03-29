@@ -47,17 +47,24 @@ export async function PUT(request: NextRequest) {
     // Validate request body
     const validatedData = updateCreatorProfileSchema.parse(body)
 
+    const normalizedDisplayName = validatedData.display_name?.trim()
+    const derivedFirstName = normalizedDisplayName
+      ? normalizedDisplayName.split(/\s+/).filter(Boolean)[0]
+      : undefined
+
     // Separate profile fields from creator_profile fields
     const profileFields = {
-      display_name: validatedData.display_name,
+      full_name: normalizedDisplayName,
+      first_name: derivedFirstName,
       avatar_url: validatedData.avatar_url,
-      onboarded: validatedData.onboarded,
+      is_onboarded: validatedData.onboarded,
     }
 
     const creatorFields = {
       bio: validatedData.bio,
       niches: validatedData.niches,
       platforms: validatedData.platforms,
+      starting_price: validatedData.starting_price,
       instagram_handle: validatedData.instagram_handle,
       youtube_handle: validatedData.youtube_handle,
       twitter_handle: validatedData.twitter_handle,
@@ -94,7 +101,41 @@ export async function PUT(request: NextRequest) {
         .eq('id', user.id)
 
       if (creatorError) {
-        return NextResponse.json({ error: creatorError.message }, { status: 400 })
+        // Backward-compatible fallback for older schema names:
+        // niche/content_type/follower_count instead of niches/platforms/followers_count.
+        const shouldTryLegacyFallback = /column\s+"(niches|platforms|followers_count)"\s+does not exist/i.test(
+          creatorError.message
+        )
+
+        if (!shouldTryLegacyFallback) {
+          return NextResponse.json({ error: creatorError.message }, { status: 400 })
+        }
+
+        const legacyCreatorFields = {
+          bio: validatedData.bio,
+          niche: validatedData.niches,
+          content_type: validatedData.platforms,
+          starting_price: validatedData.starting_price,
+          instagram_handle: validatedData.instagram_handle,
+          youtube_handle: validatedData.youtube_handle,
+          twitter_handle: validatedData.twitter_handle,
+          follower_count: validatedData.followers_count,
+          engagement_rate: validatedData.engagement_rate,
+          portfolio_links: validatedData.portfolio_links,
+        }
+
+        const cleanLegacyCreatorFields = Object.fromEntries(
+          Object.entries(legacyCreatorFields).filter(([_, v]) => v !== undefined)
+        )
+
+        const { error: legacyCreatorError } = await supabase
+          .from('creator_profiles')
+          .update(cleanLegacyCreatorFields)
+          .eq('id', user.id)
+
+        if (legacyCreatorError) {
+          return NextResponse.json({ error: legacyCreatorError.message }, { status: 400 })
+        }
       }
     }
 

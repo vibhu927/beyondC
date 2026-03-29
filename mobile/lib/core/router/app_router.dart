@@ -20,8 +20,12 @@ import '../../features/brand/screens/brand_profile_screen.dart';
 import '../../features/brand/screens/brand_requests_screen.dart';
 import '../../features/brand/screens/credits_screen.dart';
 import '../../features/creator/screens/creator_home_screen.dart';
+import '../../features/creator/screens/creator_requests_screen.dart';
+import '../../features/creator/screens/creator_collabs_screen.dart';
+import '../../features/creator/screens/creator_events_screen.dart';
 import '../../features/creator/screens/campaigns_screen.dart';
 import '../../features/creator/screens/campaign_detail_screen.dart';
+import '../../features/creator/screens/my_bids_screen.dart';
 import '../../features/creator/screens/my_tickets_screen.dart';
 import '../../features/creator/screens/profile_screen.dart';
 import '../../features/creator/screens/ticket_detail_screen.dart';
@@ -161,16 +165,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.myBids,
         pageBuilder: (c, s) => const NoTransitionPage(
-          child: PlaceholderScreen('My Bids'),
+          child: MyBidsScreen(),
         ),
       ),
       GoRoute(
         path: RouteNames.creatorRequests,
-        builder: (c, s) => const PlaceholderScreen('Creator Requests'),
+        builder: (c, s) => const CreatorRequestsScreen(),
       ),
       GoRoute(
         path: RouteNames.creatorCollabs,
-        builder: (c, s) => const PlaceholderScreen('Creator Collabs'),
+        builder: (c, s) => const CreatorCollabsScreen(),
       ),
       GoRoute(
         path: RouteNames.creatorChat,
@@ -178,7 +182,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.creatorEvents,
-        builder: (c, s) => const PlaceholderScreen('Creator Events'),
+        builder: (c, s) => const CreatorEventsScreen(),
       ),
       GoRoute(
         path: RouteNames.creatorProfile,

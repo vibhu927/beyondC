@@ -38,6 +38,8 @@ class ChatDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         final velocity = details.primaryVelocity ?? 0;
@@ -47,12 +49,30 @@ class ChatDrawer extends StatelessWidget {
       },
       child: Align(
         alignment: Alignment.centerRight,
-        child: Material(
-          color: Theme.of(context).colorScheme.surface,
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width,
-            child: ChatScreen(collabId: collabId),
-          ),
+        child: Stack(
+          children: [
+            Material(
+              color: Theme.of(context).colorScheme.surface,
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: ChatScreen(collabId: collabId),
+              ),
+            ),
+            Positioned(
+              top: topPadding + 8,
+              right: 8,
+              child: Material(
+                color: Theme.of(context).colorScheme.surface,
+                shape: const CircleBorder(),
+                elevation: 2,
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close_rounded),
+                  tooltip: 'Close chat',
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

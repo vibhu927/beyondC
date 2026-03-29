@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/creator_models.dart';
@@ -327,9 +328,9 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenPadding,
+            AppSpacing.md,
             AppSpacing.lg,
-            AppSpacing.screenPadding,
+            AppSpacing.md,
             AppSpacing.huge,
           ),
           children: [
@@ -390,7 +391,10 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                   4,
                   (index) => const Padding(
                     padding: EdgeInsets.only(bottom: AppSpacing.md),
-                    child: SizedBox(height: 220, child: CampaignCardSkeleton()),
+                    child: SizedBox(
+                      height: 220,
+                      child: CampaignCardSkeleton(width: double.infinity),
+                    ),
                   ),
                 ),
               ),
@@ -415,6 +419,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                         child: SizedBox(
                           height: 220,
                           child: CampaignCard(
+                            width: double.infinity,
                             campaign: campaign,
                             onTap: () => context.push(
                               RouteNames.campaignDetail
@@ -466,6 +471,7 @@ class _NeoPill extends StatelessWidget {
           color: isActive ? AppColors.ink : AppColors.white,
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
           border: Border.all(color: AppColors.ink, width: 2),
+          boxShadow: AppShadows.softTight(context),
         ),
         child: Text(
           label,
@@ -502,6 +508,7 @@ class _SortPill extends StatelessWidget {
           color: isActive ? AppColors.ink : AppColors.white,
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
           border: Border.all(color: AppColors.ink, width: 1.5),
+          boxShadow: AppShadows.softTight(context),
         ),
         child: Text(
           label,

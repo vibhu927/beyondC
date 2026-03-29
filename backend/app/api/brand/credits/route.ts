@@ -88,10 +88,9 @@ export async function POST(request: NextRequest) {
 
     // Define credit packs (amount in paise)
     const CREDIT_PACKS: Record<string, { credits: number; amount: number }> = {
-      starter: { credits: 10, amount: 99900 }, // ₹999
-      growth: { credits: 25, amount: 229900 }, // ₹2,299
-      pro: { credits: 50, amount: 399900 }, // ₹3,999
-      enterprise: { credits: 100, amount: 699900 }, // ₹6,999
+      starter: { credits: 3, amount: 14900 }, // ₹149
+      growth: { credits: 7, amount: 29900 }, // ₹299
+      pro: { credits: 12, amount: 49900 }, // ₹499
     }
 
     const selectedPack = CREDIT_PACKS[pack]

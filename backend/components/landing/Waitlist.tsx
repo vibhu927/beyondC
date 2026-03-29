@@ -113,12 +113,13 @@ export default function Waitlist() {
           {/* Divider */}
           <div className="flex items-center gap-4 max-w-lg mx-auto mb-8">
             <div className="flex-1 h-px bg-ink/20"></div>
-            <span className="font-jakarta font-bold text-ink text-sm">OR DOWNLOAD NOW</span>
+            <span className="font-jakarta font-bold text-ink text-sm">WAITLIST ONLY (FOR NOW)</span>
             <div className="flex-1 h-px bg-ink/20"></div>
           </div>
 
           {/* App Store Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            {/*
             <a 
               href="https://apps.apple.com" 
               target="_blank" 
@@ -147,6 +148,10 @@ export default function Waitlist() {
                 <p className="font-jakarta font-bold text-base text-white">Google Play</p>
               </div>
             </a>
+            */}
+            <p className="max-w-xl border-2 border-ink bg-white px-6 py-3 text-center font-nunito text-base text-ink shadow-neo">
+              For now, please enter your email above in Join the waitlist. We will notify you when app downloads go live.
+            </p>
           </div>
         </div>
       </div>

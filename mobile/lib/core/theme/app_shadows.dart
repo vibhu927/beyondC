@@ -5,6 +5,29 @@ import 'app_spacing.dart';
 class AppShadows {
   AppShadows._();
 
+  // Soft depth shadows used across cards/pills/circles for visual separation.
+  static List<BoxShadow> soft(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: isDark ? 0.42 : 0.12),
+        offset: const Offset(0, 4),
+        blurRadius: isDark ? 14 : 10,
+      ),
+    ];
+  }
+
+  static List<BoxShadow> softTight(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: isDark ? 0.34 : 0.10),
+        offset: const Offset(0, 2),
+        blurRadius: isDark ? 10 : 7,
+      ),
+    ];
+  }
+
   // Neo-brutalist offset shadows — the BeyondC signature style
   // Usage: wrap widget in a Container with decoration using these
 

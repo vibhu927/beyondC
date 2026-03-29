@@ -27,7 +27,7 @@ class AppTheme {
         backgroundColor: AppColors.lightBg,
         foregroundColor: AppColors.lightText,
         elevation: 0,
-        toolbarHeight: 0,
+        toolbarHeight: kToolbarHeight,
         centerTitle: false,
         titleTextStyle: AppTypography.displaySM,
         systemOverlayStyle: SystemUiOverlayStyle.dark,
@@ -132,7 +132,7 @@ class AppTheme {
         backgroundColor: AppColors.darkBg,
         foregroundColor: AppColors.darkText,
         elevation: 0,
-        toolbarHeight: 0,
+        toolbarHeight: kToolbarHeight,
         centerTitle: false,
         titleTextStyle:
             AppTypography.displaySM.copyWith(color: AppColors.darkText),

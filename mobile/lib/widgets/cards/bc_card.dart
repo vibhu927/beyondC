@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 
 class BCCard extends StatelessWidget {
@@ -29,6 +30,7 @@ class BCCard extends StatelessWidget {
         backgroundColor ?? (isDark ? AppColors.darkSurface : AppColors.lightBg);
     final bdColor =
         borderColor ?? (isDark ? AppColors.darkBorder : AppColors.lightBorder);
+    final resolvedShadow = shadow.isEmpty ? AppShadows.soft(context) : shadow;
 
     return GestureDetector(
       onTap: onTap,
@@ -38,7 +40,7 @@ class BCCard extends StatelessWidget {
           color: bgColor,
           border: Border.all(color: bdColor, width: AppSpacing.borderWidth),
           borderRadius: BorderRadius.circular(borderRadius),
-          boxShadow: shadow,
+          boxShadow: resolvedShadow,
         ),
         child: child,
       ),

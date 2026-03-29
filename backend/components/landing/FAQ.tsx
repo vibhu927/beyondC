@@ -8,7 +8,7 @@ export default function FAQ() {
   const faqs = [
     {
       question: 'Is BeyondC free to join?',
-      answer: 'Yes! Joining, browsing, and bidding on collabs is 100% free. Creators pay a small fee (₹10-₹300) only when accepting a collab. Brands buy credit packs that are used only when a match happens.',
+      answer: 'Yes! Joining, browsing, and bidding on collabs is 100% free. Creators pay a small fee (₹10-₹150) only when accepting a collab. Brands buy credit packs that are used only when a match happens.',
     },
     {
       question: 'How does the privacy protection actually work?',

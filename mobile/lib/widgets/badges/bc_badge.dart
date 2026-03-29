@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 
@@ -40,6 +41,7 @@ class BCBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.$1,
         borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        boxShadow: AppShadows.softTight(context),
         border: variant == BCBadgeVariant.outline
             ? Border.all(
                 color: isDark ? AppColors.darkBorder : AppColors.lightBorder,

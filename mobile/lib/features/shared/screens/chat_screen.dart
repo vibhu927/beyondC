@@ -40,9 +40,11 @@ class _ChatPartner {
   final int? followers;
 }
 
-final chatPartnerProvider = FutureProvider.family<_ChatPartner, String>((ref, collabId) async {
+final chatPartnerProvider =
+    FutureProvider.family<_ChatPartner, String>((ref, collabId) async {
   final role = ref.read(authProvider).role ?? 'creator';
-  final response = await ref.read(apiServiceProvider).client.get('/collabs/$collabId');
+  final response =
+      await ref.read(apiServiceProvider).client.get('/collabs/$collabId');
 
   final root = _asMap(response.data);
   final collab = _asMap(root['collab']);
@@ -50,7 +52,9 @@ final chatPartnerProvider = FutureProvider.family<_ChatPartner, String>((ref, co
   final creator = _asMap(collab['creator']);
 
   if (role == 'creator') {
-    final brandName = _string(brand['brand_name']) ?? _string(collab['brand_name']) ?? 'Brand partner';
+    final brandName = _string(brand['brand_name']) ??
+        _string(collab['brand_name']) ??
+        'Brand partner';
     return _ChatPartner(
       name: brandName,
       profileRole: 'brand',
@@ -69,7 +73,8 @@ final chatPartnerProvider = FutureProvider.family<_ChatPartner, String>((ref, co
     profileId: _string(collab['creator_id']),
     tier: _string(creator['tier']),
     bio: _string(creator['bio']),
-    followers: _int(creator['follower_count']) ?? _int(creator['followers_count']),
+    followers:
+        _int(creator['follower_count']) ?? _int(creator['followers_count']),
   );
 });
 
@@ -102,6 +107,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (context.canPop()) {
       context.pop();
       _openMessagesModalAfterBack();
+    }
+  }
+
+  void _onClosePressed() {
+    if (context.canPop()) {
+      context.pop();
     }
   }
 
@@ -206,117 +217,123 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final partner = partnerAsync.valueOrNull ?? fallbackPartner;
     final otherPartyName = partner.name;
     return PopScope(
-      onPopInvokedWithResult: (didPop, _) {
-        if (didPop) {
-          _openMessagesModalAfterBack();
-        }
-      },
-      child: Scaffold(
-      resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          onPressed: _onBackPressed,
-          icon: Icon(Icons.arrow_back_rounded, color: onSurfaceColor),
-        ),
-        titleSpacing: 0,
-        title: Text(
-          otherPartyName,
-          overflow: TextOverflow.ellipsis,
-          style: AppTypography.labelLG.copyWith(color: onSurfaceColor),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () => _openPartnerProfile(partner),
-            icon: Icon(Icons.info_outline_rounded, color: onSurfaceColor),
-            tooltip: partner.profileRole == 'creator'
-                ? 'Open creator profile'
-                : 'Open brand profile',
-          ),
-          const SizedBox(width: AppSpacing.xs),
-        ],
-      ),
-      body: Column(
-        children: [
-          if (collab != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenPadding,
-                AppSpacing.sm,
-                AppSpacing.screenPadding,
-                AppSpacing.sm,
-              ),
-              child: _BriefCard(
-                collab: collab,
-                isExpanded: _isBriefExpanded,
-                onToggle: () =>
-                    setState(() => _isBriefExpanded = !_isBriefExpanded),
-                onViewMilestones: () => context.push(
-                  RouteNames.collabMilestones
-                      .replaceFirst(':id', widget.collabId),
-                ),
-              ),
+        onPopInvokedWithResult: (didPop, _) {
+          if (didPop) {
+            _openMessagesModalAfterBack();
+          }
+        },
+        child: Scaffold(
+          resizeToAvoidBottomInset: true,
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            surfaceTintColor: Colors.transparent,
+            leading: IconButton(
+              onPressed: _onBackPressed,
+              icon: Icon(Icons.arrow_back_rounded, color: onSurfaceColor),
             ),
-          Expanded(
-            child: chatAsync.when(
-              loading: () => const _ChatShimmer(),
-              error: (error, _) => BCErrorState(
-                message: error.toString(),
-                onRetry: () =>
-                    ref.read(chatProvider(widget.collabId).notifier).refresh(),
+            titleSpacing: 0,
+            title: Text(
+              otherPartyName,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.labelLG.copyWith(color: onSurfaceColor),
+            ),
+            actions: [
+              IconButton(
+                onPressed: _onClosePressed,
+                icon: Icon(Icons.close_rounded, color: onSurfaceColor),
+                tooltip: 'Close chat',
               ),
-              data: (chatState) {
-                final messages = chatState.messages;
-                _scrollToBottomIfNeeded(messages.length);
-
-                if (messages.isEmpty) {
-                  return const BCEmptyState(
-                    emoji: '💬',
-                    message: 'No messages yet. Start the conversation.',
-                  );
-                }
-
-                return ListView.separated(
-                  controller: _scrollController,
-                  reverse: true,
+              IconButton(
+                onPressed: () => _openPartnerProfile(partner),
+                icon: Icon(Icons.info_outline_rounded, color: onSurfaceColor),
+                tooltip: partner.profileRole == 'creator'
+                    ? 'Open creator profile'
+                    : 'Open brand profile',
+              ),
+              const SizedBox(width: AppSpacing.xs),
+            ],
+          ),
+          body: Column(
+            children: [
+              if (collab != null)
+                Padding(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.screenPadding,
-                    AppSpacing.md,
+                    AppSpacing.sm,
                     AppSpacing.screenPadding,
-                    AppSpacing.lg,
+                    AppSpacing.sm,
                   ),
-                  itemCount: messages.length,
-                  separatorBuilder: (context, index) {
-                    final current = messages[index];
-                    final next = index + 1 < messages.length
-                        ? messages[index + 1]
-                        : null;
+                  child: _BriefCard(
+                    collab: collab,
+                    isExpanded: _isBriefExpanded,
+                    onToggle: () =>
+                        setState(() => _isBriefExpanded = !_isBriefExpanded),
+                    onViewMilestones: () => context.push(
+                      RouteNames.collabMilestones
+                          .replaceFirst(':id', widget.collabId),
+                    ),
+                  ),
+                ),
+              Expanded(
+                child: chatAsync.when(
+                  loading: () => const _ChatShimmer(),
+                  error: (error, _) => BCErrorState(
+                    message: error.toString(),
+                    onRetry: () => ref
+                        .read(chatProvider(widget.collabId).notifier)
+                        .refresh(),
+                  ),
+                  data: (chatState) {
+                    final messages = chatState.messages;
+                    _scrollToBottomIfNeeded(messages.length);
 
-                    if (next == null ||
-                        !_isSameDay(current.createdAt, next.createdAt)) {
-                      return _DateSeparator(date: current.createdAt);
+                    if (messages.isEmpty) {
+                      return const BCEmptyState(
+                        emoji: '💬',
+                        message: 'No messages yet. Start the conversation.',
+                      );
                     }
 
-                    return const SizedBox(height: AppSpacing.xs);
+                    return ListView.separated(
+                      controller: _scrollController,
+                      reverse: true,
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screenPadding,
+                        AppSpacing.md,
+                        AppSpacing.screenPadding,
+                        AppSpacing.lg,
+                      ),
+                      itemCount: messages.length,
+                      separatorBuilder: (context, index) {
+                        final current = messages[index];
+                        final next = index + 1 < messages.length
+                            ? messages[index + 1]
+                            : null;
+
+                        if (next == null ||
+                            !_isSameDay(current.createdAt, next.createdAt)) {
+                          return _DateSeparator(date: current.createdAt);
+                        }
+
+                        return const SizedBox(height: AppSpacing.xs);
+                      },
+                      itemBuilder: (context, index) {
+                        final message = messages[index];
+                        final isMine = message.senderRole == role;
+                        return _MessageBubble(message: message, isMine: isMine);
+                      },
+                    );
                   },
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final isMine = message.senderRole == role;
-                    return _MessageBubble(message: message, isMine: isMine);
-                  },
-                );
-              },
-            ),
+                ),
+              ),
+              _ChatInputBar(
+                controller: _messageController,
+                onSend: _sendMessage,
+              ),
+            ],
           ),
-          _ChatInputBar(
-            controller: _messageController,
-            onSend: _sendMessage,
-          ),
-        ],
-      ),
-    ));
+        ));
   }
 
   _ChatPartner _fallbackPartner({
