@@ -64,15 +64,10 @@ export function buildWaitlistWelcomeHtml({ firstName }: WaitlistWelcomeHtmlArgs)
       .headline    { font-size: 24px !important; line-height: 1.2 !important; }
       .hero-emoji  { font-size: 40px !important; }
       .body-text   { font-size: 14px !important; }
-      .stat-wrap   { display: block !important; width: 100% !important; }
-      .stat-cell   { display: block !important; width: 100% !important; padding: 0 0 10px 0 !important; }
-      .stat-spacer { display: none !important; }
-      .stat-card   { width: 100% !important; padding: 12px !important; }
-      .stat-value  { font-size: 18px !important; }
-      /* Pills - stack vertically */
-      .pill-row    { display: block !important; }
-      .pill-cell   { display: block !important; padding: 0 0 8px 0 !important; width: 100% !important; }
-      .pill-span   { display: block !important; width: 100% !important; text-align: center !important; padding: 8px 14px !important; }
+      .stat-card   { width: 100% !important; padding: 10px 4px !important; }
+      .stat-value  { font-size: 14px !important; }
+      .stat-label  { font-size: 9px !important; }
+      .pill-span   { display: inline-block !important; width: 100% !important; text-align: center !important; font-size: 10px !important; padding: 6px 10px !important; }
       /* Footer */
       .footer-logo-cell { display: none !important; width: 0 !important; overflow: hidden !important; }
       .footer-text-cell { width: 100% !important; }
@@ -145,29 +140,30 @@ export function buildWaitlistWelcomeHtml({ firstName }: WaitlistWelcomeHtmlArgs)
           </td>
         </tr>
 
-        <!-- ── STATS — stack on mobile ── -->
+        <!-- ── STATS — fixed 2 + 1 layout ── -->
         <tr>
           <td class="inner-pad" style="padding:0 24px 24px;">
             <table class="stat-wrap" width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
                 <!-- Stat 1 -->
-                <td class="stat-cell" valign="top" style="width:32%;">
+                <td class="stat-cell" valign="top" style="width:49%;">
                   <div class="stat-card" style="background:#F7F7F7;border:2px solid #0D0D0D;border-radius:10px;padding:12px 8px;text-align:center;box-shadow:3px 3px 0 #C8FF00;">
                     <div class="stat-value" style="font-size:19px;font-weight:800;color:#0D0D0D;font-family:Helvetica,Arial,sans-serif;">₹100</div>
                     <div class="stat-label" style="font-size:10px;color:#888888;margin-top:3px;font-weight:600;font-family:Helvetica,Arial,sans-serif;">min collab</div>
                   </div>
                 </td>
-                <td class="stat-spacer" width="3%"></td>
+                <td width="2%"></td>
                 <!-- Stat 2 -->
-                <td class="stat-cell" valign="top" style="width:32%;">
+                <td class="stat-cell" valign="top" style="width:49%;">
                   <div class="stat-card" style="background:#F7F7F7;border:2px solid #0D0D0D;border-radius:10px;padding:12px 8px;text-align:center;box-shadow:3px 3px 0 #FF2D78;">
                     <div class="stat-value" style="font-size:19px;font-weight:800;color:#0D0D0D;font-family:Helvetica,Arial,sans-serif;">2-sided</div>
                     <div class="stat-label" style="font-size:10px;color:#888888;margin-top:3px;font-weight:600;font-family:Helvetica,Arial,sans-serif;">marketplace</div>
                   </div>
                 </td>
-                <td class="stat-spacer" width="3%"></td>
+              </tr>
+              <tr>
+                <td colspan="3" style="padding-top:10px;">
                 <!-- Stat 3 -->
-                <td class="stat-cell" valign="top" style="width:32%;">
                   <div class="stat-card" style="background:#F7F7F7;border:2px solid #0D0D0D;border-radius:10px;padding:12px 8px;text-align:center;box-shadow:3px 3px 0 #9B5DE5;">
                     <div class="stat-value" style="font-size:19px;font-weight:800;color:#0D0D0D;">🔒</div>
                     <div class="stat-label" style="font-size:10px;color:#888888;margin-top:3px;font-weight:600;font-family:Helvetica,Arial,sans-serif;">privacy first</div>
@@ -247,18 +243,21 @@ export function buildWaitlistWelcomeHtml({ firstName }: WaitlistWelcomeHtmlArgs)
           </td>
         </tr>
 
-        <!-- ── PILLS — stack on mobile ── -->
+        <!-- ── PILLS — fixed 2 + 1 layout ── -->
         <tr>
           <td class="inner-pad" style="padding:0 24px 28px;">
-            <table class="pill-row" cellpadding="0" cellspacing="0" border="0">
+            <table class="pill-row" width="100%" cellpadding="0" cellspacing="0" border="0">
               <tr>
-                <td class="pill-cell" style="padding-right:8px;white-space:nowrap;">
+                <td class="pill-cell" style="width:49%;padding-right:0;white-space:nowrap;">
                   <span class="pill-span" style="display:inline-block;font-size:12px;font-weight:700;color:#0D0D0D;background:#C8FF00;border:2px solid #0D0D0D;border-radius:100px;padding:5px 14px;font-family:Helvetica,Arial,sans-serif;">Brands 🏢</span>
                 </td>
-                <td class="pill-cell" style="padding-right:8px;white-space:nowrap;">
+                <td width="2%"></td>
+                <td class="pill-cell" style="width:49%;padding-right:0;white-space:nowrap;">
                   <span class="pill-span" style="display:inline-block;font-size:12px;font-weight:700;color:#FFFFFF;background:#FF2D78;border:2px solid #0D0D0D;border-radius:100px;padding:5px 14px;font-family:Helvetica,Arial,sans-serif;">Creators 🎨</span>
                 </td>
-                <td class="pill-cell" style="white-space:nowrap;">
+              </tr>
+              <tr>
+                <td colspan="3" style="padding-top:8px;white-space:nowrap;">
                   <span class="pill-span" style="display:inline-block;font-size:12px;font-weight:700;color:#FFFFFF;background:#9B5DE5;border:2px solid #0D0D0D;border-radius:100px;padding:5px 14px;font-family:Helvetica,Arial,sans-serif;">Collabs 🤝</span>
                 </td>
               </tr>
