@@ -8,6 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { createServiceClient } from '@/lib/supabase/service'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 const PAGE_SIZE = 20
 
 export default async function AdminUsersPage({

@@ -11,9 +11,9 @@ class AppColors {
   static const Color orange = Color(0xFFFF6B00);
 
   // ── LIGHT MODE ──────────────────────────────────
-  static const Color lightBg = Color(0xFFFFFFFF);
-  static const Color lightSurface = Color(0xFFF7F7F7);
-  static const Color lightSurfaceAlt = Color(0xFFFAFAFA);
+  static const Color lightBg = Color.fromARGB(255, 246, 246, 246);
+  static const Color lightSurface = Color(0xFFFFFFFF);
+  static const Color lightSurfaceAlt = Color(0xFFFFFFFF);
   static const Color lightBorder = Color(0xFF0D0D0D);
   static const Color lightText = Color(0xFF0D0D0D);
   static const Color lightMuted = Color(0xFF6B6B6B);
@@ -35,7 +35,7 @@ class AppColors {
 
   // Backward-compatible aliases used across the app.
   static const Color ink = lightText;
-  static const Color white = lightBg;
+  static const Color white = Color(0xFFFFFFFF);
   static const Color surface = lightSurface;
   static const Color surfaceAlt = lightSurfaceAlt;
   static const Color muted = lightMuted;

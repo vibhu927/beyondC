@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     // Apply filters
     if (niche) {
-      query = query.contains('niches', [niche])
+      query = query.contains('niche', [niche])
     }
     if (platform) {
       query = query.contains('platforms', [platform])

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_spacing.dart';
 import '../core/theme/app_typography.dart';
-import 'bc_bottom_nav.dart';
 
 class BCGlassHeaderBar extends StatelessWidget {
   const BCGlassHeaderBar({
@@ -20,8 +19,6 @@ class BCGlassHeaderBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tint = BCBottomNav.sessionTint;
-
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(
         bottom: Radius.circular(AppSpacing.radiusXL),
@@ -39,8 +36,8 @@ class BCGlassHeaderBar extends StatelessWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                tint.withValues(alpha: 0.32),
-                tint.withValues(alpha: 0.16),
+                Colors.black.withValues(alpha: 0.84),
+                Colors.black.withValues(alpha: 0.66),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -49,12 +46,12 @@ class BCGlassHeaderBar extends StatelessWidget {
               bottom: Radius.circular(AppSpacing.radiusXL),
             ),
             border: Border.all(
-              color: tint.withValues(alpha: 0.45),
+              color: Colors.white.withValues(alpha: 0.2),
               width: 1.2,
             ),
             boxShadow: [
               BoxShadow(
-                color: tint.withValues(alpha: 0.22),
+                color: Colors.black.withValues(alpha: 0.26),
                 blurRadius: 18,
                 offset: const Offset(0, 8),
               ),

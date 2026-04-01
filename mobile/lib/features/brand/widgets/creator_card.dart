@@ -61,6 +61,15 @@ class CreatorCard extends StatelessWidget {
                           ),
                         ),
                         BCBadge(
+                          label: creator.instagramVerified
+                              ? '🔵 Verified'
+                              : '⚠️ Unverified',
+                          variant: creator.instagramVerified
+                              ? BCBadgeVariant.blue
+                              : BCBadgeVariant.warning,
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        BCBadge(
                           label: creator.tier,
                           variant: _tierVariant(creator.tier),
                         ),

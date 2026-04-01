@@ -26,7 +26,18 @@ _$CreatorProfileImpl _$$CreatorProfileImplFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const <String>[],
       startingPricePaise: (json['startingPricePaise'] as num?)?.toInt() ?? 0,
-      instagramHandle: json['instagramHandle'] as String?,
+      instagramUsername: json['instagramUsername'] as String?,
+      instagramVerified: json['instagramVerified'] as bool? ?? false,
+      followingCount: (json['followingCount'] as num?)?.toInt(),
+      postsCount: (json['postsCount'] as num?)?.toInt(),
+      highestVideoViews: (json['highestVideoViews'] as num?)?.toInt(),
+      avgVideoViews: (json['avgVideoViews'] as num?)?.toInt(),
+      avgLikes: (json['avgLikes'] as num?)?.toInt(),
+      avgComments: (json['avgComments'] as num?)?.toInt(),
+      statsFetchedAt: json['statsFetchedAt'] == null
+          ? null
+          : DateTime.parse(json['statsFetchedAt'] as String),
+      isDiscoverable: json['isDiscoverable'] as bool? ?? false,
       youtubeHandle: json['youtubeHandle'] as String?,
       walletBalancePaise: (json['walletBalancePaise'] as num?)?.toInt() ?? 0,
     );
@@ -46,7 +57,16 @@ Map<String, dynamic> _$$CreatorProfileImplToJson(
       'niches': instance.niches,
       'contentTypes': instance.contentTypes,
       'startingPricePaise': instance.startingPricePaise,
-      'instagramHandle': instance.instagramHandle,
+      'instagramUsername': instance.instagramUsername,
+      'instagramVerified': instance.instagramVerified,
+      'followingCount': instance.followingCount,
+      'postsCount': instance.postsCount,
+      'highestVideoViews': instance.highestVideoViews,
+      'avgVideoViews': instance.avgVideoViews,
+      'avgLikes': instance.avgLikes,
+      'avgComments': instance.avgComments,
+      'statsFetchedAt': instance.statsFetchedAt?.toIso8601String(),
+      'isDiscoverable': instance.isDiscoverable,
       'youtubeHandle': instance.youtubeHandle,
       'walletBalancePaise': instance.walletBalancePaise,
     };

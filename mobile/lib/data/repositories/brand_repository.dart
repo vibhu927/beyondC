@@ -148,6 +148,7 @@ class BrandRepository {
           'followersCount': _int(item['follower_count']) ??
               _int(item['followers_count']) ??
               0,
+          'instagramVerified': _bool(item['instagram_verified']) ?? false,
         });
       }).toList();
 
@@ -177,7 +178,8 @@ class BrandRepository {
         'creatorId': _string(request['creator_id']) ?? '',
         'creatorFirstName': _string(request['creator_first_name']),
         'creatorFullName': _string(request['creator_full_name']),
-        'creatorInstagramHandle': _string(request['creator_instagram_handle']),
+        'creatorInstagramHandle': _string(request['creator_instagram_handle']) ??
+          _string(request['creator_instagram_username']),
         'creatorTier': _string(request['creator_tier']),
         'collabId': _string(request['collab_id']),
         'message': _string(request['message']),
@@ -215,7 +217,8 @@ class BrandRepository {
               'creatorFullName': _string(creatorUser['full_name']) ??
                   _string(creatorUser['first_name']) ??
                   'Creator',
-              'creatorInstagramHandle': _string(creator['instagram_handle']),
+                'creatorInstagramHandle': _string(creator['instagram_username']) ??
+                  _string(creator['instagram_handle']),
               'creatorTier': _string(creator['tier']) ?? 'micro',
               'collabId': _string(item['collab_id']),
               'message': _string(item['message']),

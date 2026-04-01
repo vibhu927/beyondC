@@ -16,7 +16,6 @@ type CreatorForm = {
   password: string
   confirmPassword: string
   niche: string
-  instagram_handle: string
   content_type: string[]
   starting_price: string
   termsAccepted: boolean
@@ -62,7 +61,6 @@ export default function CreatorJoinPage() {
     password: '',
     confirmPassword: '',
     niche: '',
-    instagram_handle: '',
     content_type: [],
     starting_price: '',
     termsAccepted: false,
@@ -75,7 +73,6 @@ export default function CreatorJoinPage() {
       ['Full Name', form.full_name],
       ['Email', form.email],
       ['Phone', form.phone],
-      ['Instagram', form.instagram_handle || 'Not provided'],
       ['Primary Niche', form.niche],
       ['Content Type', form.content_type.join(', ')],
       ['Starting Price', form.starting_price ? `₹${Number(form.starting_price).toLocaleString()}` : 'Not provided'],
@@ -129,10 +126,6 @@ export default function CreatorJoinPage() {
       nextErrors.starting_price = 'Enter a valid positive amount.'
     }
 
-    if (form.instagram_handle && !form.instagram_handle.startsWith('@')) {
-      nextErrors.instagram_handle = 'Instagram handle should start with @.'
-    }
-
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
   }
@@ -181,7 +174,6 @@ export default function CreatorJoinPage() {
           first_name: form.first_name.trim(),
           full_name: form.full_name.trim(),
           phone: form.phone.trim(),
-          instagram_handle: form.instagram_handle.trim() || null,
           niche: [form.niche],
           content_type: form.content_type,
           starting_price: form.starting_price ? Number(form.starting_price) : null,
@@ -337,19 +329,6 @@ export default function CreatorJoinPage() {
 
               {step === 2 && (
                 <div className="space-y-5">
-                  <div>
-                    <label className={labelClass}>Instagram Handle (optional)</label>
-                    <input
-                      className={inputClass}
-                      value={form.instagram_handle}
-                      onChange={(e) => setField('instagram_handle', e.target.value)}
-                      placeholder="@yourhandle"
-                    />
-                    {errors.instagram_handle && (
-                      <p className="mt-2 text-sm text-[#EF4444]">{errors.instagram_handle}</p>
-                    )}
-                  </div>
-
                   <div>
                     <label className={labelClass}>Primary Niche</label>
                     <select

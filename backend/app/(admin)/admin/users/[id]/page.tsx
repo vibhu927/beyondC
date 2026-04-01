@@ -55,8 +55,12 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
               <p className="font-semibold">{profile.role}</p>
             </div>
             <div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">Instagram Handle</p>
-              <p className="font-semibold">{creatorProfile.data?.instagram_handle || '-'}</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Instagram Username</p>
+              <p className="font-semibold">{creatorProfile.data?.instagram_username || '-'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Instagram Verified</p>
+              <p className="font-semibold">{creatorProfile.data?.instagram_verified ? 'Yes' : 'No'}</p>
             </div>
           </CardContent>
         </Card>

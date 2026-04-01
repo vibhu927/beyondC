@@ -33,7 +33,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  final _instagramHandleController = TextEditingController();
   final _brandNameController = TextEditingController();
 
   String? _selectedNiche;
@@ -86,7 +85,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
-    _instagramHandleController.dispose();
     _brandNameController.dispose();
     super.dispose();
   }
@@ -122,8 +120,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     Map<String, dynamic>? extraData;
     if (_role == 'creator') {
       extraData = {
-        if (_instagramHandleController.text.isNotEmpty)
-          'instagram_handle': _instagramHandleController.text,
         if (_selectedNiche != null) 'primary_niche': _selectedNiche,
       };
     } else {
@@ -325,17 +321,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 const SizedBox(height: AppSpacing.lg),
                 // Role-specific fields
                 if (_role == 'creator') ...[
-                  BCTextField(
-                    label: 'Instagram Handle (Optional)',
-                    controller: _instagramHandleController,
-                    validator: Validators.instagramHandle,
-                    enabled: !isLoading,
-                    prefixIcon: const Icon(
-                      Icons.alternate_email,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
                   BCDropdown(
                     label: 'Primary Niche',
                     value: _selectedNiche,

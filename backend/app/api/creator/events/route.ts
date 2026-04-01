@@ -25,10 +25,7 @@ export async function GET(request: NextRequest) {
           event_date,
           location,
           image_url,
-          brand:brand_profiles!events_brand_id_fkey (
-            brand_name,
-            logo_url
-          )
+          brand_id
         )
       `)
       .eq('creator_id', user.id)
@@ -41,11 +38,51 @@ export async function GET(request: NextRequest) {
     const { data: invites, error } = await query
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+      console.error('[creator/events] query error:', error.message)
+      return NextResponse.json({ invites: [] })
     }
 
-    return NextResponse.json({ invites })
+    const brandIds = Array.from(
+      new Set((invites ?? []).map((invite: any) => invite?.event?.brand_id).filter(Boolean))
+    )
+
+    let brandMap = new Map<string, { brand_name: string | null; logo_url: string | null }>()
+    if (brandIds.length > 0) {
+      const { data: brands } = await supabase
+        .from('brand_profiles')
+        .select('id,brand_name,logo_url')
+        .in('id', brandIds)
+
+      brandMap = new Map(
+        (brands ?? []).map((brand: any) => [
+          String(brand.id),
+          {
+            brand_name: brand.brand_name ?? null,
+            logo_url: brand.logo_url ?? null,
+          },
+        ])
+      )
+    }
+
+    const enrichedInvites = (invites ?? []).map((invite: any) => {
+      const event = invite?.event ?? null
+      const brandId = event?.brand_id ? String(event.brand_id) : null
+      const brand = brandId ? brandMap.get(brandId) ?? null : null
+
+      return {
+        ...invite,
+        event: event
+          ? {
+              ...event,
+              brand,
+            }
+          : event,
+      }
+    })
+
+    return NextResponse.json({ invites: enrichedInvites })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 })
+    console.error('[creator/events] unexpected error:', error?.message || error)
+    return NextResponse.json({ invites: [] })
   }
 }

@@ -27,7 +27,7 @@ class BCCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor =
-        backgroundColor ?? (isDark ? AppColors.darkSurface : AppColors.lightBg);
+      backgroundColor ?? (isDark ? AppColors.darkSurface : AppColors.lightSurface);
     final bdColor =
         borderColor ?? (isDark ? AppColors.darkBorder : AppColors.lightBorder);
     final resolvedShadow = shadow.isEmpty ? AppShadows.soft(context) : shadow;

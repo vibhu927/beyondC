@@ -96,6 +96,7 @@ class CreatorDiscovery with _$CreatorDiscovery {
     @Default(<String>[]) List<String> portfolioLinks,
     @Default('1K-5K') String followerRange,
     @Default(0) int followersCount,
+    @Default(false) bool instagramVerified,
   }) = _CreatorDiscovery;
 
   factory CreatorDiscovery.fromJson(Map<String, dynamic> json) =>

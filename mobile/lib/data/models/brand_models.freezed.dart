@@ -549,6 +549,7 @@ mixin _$CreatorDiscovery {
   List<String> get portfolioLinks => throw _privateConstructorUsedError;
   String get followerRange => throw _privateConstructorUsedError;
   int get followersCount => throw _privateConstructorUsedError;
+  bool get instagramVerified => throw _privateConstructorUsedError;
 
   /// Serializes this CreatorDiscovery to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -580,7 +581,8 @@ abstract class $CreatorDiscoveryCopyWith<$Res> {
       String bio,
       List<String> portfolioLinks,
       String followerRange,
-      int followersCount});
+      int followersCount,
+      bool instagramVerified});
 }
 
 /// @nodoc
@@ -612,6 +614,7 @@ class _$CreatorDiscoveryCopyWithImpl<$Res, $Val extends CreatorDiscovery>
     Object? portfolioLinks = null,
     Object? followerRange = null,
     Object? followersCount = null,
+    Object? instagramVerified = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -670,6 +673,10 @@ class _$CreatorDiscoveryCopyWithImpl<$Res, $Val extends CreatorDiscovery>
           ? _value.followersCount
           : followersCount // ignore: cast_nullable_to_non_nullable
               as int,
+      instagramVerified: null == instagramVerified
+          ? _value.instagramVerified
+          : instagramVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -696,7 +703,8 @@ abstract class _$$CreatorDiscoveryImplCopyWith<$Res>
       String bio,
       List<String> portfolioLinks,
       String followerRange,
-      int followersCount});
+      int followersCount,
+      bool instagramVerified});
 }
 
 /// @nodoc
@@ -726,6 +734,7 @@ class __$$CreatorDiscoveryImplCopyWithImpl<$Res>
     Object? portfolioLinks = null,
     Object? followerRange = null,
     Object? followersCount = null,
+    Object? instagramVerified = null,
   }) {
     return _then(_$CreatorDiscoveryImpl(
       id: null == id
@@ -784,6 +793,10 @@ class __$$CreatorDiscoveryImplCopyWithImpl<$Res>
           ? _value.followersCount
           : followersCount // ignore: cast_nullable_to_non_nullable
               as int,
+      instagramVerified: null == instagramVerified
+          ? _value.instagramVerified
+          : instagramVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -805,7 +818,8 @@ class _$CreatorDiscoveryImpl extends _CreatorDiscovery {
       this.bio = '',
       final List<String> portfolioLinks = const <String>[],
       this.followerRange = '1K-5K',
-      this.followersCount = 0})
+      this.followersCount = 0,
+      this.instagramVerified = false})
       : _niches = niches,
         _contentTypes = contentTypes,
         _portfolioLinks = portfolioLinks,
@@ -872,10 +886,13 @@ class _$CreatorDiscoveryImpl extends _CreatorDiscovery {
   @override
   @JsonKey()
   final int followersCount;
+  @override
+  @JsonKey()
+  final bool instagramVerified;
 
   @override
   String toString() {
-    return 'CreatorDiscovery(id: $id, firstName: $firstName, avatarUrl: $avatarUrl, niches: $niches, contentTypes: $contentTypes, tier: $tier, startingPrice: $startingPrice, avgRating: $avgRating, totalCollabs: $totalCollabs, engagementRate: $engagementRate, bio: $bio, portfolioLinks: $portfolioLinks, followerRange: $followerRange, followersCount: $followersCount)';
+    return 'CreatorDiscovery(id: $id, firstName: $firstName, avatarUrl: $avatarUrl, niches: $niches, contentTypes: $contentTypes, tier: $tier, startingPrice: $startingPrice, avgRating: $avgRating, totalCollabs: $totalCollabs, engagementRate: $engagementRate, bio: $bio, portfolioLinks: $portfolioLinks, followerRange: $followerRange, followersCount: $followersCount, instagramVerified: $instagramVerified)';
   }
 
   @override
@@ -906,7 +923,9 @@ class _$CreatorDiscoveryImpl extends _CreatorDiscovery {
             (identical(other.followerRange, followerRange) ||
                 other.followerRange == followerRange) &&
             (identical(other.followersCount, followersCount) ||
-                other.followersCount == followersCount));
+                other.followersCount == followersCount) &&
+            (identical(other.instagramVerified, instagramVerified) ||
+                other.instagramVerified == instagramVerified));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -926,7 +945,8 @@ class _$CreatorDiscoveryImpl extends _CreatorDiscovery {
       bio,
       const DeepCollectionEquality().hash(_portfolioLinks),
       followerRange,
-      followersCount);
+      followersCount,
+      instagramVerified);
 
   /// Create a copy of CreatorDiscovery
   /// with the given fields replaced by the non-null parameter values.
@@ -960,7 +980,8 @@ abstract class _CreatorDiscovery extends CreatorDiscovery {
       final String bio,
       final List<String> portfolioLinks,
       final String followerRange,
-      final int followersCount}) = _$CreatorDiscoveryImpl;
+      final int followersCount,
+      final bool instagramVerified}) = _$CreatorDiscoveryImpl;
   const _CreatorDiscovery._() : super._();
 
   factory _CreatorDiscovery.fromJson(Map<String, dynamic> json) =
@@ -994,6 +1015,8 @@ abstract class _CreatorDiscovery extends CreatorDiscovery {
   String get followerRange;
   @override
   int get followersCount;
+  @override
+  bool get instagramVerified;
 
   /// Create a copy of CreatorDiscovery
   /// with the given fields replaced by the non-null parameter values.

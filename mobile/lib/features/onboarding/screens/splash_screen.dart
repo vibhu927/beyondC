@@ -16,6 +16,8 @@ class SplashScreen extends ConsumerStatefulWidget {
 
 class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
+  static const Duration _minimumSplashDuration = Duration(milliseconds: 1800);
+
   late AnimationController _controller;
   late Animation<double> _animation1;
   late Animation<double> _animation2;
@@ -90,11 +92,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
       ),
     ]).animate(_controller);
 
-    // Navigate after 2.5 seconds
     _checkAuthAndNavigate();
   }
 
   Future<void> _checkAuthAndNavigate() async {
+    await Future.delayed(_minimumSplashDuration);
+
     if (!mounted) return;
 
     final auth = ref.read(authProvider);

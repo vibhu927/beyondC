@@ -77,7 +77,7 @@ class BCBadge extends StatelessWidget {
       BCBadgeVariant.warning => (AppColors.warning, AppColors.ink),
       BCBadgeVariant.dark => (AppColors.ink, AppColors.white),
       BCBadgeVariant.outline => (
-          isDark ? AppColors.darkSurface : AppColors.lightBg,
+          isDark ? AppColors.darkSurface : AppColors.lightSurface,
           isDark ? AppColors.darkText : AppColors.lightText,
         ),
     };

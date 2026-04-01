@@ -42,7 +42,16 @@ class CreatorProfile with _$CreatorProfile {
     @Default(<String>[]) List<String> niches,
     @Default(<String>[]) List<String> contentTypes,
     @Default(0) int startingPricePaise,
-    String? instagramHandle,
+    String? instagramUsername,
+    @Default(false) bool instagramVerified,
+    int? followingCount,
+    int? postsCount,
+    int? highestVideoViews,
+    int? avgVideoViews,
+    int? avgLikes,
+    int? avgComments,
+    DateTime? statsFetchedAt,
+    @Default(false) bool isDiscoverable,
     String? youtubeHandle,
     @Default(0) int walletBalancePaise,
   }) = _CreatorProfile;
@@ -52,7 +61,7 @@ class CreatorProfile with _$CreatorProfile {
 
   int get followers => followersCount;
   int get walletBalance => walletBalancePaise ~/ 100;
-  bool get instagramConnected => (instagramHandle ?? '').trim().isNotEmpty;
+  bool get instagramConnected => instagramVerified;
   bool get youtubeConnected => (youtubeHandle ?? '').trim().isNotEmpty;
 }
 

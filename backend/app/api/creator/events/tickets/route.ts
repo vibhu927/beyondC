@@ -26,12 +26,7 @@ export async function GET(request: NextRequest) {
           event_date,
           location,
           image_url,
-          brand:brand_profiles!events_brand_id_fkey (
-            brand_name,
-            logo_url,
-            website,
-            contact_email
-          )
+          brand_id
         )
       `)
       .eq('creator_id', user.id)
@@ -42,7 +37,56 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    return NextResponse.json({ tickets })
+    const brandIds = Array.from(
+      new Set((tickets ?? []).map((ticket: any) => ticket?.event?.brand_id).filter(Boolean))
+    )
+
+    let brandMap = new Map<
+      string,
+      {
+        brand_name: string | null
+        logo_url: string | null
+        website: string | null
+        contact_email: string | null
+      }
+    >()
+
+    if (brandIds.length > 0) {
+      const { data: brands } = await supabase
+        .from('brand_profiles')
+        .select('id,brand_name,logo_url,website,contact_email')
+        .in('id', brandIds)
+
+      brandMap = new Map(
+        (brands ?? []).map((brand: any) => [
+          String(brand.id),
+          {
+            brand_name: brand.brand_name ?? null,
+            logo_url: brand.logo_url ?? null,
+            website: brand.website ?? null,
+            contact_email: brand.contact_email ?? null,
+          },
+        ])
+      )
+    }
+
+    const enrichedTickets = (tickets ?? []).map((ticket: any) => {
+      const event = ticket?.event ?? null
+      const brandId = event?.brand_id ? String(event.brand_id) : null
+      const brand = brandId ? brandMap.get(brandId) ?? null : null
+
+      return {
+        ...ticket,
+        event: event
+          ? {
+              ...event,
+              brand,
+            }
+          : event,
+      }
+    })
+
+    return NextResponse.json({ tickets: enrichedTickets })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }

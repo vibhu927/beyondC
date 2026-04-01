@@ -32,7 +32,16 @@ mixin _$CreatorProfile {
   List<String> get niches => throw _privateConstructorUsedError;
   List<String> get contentTypes => throw _privateConstructorUsedError;
   int get startingPricePaise => throw _privateConstructorUsedError;
-  String? get instagramHandle => throw _privateConstructorUsedError;
+  String? get instagramUsername => throw _privateConstructorUsedError;
+  bool get instagramVerified => throw _privateConstructorUsedError;
+  int? get followingCount => throw _privateConstructorUsedError;
+  int? get postsCount => throw _privateConstructorUsedError;
+  int? get highestVideoViews => throw _privateConstructorUsedError;
+  int? get avgVideoViews => throw _privateConstructorUsedError;
+  int? get avgLikes => throw _privateConstructorUsedError;
+  int? get avgComments => throw _privateConstructorUsedError;
+  DateTime? get statsFetchedAt => throw _privateConstructorUsedError;
+  bool get isDiscoverable => throw _privateConstructorUsedError;
   String? get youtubeHandle => throw _privateConstructorUsedError;
   int get walletBalancePaise => throw _privateConstructorUsedError;
 
@@ -65,7 +74,16 @@ abstract class $CreatorProfileCopyWith<$Res> {
       List<String> niches,
       List<String> contentTypes,
       int startingPricePaise,
-      String? instagramHandle,
+      String? instagramUsername,
+      bool instagramVerified,
+      int? followingCount,
+      int? postsCount,
+      int? highestVideoViews,
+      int? avgVideoViews,
+      int? avgLikes,
+      int? avgComments,
+      DateTime? statsFetchedAt,
+      bool isDiscoverable,
       String? youtubeHandle,
       int walletBalancePaise});
 }
@@ -97,7 +115,16 @@ class _$CreatorProfileCopyWithImpl<$Res, $Val extends CreatorProfile>
     Object? niches = null,
     Object? contentTypes = null,
     Object? startingPricePaise = null,
-    Object? instagramHandle = freezed,
+    Object? instagramUsername = freezed,
+    Object? instagramVerified = null,
+    Object? followingCount = freezed,
+    Object? postsCount = freezed,
+    Object? highestVideoViews = freezed,
+    Object? avgVideoViews = freezed,
+    Object? avgLikes = freezed,
+    Object? avgComments = freezed,
+    Object? statsFetchedAt = freezed,
+    Object? isDiscoverable = null,
     Object? youtubeHandle = freezed,
     Object? walletBalancePaise = null,
   }) {
@@ -150,10 +177,46 @@ class _$CreatorProfileCopyWithImpl<$Res, $Val extends CreatorProfile>
           ? _value.startingPricePaise
           : startingPricePaise // ignore: cast_nullable_to_non_nullable
               as int,
-      instagramHandle: freezed == instagramHandle
-          ? _value.instagramHandle
-          : instagramHandle // ignore: cast_nullable_to_non_nullable
+      instagramUsername: freezed == instagramUsername
+          ? _value.instagramUsername
+          : instagramUsername // ignore: cast_nullable_to_non_nullable
               as String?,
+      instagramVerified: null == instagramVerified
+          ? _value.instagramVerified
+          : instagramVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
+      followingCount: freezed == followingCount
+          ? _value.followingCount
+          : followingCount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      postsCount: freezed == postsCount
+          ? _value.postsCount
+          : postsCount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      highestVideoViews: freezed == highestVideoViews
+          ? _value.highestVideoViews
+          : highestVideoViews // ignore: cast_nullable_to_non_nullable
+              as int?,
+      avgVideoViews: freezed == avgVideoViews
+          ? _value.avgVideoViews
+          : avgVideoViews // ignore: cast_nullable_to_non_nullable
+              as int?,
+      avgLikes: freezed == avgLikes
+          ? _value.avgLikes
+          : avgLikes // ignore: cast_nullable_to_non_nullable
+              as int?,
+      avgComments: freezed == avgComments
+          ? _value.avgComments
+          : avgComments // ignore: cast_nullable_to_non_nullable
+              as int?,
+      statsFetchedAt: freezed == statsFetchedAt
+          ? _value.statsFetchedAt
+          : statsFetchedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      isDiscoverable: null == isDiscoverable
+          ? _value.isDiscoverable
+          : isDiscoverable // ignore: cast_nullable_to_non_nullable
+              as bool,
       youtubeHandle: freezed == youtubeHandle
           ? _value.youtubeHandle
           : youtubeHandle // ignore: cast_nullable_to_non_nullable
@@ -187,7 +250,16 @@ abstract class _$$CreatorProfileImplCopyWith<$Res>
       List<String> niches,
       List<String> contentTypes,
       int startingPricePaise,
-      String? instagramHandle,
+      String? instagramUsername,
+      bool instagramVerified,
+      int? followingCount,
+      int? postsCount,
+      int? highestVideoViews,
+      int? avgVideoViews,
+      int? avgLikes,
+      int? avgComments,
+      DateTime? statsFetchedAt,
+      bool isDiscoverable,
       String? youtubeHandle,
       int walletBalancePaise});
 }
@@ -217,7 +289,16 @@ class __$$CreatorProfileImplCopyWithImpl<$Res>
     Object? niches = null,
     Object? contentTypes = null,
     Object? startingPricePaise = null,
-    Object? instagramHandle = freezed,
+    Object? instagramUsername = freezed,
+    Object? instagramVerified = null,
+    Object? followingCount = freezed,
+    Object? postsCount = freezed,
+    Object? highestVideoViews = freezed,
+    Object? avgVideoViews = freezed,
+    Object? avgLikes = freezed,
+    Object? avgComments = freezed,
+    Object? statsFetchedAt = freezed,
+    Object? isDiscoverable = null,
     Object? youtubeHandle = freezed,
     Object? walletBalancePaise = null,
   }) {
@@ -270,10 +351,46 @@ class __$$CreatorProfileImplCopyWithImpl<$Res>
           ? _value.startingPricePaise
           : startingPricePaise // ignore: cast_nullable_to_non_nullable
               as int,
-      instagramHandle: freezed == instagramHandle
-          ? _value.instagramHandle
-          : instagramHandle // ignore: cast_nullable_to_non_nullable
+      instagramUsername: freezed == instagramUsername
+          ? _value.instagramUsername
+          : instagramUsername // ignore: cast_nullable_to_non_nullable
               as String?,
+      instagramVerified: null == instagramVerified
+          ? _value.instagramVerified
+          : instagramVerified // ignore: cast_nullable_to_non_nullable
+              as bool,
+      followingCount: freezed == followingCount
+          ? _value.followingCount
+          : followingCount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      postsCount: freezed == postsCount
+          ? _value.postsCount
+          : postsCount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      highestVideoViews: freezed == highestVideoViews
+          ? _value.highestVideoViews
+          : highestVideoViews // ignore: cast_nullable_to_non_nullable
+              as int?,
+      avgVideoViews: freezed == avgVideoViews
+          ? _value.avgVideoViews
+          : avgVideoViews // ignore: cast_nullable_to_non_nullable
+              as int?,
+      avgLikes: freezed == avgLikes
+          ? _value.avgLikes
+          : avgLikes // ignore: cast_nullable_to_non_nullable
+              as int?,
+      avgComments: freezed == avgComments
+          ? _value.avgComments
+          : avgComments // ignore: cast_nullable_to_non_nullable
+              as int?,
+      statsFetchedAt: freezed == statsFetchedAt
+          ? _value.statsFetchedAt
+          : statsFetchedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      isDiscoverable: null == isDiscoverable
+          ? _value.isDiscoverable
+          : isDiscoverable // ignore: cast_nullable_to_non_nullable
+              as bool,
       youtubeHandle: freezed == youtubeHandle
           ? _value.youtubeHandle
           : youtubeHandle // ignore: cast_nullable_to_non_nullable
@@ -302,7 +419,16 @@ class _$CreatorProfileImpl extends _CreatorProfile {
       final List<String> niches = const <String>[],
       final List<String> contentTypes = const <String>[],
       this.startingPricePaise = 0,
-      this.instagramHandle,
+      this.instagramUsername,
+      this.instagramVerified = false,
+      this.followingCount,
+      this.postsCount,
+      this.highestVideoViews,
+      this.avgVideoViews,
+      this.avgLikes,
+      this.avgComments,
+      this.statsFetchedAt,
+      this.isDiscoverable = false,
       this.youtubeHandle,
       this.walletBalancePaise = 0})
       : _niches = niches,
@@ -359,7 +485,27 @@ class _$CreatorProfileImpl extends _CreatorProfile {
   @JsonKey()
   final int startingPricePaise;
   @override
-  final String? instagramHandle;
+  final String? instagramUsername;
+  @override
+  @JsonKey()
+  final bool instagramVerified;
+  @override
+  final int? followingCount;
+  @override
+  final int? postsCount;
+  @override
+  final int? highestVideoViews;
+  @override
+  final int? avgVideoViews;
+  @override
+  final int? avgLikes;
+  @override
+  final int? avgComments;
+  @override
+  final DateTime? statsFetchedAt;
+  @override
+  @JsonKey()
+  final bool isDiscoverable;
   @override
   final String? youtubeHandle;
   @override
@@ -368,7 +514,7 @@ class _$CreatorProfileImpl extends _CreatorProfile {
 
   @override
   String toString() {
-    return 'CreatorProfile(id: $id, firstName: $firstName, fullName: $fullName, displayName: $displayName, tier: $tier, followersCount: $followersCount, engagementRate: $engagementRate, avgCollabPaise: $avgCollabPaise, bio: $bio, niches: $niches, contentTypes: $contentTypes, startingPricePaise: $startingPricePaise, instagramHandle: $instagramHandle, youtubeHandle: $youtubeHandle, walletBalancePaise: $walletBalancePaise)';
+    return 'CreatorProfile(id: $id, firstName: $firstName, fullName: $fullName, displayName: $displayName, tier: $tier, followersCount: $followersCount, engagementRate: $engagementRate, avgCollabPaise: $avgCollabPaise, bio: $bio, niches: $niches, contentTypes: $contentTypes, startingPricePaise: $startingPricePaise, instagramUsername: $instagramUsername, instagramVerified: $instagramVerified, followingCount: $followingCount, postsCount: $postsCount, highestVideoViews: $highestVideoViews, avgVideoViews: $avgVideoViews, avgLikes: $avgLikes, avgComments: $avgComments, statsFetchedAt: $statsFetchedAt, isDiscoverable: $isDiscoverable, youtubeHandle: $youtubeHandle, walletBalancePaise: $walletBalancePaise)';
   }
 
   @override
@@ -396,8 +542,26 @@ class _$CreatorProfileImpl extends _CreatorProfile {
                 .equals(other._contentTypes, _contentTypes) &&
             (identical(other.startingPricePaise, startingPricePaise) ||
                 other.startingPricePaise == startingPricePaise) &&
-            (identical(other.instagramHandle, instagramHandle) ||
-                other.instagramHandle == instagramHandle) &&
+            (identical(other.instagramUsername, instagramUsername) ||
+                other.instagramUsername == instagramUsername) &&
+            (identical(other.instagramVerified, instagramVerified) ||
+                other.instagramVerified == instagramVerified) &&
+            (identical(other.followingCount, followingCount) ||
+                other.followingCount == followingCount) &&
+            (identical(other.postsCount, postsCount) ||
+                other.postsCount == postsCount) &&
+            (identical(other.highestVideoViews, highestVideoViews) ||
+                other.highestVideoViews == highestVideoViews) &&
+            (identical(other.avgVideoViews, avgVideoViews) ||
+                other.avgVideoViews == avgVideoViews) &&
+            (identical(other.avgLikes, avgLikes) ||
+                other.avgLikes == avgLikes) &&
+            (identical(other.avgComments, avgComments) ||
+                other.avgComments == avgComments) &&
+            (identical(other.statsFetchedAt, statsFetchedAt) ||
+                other.statsFetchedAt == statsFetchedAt) &&
+            (identical(other.isDiscoverable, isDiscoverable) ||
+                other.isDiscoverable == isDiscoverable) &&
             (identical(other.youtubeHandle, youtubeHandle) ||
                 other.youtubeHandle == youtubeHandle) &&
             (identical(other.walletBalancePaise, walletBalancePaise) ||
@@ -406,23 +570,33 @@ class _$CreatorProfileImpl extends _CreatorProfile {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      firstName,
-      fullName,
-      displayName,
-      tier,
-      followersCount,
-      engagementRate,
-      avgCollabPaise,
-      bio,
-      const DeepCollectionEquality().hash(_niches),
-      const DeepCollectionEquality().hash(_contentTypes),
-      startingPricePaise,
-      instagramHandle,
-      youtubeHandle,
-      walletBalancePaise);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        firstName,
+        fullName,
+        displayName,
+        tier,
+        followersCount,
+        engagementRate,
+        avgCollabPaise,
+        bio,
+        const DeepCollectionEquality().hash(_niches),
+        const DeepCollectionEquality().hash(_contentTypes),
+        startingPricePaise,
+        instagramUsername,
+        instagramVerified,
+        followingCount,
+        postsCount,
+        highestVideoViews,
+        avgVideoViews,
+        avgLikes,
+        avgComments,
+        statsFetchedAt,
+        isDiscoverable,
+        youtubeHandle,
+        walletBalancePaise
+      ]);
 
   /// Create a copy of CreatorProfile
   /// with the given fields replaced by the non-null parameter values.
@@ -455,7 +629,16 @@ abstract class _CreatorProfile extends CreatorProfile {
       final List<String> niches,
       final List<String> contentTypes,
       final int startingPricePaise,
-      final String? instagramHandle,
+      final String? instagramUsername,
+      final bool instagramVerified,
+      final int? followingCount,
+      final int? postsCount,
+      final int? highestVideoViews,
+      final int? avgVideoViews,
+      final int? avgLikes,
+      final int? avgComments,
+      final DateTime? statsFetchedAt,
+      final bool isDiscoverable,
       final String? youtubeHandle,
       final int walletBalancePaise}) = _$CreatorProfileImpl;
   const _CreatorProfile._() : super._();
@@ -488,7 +671,25 @@ abstract class _CreatorProfile extends CreatorProfile {
   @override
   int get startingPricePaise;
   @override
-  String? get instagramHandle;
+  String? get instagramUsername;
+  @override
+  bool get instagramVerified;
+  @override
+  int? get followingCount;
+  @override
+  int? get postsCount;
+  @override
+  int? get highestVideoViews;
+  @override
+  int? get avgVideoViews;
+  @override
+  int? get avgLikes;
+  @override
+  int? get avgComments;
+  @override
+  DateTime? get statsFetchedAt;
+  @override
+  bool get isDiscoverable;
   @override
   String? get youtubeHandle;
   @override

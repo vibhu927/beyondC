@@ -74,6 +74,8 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                       ),
                     ),
                     data: (notifications) {
+                      final unreadInSheet =
+                          notifications.where((item) => !item.isRead).length;
                       return Column(
                         children: [
                           Padding(
@@ -91,6 +93,20 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                                     style: AppTypography.displaySM,
                                   ),
                                 ),
+                                if (unreadInSheet > 0)
+                                  TextButton(
+                                    onPressed: () {
+                                      unawaited(ref
+                                          .read(notificationProvider.notifier)
+                                          .markAllRead());
+                                    },
+                                    child: Text(
+                                      'Clear ($unreadInSheet)',
+                                      style: AppTypography.labelMD.copyWith(
+                                        color: AppColors.pink,
+                                      ),
+                                    ),
+                                  ),
                                 IconButton(
                                   onPressed: () => Navigator.of(context).pop(),
                                   icon: const Icon(Icons.close_rounded),
@@ -344,11 +360,17 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                                 ),
                                 if (unreadCount > 0)
                                   Positioned(
-                                    top: 6,
-                                    right: 6,
+                                    top: 2,
+                                    right: 2,
                                     child: Container(
-                                      width: 9,
-                                      height: 9,
+                                      constraints: const BoxConstraints(
+                                        minWidth: 18,
+                                        minHeight: 18,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      alignment: Alignment.center,
                                       decoration: BoxDecoration(
                                         color: AppColors.error,
                                         borderRadius: BorderRadius.circular(
@@ -359,6 +381,15 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                                               .colorScheme
                                               .surface,
                                           width: 1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        unreadCount > 99
+                                            ? '99+'
+                                            : '$unreadCount',
+                                        style: AppTypography.labelXS.copyWith(
+                                          color: AppColors.white,
+                                          fontWeight: FontWeight.w800,
                                         ),
                                       ),
                                     ),

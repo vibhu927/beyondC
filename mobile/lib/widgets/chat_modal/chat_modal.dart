@@ -60,7 +60,7 @@ class _ChatModalState extends ConsumerState<ChatModal> {
     final role = auth.role ?? 'creator';
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final modalBg = isDark ? AppColors.darkBg : AppColors.lightBg;
+    final modalBg = isDark ? AppColors.darkBg : AppColors.lightSurface;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,

@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/models/creator_models.dart';
 import '../data/models/paginated_result.dart';
@@ -103,8 +107,13 @@ class CreatorHomeData {
 }
 
 class CreatorProfileNotifier extends AsyncNotifier<CreatorProfile> {
+  StreamSubscription<List<Map<String, dynamic>>>? _profileStreamSub;
+  bool _seenInitialRealtimeSnapshot = false;
+  String? _lastRealtimeSnapshotSignature;
+
   @override
   Future<CreatorProfile> build() async {
+    _attachRealtimeListener();
     return ref.read(creatorRepositoryProvider).fetchCreatorProfile();
   }
 
@@ -126,6 +135,62 @@ class CreatorProfileNotifier extends AsyncNotifier<CreatorProfile> {
 
   Future<void> updateStartingPrice(int pricePaise) {
     return updateProfile({'starting_price': pricePaise});
+  }
+
+  void _attachRealtimeListener() {
+    if (_profileStreamSub != null) return;
+
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    _profileStreamSub = Supabase.instance.client
+        .from('creator_profiles')
+        .stream(primaryKey: const ['id'])
+        .eq('id', userId)
+        .listen((rows) {
+          final firstRow = rows.isNotEmpty ? rows.first : const <String, dynamic>{};
+          final signature = _stableSnapshotSignature(firstRow);
+
+          // The stream emits an initial snapshot right after subscription.
+          // We already fetched profile data in build(), so skip this first emit.
+          if (!_seenInitialRealtimeSnapshot) {
+            _seenInitialRealtimeSnapshot = true;
+            _lastRealtimeSnapshotSignature = signature;
+            return;
+          }
+
+          if (_lastRealtimeSnapshotSignature == signature) {
+            return;
+          }
+
+          _lastRealtimeSnapshotSignature = signature;
+          ref.invalidateSelf();
+        });
+
+    ref.onDispose(() {
+      _profileStreamSub?.cancel();
+      _profileStreamSub = null;
+    });
+  }
+
+  String _stableSnapshotSignature(Map<String, dynamic> row) {
+    dynamic normalize(dynamic value) {
+      if (value is Map) {
+        final entries = value.entries.toList()
+          ..sort((a, b) => a.key.toString().compareTo(b.key.toString()));
+        return {
+          for (final entry in entries) entry.key.toString(): normalize(entry.value),
+        };
+      }
+
+      if (value is List) {
+        return value.map(normalize).toList();
+      }
+
+      return value;
+    }
+
+    return jsonEncode(normalize(row));
   }
 }
 

@@ -13,6 +13,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
 import '../../../data/repositories/notification_repository.dart';
+import '../../../data/services/instagram_oauth_service.dart';
 import '../../../providers/chat_modal_provider.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../providers/notification_provider.dart';
@@ -35,6 +36,8 @@ class CreatorHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
+  bool _isConnectingInstagram = false;
+
   @override
   void initState() {
     super.initState();
@@ -89,6 +92,8 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                       ),
                     ),
                     data: (notifications) {
+                      final unreadInSheet =
+                          notifications.where((item) => !item.isRead).length;
                       return Column(
                         children: [
                           Padding(
@@ -106,6 +111,20 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                     style: AppTypography.displaySM,
                                   ),
                                 ),
+                                if (unreadInSheet > 0)
+                                  TextButton(
+                                    onPressed: () {
+                                      unawaited(ref
+                                          .read(notificationProvider.notifier)
+                                          .markAllRead());
+                                    },
+                                    child: Text(
+                                      'Clear ($unreadInSheet)',
+                                      style: AppTypography.labelMD.copyWith(
+                                        color: AppColors.pink,
+                                      ),
+                                    ),
+                                  ),
                                 IconButton(
                                   onPressed: () => Navigator.of(context).pop(),
                                   icon: const Icon(Icons.close_rounded),
@@ -224,6 +243,48 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
         );
       },
     );
+  }
+
+  Future<void> _connectInstagram() async {
+    if (_isConnectingInstagram) return;
+
+    setState(() => _isConnectingInstagram = true);
+
+    try {
+      final oauthService = ref.read(instagramOAuthServiceProvider);
+      final result = await oauthService.connectInstagram();
+
+      if (!mounted) return;
+
+      if (result.isSuccess) {
+        await ref.read(creatorHomeProvider.notifier).refreshSilently();
+        if (!mounted) return;
+        ref.invalidate(creatorProfileProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result.username == null
+                  ? 'Instagram connected. Stats are being fetched...'
+                  : '@${result.username} connected. Stats are being fetched...',
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Instagram connection failed. Please try again.')),
+        );
+      }
+    } catch (error) {
+      if (!mounted) return;
+      final message = ref.read(instagramOAuthServiceProvider).extractApiError(error);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message.isEmpty ? 'Instagram connection failed.' : message)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isConnectingInstagram = false);
+      }
+    }
   }
 
   String? _routeForNotification(AppNotification notification) {
@@ -359,11 +420,17 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                   ),
                                   if (unreadCount > 0)
                                     Positioned(
-                                      top: 6,
-                                      right: 6,
+                                      top: 2,
+                                      right: 2,
                                       child: Container(
-                                        width: 9,
-                                        height: 9,
+                                        constraints: const BoxConstraints(
+                                          minWidth: 18,
+                                          minHeight: 18,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                        alignment: Alignment.center,
                                         decoration: BoxDecoration(
                                           color: AppColors.error,
                                           borderRadius: BorderRadius.circular(
@@ -376,6 +443,16 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                             width: 1,
                                           ),
                                         ),
+                                        child: Text(
+                                          unreadCount > 99
+                                              ? '99+'
+                                              : '$unreadCount',
+                                          style: AppTypography.labelXS
+                                              .copyWith(
+                                            color: AppColors.white,
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
                                       ),
                                     ),
                                 ],
@@ -384,7 +461,15 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: AppSpacing.md),
+                      if (!profile.instagramVerified) ...[
+                        const SizedBox(height: AppSpacing.lg),
+                        _InstagramConnectBanner(
+                          isLoading: _isConnectingInstagram,
+                          onConnect: _connectInstagram,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                      ] else
+                        const SizedBox(height: AppSpacing.md),
                       Wrap(
                         spacing: AppSpacing.md,
                         runSpacing: AppSpacing.md,
@@ -705,6 +790,65 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _InstagramConnectBanner extends StatelessWidget {
+  const _InstagramConnectBanner({
+    required this.onConnect,
+    required this.isLoading,
+  });
+
+  final VoidCallback onConnect;
+  final bool isLoading;
+
+  @override
+  Widget build(BuildContext context) {
+    return BCCard(
+      shadow: AppShadows.pink,
+      backgroundColor: AppColors.ink,
+      borderColor: AppColors.ink,
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFE1306C), Color(0xFFF77737), Color(0xFF833AB4)],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Connect Instagram',
+                  style: AppTypography.labelLG.copyWith(color: AppColors.white),
+                ),
+                Text(
+                  'Verify your account to appear in brand search',
+                  style: AppTypography.bodyXS.copyWith(color: AppColors.lightMuted),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          BCPrimaryButton.neon(
+            label: isLoading ? 'Connecting...' : 'Connect',
+            isFullWidth: false,
+            isLoading: isLoading,
+            onPressed: isLoading ? null : onConnect,
+          ),
+        ],
       ),
     );
   }

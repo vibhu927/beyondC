@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
           niche,
           follower_count,
           avg_rating,
-          instagram_handle,
+          instagram_username,
           tier
         )
       `)
@@ -59,10 +59,12 @@ export async function GET(request: NextRequest) {
 
     const enriched = (requests ?? []).map((item: any) => {
       const creatorUser = creatorUserById.get(item.creator_id)
+      const creatorInstagramHandle = item.creator?.instagram_username || null
       return {
         ...item,
         creator_first_name: creatorUser?.first_name ?? null,
         creator_full_name: creatorUser?.full_name ?? null,
+        creator_instagram_handle: creatorInstagramHandle,
         collab_id: collabByRequestId.get(item.id) ?? null,
       }
     })

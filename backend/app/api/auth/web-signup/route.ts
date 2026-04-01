@@ -8,7 +8,6 @@ type SignupBody = {
   first_name?: string
   full_name?: string
   phone?: string
-  instagram_handle?: string | null
   niche?: string[]
   content_type?: string[]
   starting_price?: number | null
@@ -91,9 +90,10 @@ export async function POST(request: Request) {
         id: userId,
         niche: Array.isArray(roleData.niche) ? roleData.niche : [],
         content_type: Array.isArray(roleData.content_type) ? roleData.content_type : [],
-        instagram_handle: roleData.instagram_handle ?? null,
         starting_price: roleData.starting_price ?? null,
         wallet_balance: 0,
+        instagram_verified: false,
+        is_discoverable: false,
       })
 
       if (creatorError) {

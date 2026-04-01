@@ -51,7 +51,17 @@ class CreatorRepository {
         'niches': _stringList(profile['niches'] ?? profile['niche']),
         'contentTypes': _stringList(profile['platforms']),
         'startingPricePaise': _int(profile['starting_price']) ?? 0,
-        'instagramHandle': _string(profile['instagram_handle']),
+        'instagramUsername':
+            _string(profile['instagram_username']) ?? _string(profile['instagram_handle']),
+        'instagramVerified': _bool(profile['instagram_verified']) ?? false,
+        'followingCount': _int(profile['following_count']),
+        'postsCount': _int(profile['posts_count']),
+        'highestVideoViews': _int(profile['highest_video_views']),
+        'avgVideoViews': _int(profile['avg_video_views']),
+        'avgLikes': _int(profile['avg_likes']),
+        'avgComments': _int(profile['avg_comments']),
+        'statsFetchedAt': _string(profile['stats_fetched_at']),
+        'isDiscoverable': _bool(profile['is_discoverable']) ?? false,
         'youtubeHandle': _string(profile['youtube_handle']),
         'walletBalancePaise': _int(profile['wallet_balance']) ?? 0,
       };
@@ -541,5 +551,16 @@ class CreatorRepository {
     if (value == null) return null;
     final parsed = value.toString();
     return parsed.isEmpty ? null : parsed;
+  }
+
+  bool? _bool(dynamic value) {
+    if (value is bool) return value;
+    if (value is num) return value != 0;
+    if (value is String) {
+      final lowered = value.trim().toLowerCase();
+      if (lowered == 'true' || lowered == '1') return true;
+      if (lowered == 'false' || lowered == '0') return false;
+    }
+    return null;
   }
 }

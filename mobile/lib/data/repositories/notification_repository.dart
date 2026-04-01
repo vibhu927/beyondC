@@ -57,7 +57,7 @@ class AppNotification {
       type: _string(raw['type']) ?? 'generic',
       title: _string(raw['title']) ?? 'Notification',
       body: _string(raw['body']) ?? _string(raw['message']) ?? '',
-      isRead: _bool(raw['is_read']) ?? (_string(raw['status']) == 'read'),
+        isRead: _bool(raw['is_read']) ?? _bool(raw['read']) ?? (_string(raw['status']) == 'read'),
       createdAt:
           DateTime.tryParse(_string(raw['created_at']) ?? '') ?? DateTime.now(),
       referenceType: _string(raw['reference_type']),
@@ -73,9 +73,18 @@ class NotificationRepository {
 
   Dio get _dio => _apiService.client;
 
-  Future<List<AppNotification>> getNotifications() async {
+  Future<List<AppNotification>> getNotifications({
+    int page = 1,
+    int limit = 10,
+  }) async {
     try {
-      final response = await _dio.get('/notifications');
+      final response = await _dio.get(
+        '/notifications',
+        queryParameters: {
+          'page': page,
+          'limit': limit,
+        },
+      );
       final root = _asMap(response.data);
 
       final notificationsRaw = _extractNotifications(root);
@@ -103,7 +112,7 @@ class NotificationRepository {
 
   Future<void> markRead(String notificationId) async {
     try {
-      await _dio.put('/notifications/$notificationId/read');
+      await _dio.put('/notifications/$notificationId');
     } on DioException catch (e) {
       throw Exception(ApiErrorHandler.parseError(e));
     }

@@ -1,11 +1,9 @@
-import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/router/route_names.dart';
-import '../core/theme/app_colors.dart';
 import '../core/theme/app_typography.dart';
 
 enum BCPortalRole { creator, brand }
@@ -16,19 +14,6 @@ class BCBottomNav extends StatefulWidget {
     required this.role,
     required this.currentIndex,
   });
-
-  // One color per app launch (static for session), excluding neon/parrot.
-  static final Color sessionTint = _palette[Random().nextInt(_palette.length)];
-
-  static const List<Color> _palette = <Color>[
-    Color.fromARGB(255, 164, 46, 99),
-    Color.fromARGB(255, 95, 51, 171),
-    Color.fromARGB(255, 29, 76, 158),
-    Color.fromARGB(255, 199, 96, 23),
-    Color.fromARGB(255, 192, 49, 82),
-    Color.fromARGB(255, 46, 121, 196),
-    Color.fromARGB(255, 179, 95, 30),
-  ];
 
   final BCPortalRole role;
   final int currentIndex;
@@ -71,7 +56,6 @@ class _BCBottomNavState extends State<BCBottomNav> {
   @override
   Widget build(BuildContext context) {
     final items = _itemsFor(widget.role);
-    final tint = BCBottomNav.sessionTint;
 
     return SafeArea(
       top: false,
@@ -102,20 +86,20 @@ class _BCBottomNavState extends State<BCBottomNav> {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          tint.withValues(alpha: 0.32),
-                          tint.withValues(alpha: 0.16),
+                          Colors.black.withValues(alpha: 0.84),
+                          Colors.black.withValues(alpha: 0.66),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(
-                        color: tint.withValues(alpha: 0.45),
+                        color: Colors.white.withValues(alpha: 0.2),
                         width: 1.2,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: tint.withValues(alpha: 0.22),
+                          color: Colors.black.withValues(alpha: 0.26),
                           blurRadius: 18,
                           offset: const Offset(0, 8),
                         ),
@@ -134,10 +118,10 @@ class _BCBottomNavState extends State<BCBottomNav> {
                           height: 62,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: tint.withValues(alpha: 0.34),
+                              color: Colors.white.withValues(alpha: 0.14),
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.55),
+                                color: Colors.white.withValues(alpha: 0.44),
                                 width: 1,
                               ),
                             ),

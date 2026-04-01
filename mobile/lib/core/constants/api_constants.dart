@@ -37,6 +37,16 @@ class ApiConstants {
     defaultValue: '',
   );
 
+  static const String instagramClientId = String.fromEnvironment(
+    'INSTAGRAM_CLIENT_ID',
+    defaultValue: '',
+  );
+
+  static const String instagramRedirectUri = String.fromEnvironment(
+    'INSTAGRAM_REDIRECT_URI',
+    defaultValue: 'https://beyondc.in/api/auth/instagram/callback',
+  );
+
   // Local backend for physical device on same LAN.
   static const String localDeviceApiBaseUrl = 'http://192.168.1.7:3000/api';
 

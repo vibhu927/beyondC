@@ -78,6 +78,7 @@ _$CreatorDiscoveryImpl _$$CreatorDiscoveryImplFromJson(
           const <String>[],
       followerRange: json['followerRange'] as String? ?? '1K-5K',
       followersCount: (json['followersCount'] as num?)?.toInt() ?? 0,
+      instagramVerified: json['instagramVerified'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$CreatorDiscoveryImplToJson(
@@ -97,6 +98,7 @@ Map<String, dynamic> _$$CreatorDiscoveryImplToJson(
       'portfolioLinks': instance.portfolioLinks,
       'followerRange': instance.followerRange,
       'followersCount': instance.followersCount,
+      'instagramVerified': instance.instagramVerified,
     };
 
 _$CollabRequestImpl _$$CollabRequestImplFromJson(Map<String, dynamic> json) =>

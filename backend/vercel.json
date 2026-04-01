@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "app/api/instagram/scrape/route.ts": {
+      "maxDuration": 30,
+      "memory": 1024
+    },
+    "app/api/auth/instagram/callback/route.ts": {
+      "maxDuration": 10
+    }
+  }
+}

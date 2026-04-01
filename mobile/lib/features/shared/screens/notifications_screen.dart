@@ -13,14 +13,45 @@ import '../../../providers/notification_provider.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 
-class NotificationsScreen extends ConsumerWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final threshold = _scrollController.position.maxScrollExtent - 220;
+    if (_scrollController.position.pixels >= threshold) {
+      ref.read(notificationProvider.notifier).loadMoreNotifications();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final notificationsAsync = ref.watch(notificationProvider);
     final role =
         ref.watch(authProvider.select((state) => state.role)) ?? 'creator';
+    final unreadCount = ref.watch(unreadCountProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -29,6 +60,25 @@ class NotificationsScreen extends ConsumerWidget {
         surfaceTintColor: Colors.transparent,
         title: const Text('Notifications', style: AppTypography.displaySM),
         actions: [
+          if (unreadCount > 0)
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(right: AppSpacing.sm),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.neon,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                  border: Border.all(color: AppColors.ink, width: 1.2),
+                ),
+                child: Text(
+                  '$unreadCount unread',
+                  style: AppTypography.labelXS.copyWith(color: AppColors.ink),
+                ),
+              ),
+            ),
           TextButton(
             onPressed: () =>
                 ref.read(notificationProvider.notifier).markAllRead(),
@@ -58,6 +108,7 @@ class NotificationsScreen extends ConsumerWidget {
           }
 
           return ListView.separated(
+            controller: _scrollController,
             itemCount: notifications.length,
             separatorBuilder: (_, __) =>
                 const Divider(height: 1, color: AppColors.divider),

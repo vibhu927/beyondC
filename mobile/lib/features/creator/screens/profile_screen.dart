@@ -10,6 +10,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
+import '../../../data/services/instagram_oauth_service.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
@@ -58,8 +59,6 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
         TextEditingController(text: profile.niches.join(', '));
     final contentTypesController =
         TextEditingController(text: profile.contentTypes.join(', '));
-    final instagramController =
-        TextEditingController(text: profile.instagramHandle ?? '');
     final youtubeController =
         TextEditingController(text: profile.youtubeHandle ?? '');
 
@@ -118,12 +117,6 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                       ),
                       const SizedBox(height: AppSpacing.lg),
                       BCTextField(
-                        label: 'Instagram Handle',
-                        hint: '@yourhandle',
-                        controller: instagramController,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      BCTextField(
                         label: 'YouTube Handle',
                         hint: '@yourchannel',
                         controller: youtubeController,
@@ -147,8 +140,6 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                         _parseTagList(nichesController.text),
                                     'platforms': _parseTagList(
                                         contentTypesController.text),
-                                    'instagram_handle': _normalizeHandle(
-                                        instagramController.text),
                                     'youtube_handle': _normalizeHandle(
                                         youtubeController.text),
                                   });
@@ -272,6 +263,23 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
         );
       },
     );
+  }
+
+  Future<void> _refreshInstagramStats() async {
+    try {
+      await ref.read(instagramOAuthServiceProvider).refreshStats();
+      await ref.read(creatorProfileProvider.notifier).refresh();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Stats refresh started.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      final message = ref.read(instagramOAuthServiceProvider).extractApiError(error);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message.isEmpty ? 'Could not refresh stats.' : message)),
+      );
+    }
   }
 
   List<String> _parseTagList(String value) {
@@ -461,19 +469,60 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     const Text(
-                      'Platforms & Handles',
+                      'Instagram Verification',
                       style: AppTypography.displaySM,
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    _PlatformTile(
-                      title: 'Instagram',
-                      connected: profile.instagramConnected,
+                    Row(
+                      children: [
+                        BCBadge(
+                          label: profile.instagramVerified
+                              ? '🔵 Verified'
+                              : '⚠️ Unverified',
+                          variant: profile.instagramVerified
+                              ? BCBadgeVariant.blue
+                              : BCBadgeVariant.warning,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text(
+                          profile.instagramVerified
+                              ? '@${profile.instagramUsername ?? 'instagram'}'
+                              : 'Connect from Home screen',
+                          style: AppTypography.bodySM.copyWith(
+                            color: AppColors.muted,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    _PlatformTile(
-                      title: 'YouTube',
-                      connected: profile.youtubeConnected,
-                    ),
+                    if (profile.instagramVerified && profile.statsFetchedAt == null)
+                      BCCard(
+                        shadow: AppShadows.neon,
+                        child: Row(
+                          children: [
+                            const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                color: AppColors.neon,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Fetching your Instagram stats...',
+                              style: AppTypography.bodySM.copyWith(
+                                color: AppColors.muted,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (profile.instagramVerified)
+                      _InstagramStatsCard(
+                        profile: profile,
+                        onRefreshStats: _refreshInstagramStats,
+                      ),
                     const SizedBox(height: AppSpacing.xl),
                     const Text('Content Types', style: AppTypography.displaySM),
                     const SizedBox(height: AppSpacing.sm),
@@ -708,27 +757,90 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _PlatformTile extends StatelessWidget {
-  const _PlatformTile({
-    required this.title,
-    required this.connected,
+class _InstagramStatsCard extends StatelessWidget {
+  const _InstagramStatsCard({
+    required this.profile,
+    required this.onRefreshStats,
   });
 
-  final String title;
-  final bool connected;
+  final CreatorProfile profile;
+  final VoidCallback onRefreshStats;
 
   @override
   Widget build(BuildContext context) {
+    final followers = profile.followersCount;
+    final engagementRate = profile.engagementRate;
+    final highestViews = profile.highestVideoViews ?? 0;
+    final totalPosts = profile.postsCount ?? 0;
+
     return BCCard(
-      child: Row(
+      shadow: AppShadows.blue,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Text(title, style: AppTypography.labelMD),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '@${profile.instagramUsername ?? 'instagram'}',
+                  style: AppTypography.labelLG,
+                ),
+              ),
+              const BCBadge(
+                label: '🔵 Verified',
+                variant: BCBadgeVariant.blue,
+              ),
+            ],
           ),
-          Text(
-            connected ? '✅ Connected' : 'Not connected',
-            style: AppTypography.labelSM.copyWith(
-              color: connected ? AppColors.success : AppColors.muted,
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: _StatCard(
+                  value: Formatters.followerCount(followers),
+                  label: 'Followers',
+                  shadow: AppShadows.neon,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _StatCard(
+                  value: '${engagementRate.toStringAsFixed(1)}%',
+                  label: 'Engagement',
+                  shadow: AppShadows.blue,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(
+                child: _StatCard(
+                  value: Formatters.followerCount(highestViews),
+                  label: 'Highest Views',
+                  shadow: AppShadows.pink,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _StatCard(
+                  value: '$totalPosts',
+                  label: 'Total Posts',
+                  shadow: AppShadows.orange,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: onRefreshStats,
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.pink,
+              ),
+              child: const Text('Refresh Stats'),
             ),
           ),
         ],

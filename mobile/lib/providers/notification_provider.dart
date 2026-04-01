@@ -13,12 +13,23 @@ final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
 
 class NotificationNotifier extends AsyncNotifier<List<AppNotification>> {
   StreamSubscription<dynamic>? _notificationSubscription;
+  static const int _pageSize = 10;
+  int _currentPage = 1;
+  bool _hasMore = true;
+  bool _isLoadingMore = false;
 
   @override
   Future<List<AppNotification>> build() async {
     final userId = ref.watch(authProvider.select((state) => state.user?.id));
-    final notifications =
-        await ref.read(notificationRepositoryProvider).getNotifications();
+    _currentPage = 1;
+    _hasMore = true;
+    _isLoadingMore = false;
+
+    final notifications = await ref.read(notificationRepositoryProvider).getNotifications(
+          page: _currentPage,
+          limit: _pageSize,
+        );
+    _hasMore = notifications.length >= _pageSize;
 
     _subscribe(userId);
     ref.onDispose(() {
@@ -35,6 +46,42 @@ class NotificationNotifier extends AsyncNotifier<List<AppNotification>> {
 
   Future<void> refreshNotifications() async {
     await fetchNotifications();
+  }
+
+  Future<void> loadMoreNotifications() async {
+    if (_isLoadingMore || !_hasMore) return;
+
+    final current = state.valueOrNull;
+    if (current == null) return;
+
+    _isLoadingMore = true;
+    try {
+      final nextPage = _currentPage + 1;
+      final nextItems = await ref.read(notificationRepositoryProvider).getNotifications(
+            page: nextPage,
+            limit: _pageSize,
+          );
+
+      if (nextItems.isEmpty) {
+        _hasMore = false;
+        return;
+      }
+
+      _currentPage = nextPage;
+      _hasMore = nextItems.length >= _pageSize;
+
+      final merged = [...current];
+      final existingIds = merged.map((item) => item.id).toSet();
+      for (final item in nextItems) {
+        if (!existingIds.contains(item.id)) {
+          merged.add(item);
+        }
+      }
+      merged.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      _setIfChanged(merged);
+    } finally {
+      _isLoadingMore = false;
+    }
   }
 
   Future<void> markRead(String notificationId) async {
@@ -86,8 +133,35 @@ class NotificationNotifier extends AsyncNotifier<List<AppNotification>> {
           .toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-      state = AsyncData(incoming);
+      _currentPage = 1;
+      _hasMore = incoming.length >= _pageSize;
+
+      _setIfChanged(incoming);
     });
+  }
+
+  void _setIfChanged(List<AppNotification> incoming) {
+    final current = state.valueOrNull;
+    if (current != null && _isSameList(current, incoming)) {
+      return;
+    }
+
+    state = AsyncData(incoming);
+  }
+
+  bool _isSameList(List<AppNotification> a, List<AppNotification> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+
+    for (var i = 0; i < a.length; i++) {
+      final x = a[i];
+      final y = b[i];
+      if (x.id != y.id || x.isRead != y.isRead || x.createdAt != y.createdAt) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
 
