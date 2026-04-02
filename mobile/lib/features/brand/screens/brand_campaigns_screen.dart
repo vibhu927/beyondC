@@ -12,6 +12,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
+import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/cards/bc_card.dart';
 
 class BrandCampaignsScreen extends ConsumerStatefulWidget {
@@ -28,8 +29,10 @@ class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
   @override
   void initState() {
     super.initState();
-    Future<void>.microtask(
-        () => ref.read(brandProvider.notifier).fetchBrandHome());
+    Future<void>.microtask(() {
+      ref.read(brandProvider.notifier).fetchBrandHome();
+      ref.read(brandRequestsProvider);
+    });
   }
 
   @override
@@ -42,30 +45,23 @@ class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
     }).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        title: const Text('My Campaigns', style: AppTypography.displaySM),
-        actions: [
-          IconButton(
-            onPressed: () => context.push(RouteNames.createCampaign),
-            icon: const Icon(Icons.add_rounded, color: AppColors.ink),
-          ),
-        ],
-      ),
+      extendBody: true,
+      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.brand,
         currentIndex: 1,
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.screenPadding,
-          AppSpacing.lg,
-          AppSpacing.screenPadding,
-          AppSpacing.huge,
-        ),
-        children: [
+      body: BCPageSwipeArea(
+        role: BCPortalRole.brand,
+        currentIndex: 1,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenPadding,
+            AppSpacing.sm,
+            AppSpacing.screenPadding,
+            AppSpacing.huge,
+          ),
+          children: [
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -132,6 +128,25 @@ class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
                               style: AppTypography.bodySM
                                   .copyWith(color: AppColors.muted),
                             ),
+                            if (campaign.description.trim().isNotEmpty) ...[
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                campaign.description,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.bodySM,
+                              ),
+                            ],
+                            if (campaign.requirements.trim().isNotEmpty) ...[
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                'Requirements: ${campaign.requirements}',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.bodyXS
+                                    .copyWith(color: AppColors.muted),
+                              ),
+                            ],
                             const SizedBox(height: AppSpacing.xs),
                             Text(
                               'Deadline ${DateFormat('d MMM yyyy').format(campaign.deadline ?? DateTime.now())}',
@@ -165,7 +180,8 @@ class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
                   )
                   .toList(),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

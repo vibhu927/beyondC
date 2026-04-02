@@ -114,7 +114,7 @@ class CreatorCard extends StatelessWidget {
             children: [
               const Expanded(
                 child: Text(
-                  '1 credit',
+                  '1 credit on acceptance',
                   style: AppTypography.bodyXS,
                 ),
               ),

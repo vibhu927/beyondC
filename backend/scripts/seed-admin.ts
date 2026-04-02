@@ -9,6 +9,12 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+function throwIfError(error: { message: string } | null, context: string) {
+  if (error) {
+    throw new Error(`${context}: ${error.message}`)
+  }
+}
+
 const SAMPLE = {
   creator: {
     email: 'creator.sample@beyondc.in',
@@ -293,7 +299,7 @@ async function seedSampleData() {
     brand_name: SAMPLE.brand.brandName,
   })
 
-  await supabase.from('profiles').upsert(
+  const { error: profilesError } = await supabase.from('profiles').upsert(
     [
       {
         id: creatorId,
@@ -320,8 +326,9 @@ async function seedSampleData() {
     ],
     { onConflict: 'id' }
   )
+  throwIfError(profilesError, 'Failed to upsert sample profiles')
 
-  await supabase.from('creator_profiles').upsert(
+  const { error: creatorProfileError } = await supabase.from('creator_profiles').upsert(
     {
       id: creatorId,
       niche: ['Fashion', 'Lifestyle'],
@@ -330,18 +337,26 @@ async function seedSampleData() {
       follower_count: 42000,
       followers_count: 42000,
       engagement_rate: 4.6,
-      instagram_username: 'aarav.creates',
-      instagram_verified: true,
-      is_discoverable: true,
+      instagram_username: null,
+      instagram_verified: false,
+      is_discoverable: false,
+      following_count: null,
+      posts_count: null,
+      highest_video_views: null,
+      avg_video_views: null,
+      avg_likes: null,
+      avg_comments: null,
+      stats_fetched_at: null,
       bio: 'Lifestyle creator for beauty and fashion collabs.',
       starting_price: 8000,
-      wallet_balance: 1500,
-      portfolio_links: ['https://instagram.com/aarav.creates'],
+      wallet_balance: 150000,
+      portfolio_links: [],
     },
     { onConflict: 'id' }
   )
+  throwIfError(creatorProfileError, 'Failed to upsert sample creator profile')
 
-  await supabase.from('brand_profiles').upsert(
+  const { error: brandProfileError } = await supabase.from('brand_profiles').upsert(
     {
       id: brandId,
       brand_name: SAMPLE.brand.brandName,
@@ -355,6 +370,7 @@ async function seedSampleData() {
     },
     { onConflict: 'id' }
   )
+  throwIfError(brandProfileError, 'Failed to upsert sample brand profile')
 
   console.log('Seeding 2 campaigns, 2 bids, 2 collabs, 2 events...')
 

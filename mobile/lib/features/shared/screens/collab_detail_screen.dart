@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../chat/chat_screen.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
-import '../../../providers/auth_provider.dart';
 import '../../../providers/collab_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_empty_state.dart';
@@ -24,8 +24,6 @@ class CollabDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final collabAsync = ref.watch(collabProvider(collabId));
-    final role =
-        ref.watch(authProvider.select((state) => state.role)) ?? 'creator';
 
     return Scaffold(
       appBar: AppBar(
@@ -44,10 +42,6 @@ class CollabDetailScreen extends ConsumerWidget {
         ),
         data: (collab) {
           final isCompleted = collab.status == 'completed';
-          final chatRoute = role == 'creator'
-              ? RouteNames.creatorChat.replaceFirst(':id', collabId)
-              : RouteNames.brandChat.replaceFirst(':id', collabId);
-
           return ListView(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.screenPadding,
@@ -123,7 +117,7 @@ class CollabDetailScreen extends ConsumerWidget {
                     const SizedBox(height: AppSpacing.md),
                     BCPrimaryButton.neon(
                       label: 'Open Chat ->',
-                      onPressed: () => context.push(chatRoute),
+                      onPressed: () => openChatDrawer(context, collabId),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     BCPrimaryButton.dark(

@@ -17,6 +17,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
+import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
@@ -36,6 +37,17 @@ class BrandProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.microtask(() {
+      ref.read(brandProvider.notifier).fetchBrandHome();
+      ref.read(brandRequestsProvider);
+      ref.read(brandProfileProvider);
+      ref.read(creditsProvider);
+    });
+  }
+
   Future<void> _refresh() async {
     await Future.wait([
       ref.read(brandProvider.notifier).fetchBrandHome(),
@@ -294,11 +306,13 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
     final creditsAsync = ref.watch(creditsProvider);
     final completedCollabsAsync = ref.watch(_completedCollabsProvider);
 
-    if (profileAsync.isLoading) {
+    final profile = profileAsync.valueOrNull ?? brandState.brandProfile;
+
+    if (profileAsync.isLoading && profile == null) {
       return const Scaffold(body: _ProfileShimmer());
     }
 
-    if (profileAsync.hasError) {
+    if (profileAsync.hasError && profile == null) {
       return Scaffold(
         body: BCErrorState(
           message: profileAsync.error.toString(),
@@ -307,7 +321,6 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
       );
     }
 
-    final profile = profileAsync.value;
     if (profile == null) {
       return const Scaffold(
         body: Center(child: Text('Unable to load brand profile.')),
@@ -323,14 +336,19 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
     final completedCollabs = completedCollabsAsync.valueOrNull ?? const [];
 
     return Scaffold(
+      extendBody: true,
+      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.brand,
         currentIndex: 3,
       ),
-      body: RefreshIndicator(
-        color: AppColors.neon,
-        onRefresh: _refresh,
-        child: CustomScrollView(
+      body: BCPageSwipeArea(
+        role: BCPortalRole.brand,
+        currentIndex: 3,
+        child: RefreshIndicator(
+          color: AppColors.neon,
+          onRefresh: _refresh,
+          child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverAppBar(
@@ -756,6 +774,7 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
               ),
             ),
           ],
+          ),
         ),
       ),
     );

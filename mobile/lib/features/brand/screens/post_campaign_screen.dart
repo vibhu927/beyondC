@@ -26,11 +26,13 @@ class PostCampaignScreen extends ConsumerStatefulWidget {
 
 class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
   final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
   final _minBudgetController = TextEditingController();
   final _maxBudgetController = TextEditingController();
   final _productDetailsController = TextEditingController();
   final _productValueController = TextEditingController();
   final _deliverablesController = TextEditingController();
+  final _requirementsController = TextEditingController();
   final _deadlineController = TextEditingController();
   final _slotsController = TextEditingController();
   final _minFollowersController = TextEditingController();
@@ -48,11 +50,13 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
   @override
   void dispose() {
     _titleController.dispose();
+    _descriptionController.dispose();
     _minBudgetController.dispose();
     _maxBudgetController.dispose();
     _productDetailsController.dispose();
     _productValueController.dispose();
     _deliverablesController.dispose();
+    _requirementsController.dispose();
     _deadlineController.dispose();
     _slotsController.dispose();
     _minFollowersController.dispose();
@@ -99,14 +103,45 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
     final minBudget = int.tryParse(_minBudgetController.text.trim()) ?? 0;
     final maxBudget = int.tryParse(_maxBudgetController.text.trim()) ?? 0;
     final slots = int.tryParse(_slotsController.text.trim()) ?? 1;
+    final minFollowers = int.tryParse(_minFollowersController.text.trim());
+
+    final deliverables = _deliverablesController.text
+        .split(RegExp(r'[,\n]'))
+        .map((item) => item.trim())
+        .where((item) => item.isNotEmpty)
+        .toList();
+
+    final requirementsParts = <String>[];
+    if (_requirementsController.text.trim().isNotEmpty) {
+      requirementsParts.add(_requirementsController.text.trim());
+    }
+    if (minFollowers != null && minFollowers > 0) {
+      requirementsParts.add('Min followers: $minFollowers');
+    }
+    if (_targetTiers.isNotEmpty) {
+      requirementsParts.add('Target tiers: ${_targetTiers.join(', ')}');
+    }
+    if (_targetNiches.isNotEmpty) {
+      requirementsParts.add('Target niches: ${_targetNiches.join(', ')}');
+    }
+
+    final description = _descriptionController.text.trim().isNotEmpty
+        ? _descriptionController.text.trim()
+        : (_productDetailsController.text.trim().isNotEmpty
+            ? _productDetailsController.text.trim()
+            : 'Campaign posted from mobile app');
 
     setState(() => _isSubmitting = true);
 
     final ok = await ref.read(brandProvider.notifier).postCampaign(
           title: _titleController.text.trim(),
+          description: description,
+          category: _category!,
           collabType: _collabType,
           minBudget: _showBudgetFields ? minBudget : 0,
           maxBudget: _showBudgetFields ? maxBudget : 0,
+          deliverables: deliverables,
+          requirements: requirementsParts.join(' | '),
           deadline: _deadline ?? DateTime.now().add(const Duration(days: 7)),
           slotsAvailable: slots,
         );
@@ -116,7 +151,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
 
     if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Not enough credits to post campaign.')),
+        const SnackBar(content: Text('Could not post campaign. Please try again.')),
       );
       return;
     }
@@ -223,6 +258,13 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           controller: _titleController,
         ),
         const SizedBox(height: AppSpacing.lg),
+        BCTextField(
+          label: 'Campaign Description',
+          hint: 'Explain campaign objective and tone',
+          maxLines: 3,
+          controller: _descriptionController,
+        ),
+        const SizedBox(height: AppSpacing.lg),
         BCDropdown(
           label: 'Niche/Category',
           hint: 'Select category',
@@ -288,6 +330,13 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           hint: '2 Reels, 3 Stories, 1 YouTube Short',
           maxLines: 3,
           controller: _deliverablesController,
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        BCTextField(
+          label: 'Requirements / Demands',
+          hint: 'Usage guidelines, hooks, CTA, deadlines, restrictions',
+          maxLines: 3,
+          controller: _requirementsController,
         ),
         const SizedBox(height: AppSpacing.lg),
         GestureDetector(
@@ -412,7 +461,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          '⚡ 1 credit will be deducted on posting',
+          '⚡ Campaign posting is free. Credit is deducted only on accepted match.',
           style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
         ),
         const SizedBox(height: AppSpacing.sm),

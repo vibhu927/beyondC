@@ -23,7 +23,11 @@ export async function GET(request: NextRequest) {
           title,
           description,
           event_date,
-          location,
+          location:venue_address,
+          venue_name,
+          city,
+          is_virtual,
+          virtual_link,
           image_url,
           brand_id
         )

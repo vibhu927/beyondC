@@ -11,14 +11,13 @@ import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../providers/brand_provider.dart';
-import '../../../providers/chat_modal_provider.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
+import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
-import '../../../widgets/chat_modal/chat_modal.dart';
 
 class BrandHomeScreen extends ConsumerStatefulWidget {
   const BrandHomeScreen({super.key});
@@ -34,198 +33,10 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
   void initState() {
     super.initState();
     Future<void>.microtask(_loadInitialData);
-  }
-
-  Future<void> _openNotificationsSheet() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.55,
-          minChildSize: 0.45,
-          maxChildSize: 0.95,
-          expand: false,
-          builder: (context, scrollController) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppSpacing.radiusLG),
-                ),
-                border: const Border(
-                  top: BorderSide(color: AppColors.ink, width: 2),
-                ),
-              ),
-              child: Consumer(
-                builder: (context, ref, _) {
-                  final notificationsAsync = ref.watch(notificationProvider);
-                  return notificationsAsync.when(
-                    loading: () => const Center(child: BCAppLoader()),
-                    error: (error, _) => Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.xl),
-                        child: Text(
-                          error.toString(),
-                          textAlign: TextAlign.center,
-                          style: AppTypography.bodyMD,
-                        ),
-                      ),
-                    ),
-                    data: (notifications) {
-                      final unreadInSheet =
-                          notifications.where((item) => !item.isRead).length;
-                      return Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                              AppSpacing.screenPadding,
-                              AppSpacing.md,
-                              AppSpacing.sm,
-                              AppSpacing.sm,
-                            ),
-                            child: Row(
-                              children: [
-                                const Expanded(
-                                  child: Text(
-                                    'Notifications',
-                                    style: AppTypography.displaySM,
-                                  ),
-                                ),
-                                if (unreadInSheet > 0)
-                                  TextButton(
-                                    onPressed: () {
-                                      unawaited(ref
-                                          .read(notificationProvider.notifier)
-                                          .markAllRead());
-                                    },
-                                    child: Text(
-                                      'Clear ($unreadInSheet)',
-                                      style: AppTypography.labelMD.copyWith(
-                                        color: AppColors.pink,
-                                      ),
-                                    ),
-                                  ),
-                                IconButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  icon: const Icon(Icons.close_rounded),
-                                  tooltip: 'Close notifications',
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: notifications.isEmpty
-                                ? const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(AppSpacing.xl),
-                                      child: Text(
-                                        'No notifications yet.',
-                                        style: AppTypography.bodyMD,
-                                      ),
-                                    ),
-                                  )
-                                : ListView.separated(
-                                    controller: scrollController,
-                                    padding: const EdgeInsets.fromLTRB(
-                                      AppSpacing.screenPadding,
-                                      AppSpacing.lg,
-                                      AppSpacing.screenPadding,
-                                      AppSpacing.huge,
-                                    ),
-                                    itemCount: notifications.length,
-                                    separatorBuilder: (_, __) => const SizedBox(
-                                      height: AppSpacing.sm,
-                                    ),
-                                    itemBuilder: (context, index) {
-                                      final notification = notifications[index];
-                                      return BCCard(
-                                        child: InkWell(
-                                          onTap: () {
-                                            unawaited(ref
-                                                .read(notificationProvider
-                                                    .notifier)
-                                                .markRead(notification.id));
-
-                                            final route = _routeForNotification(
-                                                notification);
-                                            if (route == null) return;
-
-                                            Navigator.of(context).pop();
-                                            context.push(route);
-                                          },
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      notification.title,
-                                                      style:
-                                                          AppTypography.labelMD,
-                                                    ),
-                                                    const SizedBox(
-                                                      height: AppSpacing.xs,
-                                                    ),
-                                                    Text(
-                                                      notification.body.isEmpty
-                                                          ? 'New activity'
-                                                          : notification.body,
-                                                      style:
-                                                          AppTypography.bodySM,
-                                                    ),
-                                                    const SizedBox(
-                                                      height: AppSpacing.xs,
-                                                    ),
-                                                    Text(
-                                                      timeago.format(
-                                                          notification
-                                                              .createdAt),
-                                                      style:
-                                                          AppTypography.bodyXS,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              if (!notification.isRead)
-                                                Container(
-                                                  margin: const EdgeInsets.only(
-                                                    left: AppSpacing.sm,
-                                                    top: AppSpacing.sm,
-                                                  ),
-                                                  width: 8,
-                                                  height: 8,
-                                                  decoration: BoxDecoration(
-                                                    color: AppColors.neon,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                      AppSpacing.radiusFull,
-                                                    ),
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
-            );
-          },
-        );
-      },
-    );
+    Future<void>.microtask(() {
+      ref.read(brandRequestsProvider);
+      ref.read(brandProfileProvider);
+    });
   }
 
   @override
@@ -246,161 +57,38 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
     ]);
   }
 
-  String? _routeForNotification(dynamic notification) {
-    final referenceType = notification.referenceType?.toString();
-    final referenceId = notification.referenceId?.toString();
-
-    switch (referenceType) {
-      case 'collab':
-        if (referenceId == null || referenceId.isEmpty) return null;
-        return RouteNames.brandChat.replaceFirst(':id', referenceId);
-      case 'bid':
-        if (referenceId == null || referenceId.isEmpty) {
-          return RouteNames.brandCampaigns;
-        }
-        return RouteNames.campaignBids.replaceFirst(':id', referenceId);
-      case 'event_invite':
-        if (referenceId == null || referenceId.isEmpty) {
-          return RouteNames.brandEvents;
-        }
-        return RouteNames.eventInvites.replaceFirst(':id', referenceId);
-      case 'campaign':
-        return RouteNames.brandCampaigns;
-      default:
-        return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final brandState = ref.watch(brandProvider);
-    final notificationAsync = ref.watch(notificationProvider);
-    final brandProfile = brandState.brandProfile;
-    final activityFeed =
-        (notificationAsync.valueOrNull ?? const []).take(4).toList();
-    final unreadCount = ref.watch(unreadCountProvider);
-    final unreadChats = ref.watch(chatModalUnreadCountProvider);
 
     return Scaffold(
+      extendBody: true,
+      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.brand,
         currentIndex: 0,
       ),
-      body: BCLoadingOverlay(
-        isLoading: brandState.isLoading,
-        child: RefreshIndicator(
-          color: AppColors.neon,
-          onRefresh: _refresh,
-          child: CustomScrollView(
+      body: BCPageSwipeArea(
+        role: BCPortalRole.brand,
+        currentIndex: 0,
+        child: BCLoadingOverlay(
+          isLoading: brandState.isLoading,
+          child: RefreshIndicator(
+            color: AppColors.neon,
+            onRefresh: _refresh,
+            child: CustomScrollView(
             controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.screenPadding,
-                  AppSpacing.xl,
+                  0,
                   AppSpacing.screenPadding,
                   AppSpacing.huge,
                 ),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Hey, ${brandProfile?.brandName ?? 'Brand'} 👋',
-                            style: AppTypography.displayMD,
-                          ),
-                        ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                IconButton(
-                                  onPressed: () => openChatModal(context),
-                                  icon: const Icon(
-                                    Icons.mark_chat_unread_rounded,
-                                    color: AppColors.ink,
-                                  ),
-                                ),
-                                if (unreadChats > 0)
-                                  Positioned(
-                                    top: 6,
-                                    right: 6,
-                                    child: Container(
-                                      width: 9,
-                                      height: 9,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.error,
-                                        borderRadius: BorderRadius.circular(
-                                          AppSpacing.radiusFull,
-                                        ),
-                                        border: Border.all(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .surface,
-                                          width: 1,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                IconButton(
-                                  onPressed: _openNotificationsSheet,
-                                  icon: const Icon(
-                                    Icons.notifications_none_rounded,
-                                    color: AppColors.ink,
-                                  ),
-                                ),
-                                if (unreadCount > 0)
-                                  Positioned(
-                                    top: 2,
-                                    right: 2,
-                                    child: Container(
-                                      constraints: const BoxConstraints(
-                                        minWidth: 18,
-                                        minHeight: 18,
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.error,
-                                        borderRadius: BorderRadius.circular(
-                                          AppSpacing.radiusFull,
-                                        ),
-                                        border: Border.all(
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .surface,
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        unreadCount > 99
-                                            ? '99+'
-                                            : '$unreadCount',
-                                        style: AppTypography.labelXS.copyWith(
-                                          color: AppColors.white,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
                     Wrap(
                       spacing: AppSpacing.md,
                       runSpacing: AppSpacing.md,
@@ -420,29 +108,33 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                       ],
                     ),
                     const SizedBox(height: AppSpacing.xxxl),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _ActionCard(
-                            emoji: '📢',
-                            title: 'Post Campaign',
-                            subtitle: 'Let creators bid for you',
-                            shadow: AppShadows.pink,
-                            onTap: () =>
-                                context.push(RouteNames.createCampaign),
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: _ActionCard(
+                              emoji: '📢',
+                              title: 'Post Campaign',
+                              subtitle: 'Let creators bid for you',
+                              shadow: AppShadows.pink,
+                              onTap: () =>
+                                  context.push(RouteNames.createCampaign),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: AppSpacing.md),
-                        Expanded(
-                          child: _ActionCard(
-                            emoji: '🔍',
-                            title: 'Find Creators',
-                            subtitle: 'Browse and send requests',
-                            shadow: AppShadows.neon,
-                            onTap: () => context.push(RouteNames.brandDiscover),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(
+                            child: _ActionCard(
+                              emoji: '🔍',
+                              title: 'Find Creators',
+                              subtitle: 'Browse and send requests',
+                              shadow: AppShadows.neon,
+                              onTap: () =>
+                                  context.push(RouteNames.brandDiscover),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     BCCard(
@@ -543,58 +235,11 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                           itemCount: brandState.activeCollabs.length,
                         ),
                       ),
-                    const SizedBox(height: AppSpacing.xxxl),
-                    const Text('Recent Activity',
-                        style: AppTypography.displaySM),
-                    const SizedBox(height: AppSpacing.lg),
-                    Column(
-                      children: activityFeed.map((activity) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                          child: BCCard(
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 42,
-                                  height: 42,
-                                  decoration: BoxDecoration(
-                                    color: _activityColor(activity.type),
-                                    borderRadius: BorderRadius.circular(
-                                        AppSpacing.radiusFull),
-                                    border: Border.all(
-                                        color: AppColors.ink, width: 2),
-                                  ),
-                                  child: Icon(
-                                    _activityIcon(activity.type),
-                                    color: AppColors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.md),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(_activityDescription(activity),
-                                          style: AppTypography.bodySM),
-                                      const SizedBox(height: AppSpacing.xs),
-                                      Text(
-                                        timeago.format(activity.createdAt),
-                                        style: AppTypography.bodyXS,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
                   ]),
                 ),
               ),
             ],
+            ),
           ),
         ),
       ),
@@ -799,44 +444,4 @@ String _collabMeta(ActiveCollabSummary collab) {
       : 'Start date pending';
 
   return '$amountCopy • $startedCopy';
-}
-
-Color _activityColor(String type) {
-  switch (type) {
-    case 'bid_received':
-      return AppColors.pink;
-    case 'bid_accepted':
-      return AppColors.neon;
-    case 'event_invite':
-      return AppColors.purple;
-    case 'collab_matched':
-      return AppColors.blue;
-    case 'request_received':
-      return AppColors.orange;
-    default:
-      return AppColors.ink;
-  }
-}
-
-IconData _activityIcon(String type) {
-  switch (type) {
-    case 'bid_received':
-      return Icons.assignment_rounded;
-    case 'bid_accepted':
-      return Icons.check_circle_rounded;
-    case 'event_invite':
-      return Icons.confirmation_num_rounded;
-    case 'collab_matched':
-      return Icons.handshake_rounded;
-    case 'request_received':
-      return Icons.mail_rounded;
-    default:
-      return Icons.notifications_rounded;
-  }
-}
-
-String _activityDescription(dynamic activity) {
-  final body = (activity.body as String?) ?? '';
-  if (body.trim().isNotEmpty) return body;
-  return (activity.title as String?) ?? 'New activity';
 }

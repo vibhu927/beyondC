@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { actionSchema } from '@/lib/validators'
-import { getCollabFee } from '@/lib/collabFee'
 import { sendPushNotification } from '@/lib/notifications/push'
 
 export async function PUT(
@@ -52,6 +51,46 @@ export async function PUT(
     }
 
     if (action === 'accept') {
+      const { data: brandProfile, error: brandProfileError } = await supabase
+        .from('brand_profiles')
+        .select('credit_balance')
+        .eq('id', user.id)
+        .single()
+
+      if (brandProfileError || !brandProfile) {
+        return NextResponse.json({ error: 'Brand profile not found' }, { status: 404 })
+      }
+
+      if ((brandProfile.credit_balance ?? 0) < 1) {
+        return NextResponse.json(
+          {
+            error: 'Insufficient credits',
+            required: 1,
+            current: brandProfile.credit_balance ?? 0,
+          },
+          { status: 400 }
+        )
+      }
+
+      const nextCredits = (brandProfile.credit_balance ?? 0) - 1
+      const { error: creditUpdateError } = await supabase
+        .from('brand_profiles')
+        .update({ credit_balance: nextCredits })
+        .eq('id', user.id)
+
+      if (creditUpdateError) {
+        return NextResponse.json({ error: creditUpdateError.message }, { status: 400 })
+      }
+
+      await supabase.from('credit_transactions').insert({
+        brand_id: user.id,
+        type: 'deduct',
+        amount: 1,
+        reason: 'bid_accepted',
+        reference_id: params.bidId,
+        balance_after: nextCredits,
+      })
+
       // Create collab from accepted bid
       const { data: collab, error: collabError } = await supabase
         .from('collabs')

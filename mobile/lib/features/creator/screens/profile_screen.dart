@@ -15,6 +15,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
+import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
@@ -29,6 +30,17 @@ class CreatorProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.microtask(() {
+      ref.read(myBidsProvider);
+      ref.read(creatorProfileProvider);
+      ref.read(creatorCollabsProvider);
+      ref.read(walletProvider);
+    });
+  }
+
   Future<void> _refresh() async {
     await Future.wait([
       ref.read(creatorProfileProvider.notifier).refresh(),
@@ -336,14 +348,19 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
         walletAsync.valueOrNull?.balance ?? profile.walletBalancePaise;
 
     return Scaffold(
+      extendBody: true,
+      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.creator,
         currentIndex: 3,
       ),
-      body: RefreshIndicator(
-        color: AppColors.neon,
-        onRefresh: _refresh,
-        child: CustomScrollView(
+      body: BCPageSwipeArea(
+        role: BCPortalRole.creator,
+        currentIndex: 3,
+        child: RefreshIndicator(
+          color: AppColors.neon,
+          onRefresh: _refresh,
+          child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverAppBar(
@@ -495,30 +512,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                       ],
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    if (profile.instagramVerified && profile.statsFetchedAt == null)
-                      BCCard(
-                        shadow: AppShadows.neon,
-                        child: Row(
-                          children: [
-                            const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                color: AppColors.neon,
-                                strokeWidth: 2,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Fetching your Instagram stats...',
-                              style: AppTypography.bodySM.copyWith(
-                                color: AppColors.muted,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    else if (profile.instagramVerified)
+                    if (profile.instagramVerified)
                       _InstagramStatsCard(
                         profile: profile,
                         onRefreshStats: _refreshInstagramStats,
@@ -717,6 +711,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
               ),
             ),
           ],
+          ),
         ),
       ),
     );
@@ -772,6 +767,7 @@ class _InstagramStatsCard extends StatelessWidget {
     final engagementRate = profile.engagementRate;
     final highestViews = profile.highestVideoViews ?? 0;
     final totalPosts = profile.postsCount ?? 0;
+    final hasFetchedStats = profile.statsFetchedAt != null;
 
     return BCCard(
       shadow: AppShadows.blue,
@@ -833,6 +829,12 @@ class _InstagramStatsCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
+          if (!hasFetchedStats)
+            Text(
+              'Instagram connected. Tap Refresh Stats to load your latest numbers.',
+              style: AppTypography.bodySM.copyWith(color: AppColors.muted),
+            ),
+          if (!hasFetchedStats) const SizedBox(height: AppSpacing.sm),
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(

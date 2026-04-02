@@ -80,7 +80,7 @@ class CampaignCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    '${Formatters.currency(campaign.minBudget)}–${Formatters.currency(campaign.maxBudget)}',
+                    '${Formatters.currencyFromINR(campaign.minBudget)}–${Formatters.currencyFromINR(campaign.maxBudget)}',
                     style: AppTypography.displaySM,
                   ),
                 ),

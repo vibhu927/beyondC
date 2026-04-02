@@ -47,24 +47,30 @@ export const updateBrandProfileSchema = z.object({
 export const createCampaignSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
-  niche: z.string(),
+  niche: z.union([z.string(), z.array(z.string())]),
   collab_type: z.enum(['paid', 'barter', 'hybrid']),
   budget: z.number().int().min(0).optional(), // in paise
+  budget_min: z.number().int().min(0).optional(),
+  budget_max: z.number().int().min(0).optional(),
   deliverables: z.array(z.string()),
   requirements: z.string().optional(),
   deadline: z.string().optional(), // ISO date string
+  slots: z.number().int().min(1).optional(),
   status: z.enum(['draft', 'active', 'closed']).optional(),
 })
 
 export const updateCampaignSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
-  niche: z.string().optional(),
+  niche: z.union([z.string(), z.array(z.string())]).optional(),
   collab_type: z.enum(['paid', 'barter', 'hybrid']).optional(),
   budget: z.number().int().min(0).optional(),
+  budget_min: z.number().int().min(0).optional(),
+  budget_max: z.number().int().min(0).optional(),
   deliverables: z.array(z.string()).optional(),
   requirements: z.string().optional(),
   deadline: z.string().optional(),
+  slots: z.number().int().min(1).optional(),
   status: z.enum(['draft', 'active', 'closed']).optional(),
 })
 

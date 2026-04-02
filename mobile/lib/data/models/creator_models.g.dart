@@ -75,9 +75,14 @@ _$CampaignImpl _$$CampaignImplFromJson(Map<String, dynamic> json) =>
     _$CampaignImpl(
       id: json['id'] as String,
       title: json['title'] as String? ?? 'Campaign',
+      description: json['description'] as String? ?? '',
       brandCategory: json['brandCategory'] as String? ?? 'General',
       brandInitial: json['brandInitial'] as String? ?? 'B',
       brandSize: json['brandSize'] as String?,
+      niche:
+          (json['niche'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+              const <String>[],
+      requirements: json['requirements'] as String? ?? '',
       minBudget: (json['minBudget'] as num?)?.toInt() ?? 0,
       maxBudget: (json['maxBudget'] as num?)?.toInt() ?? 0,
       collabType: $enumDecodeNullable(
@@ -88,6 +93,8 @@ _$CampaignImpl _$$CampaignImplFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const <String>[],
       bidCount: (json['bidCount'] as num?)?.toInt() ?? 0,
+      slotsTotal: (json['slotsTotal'] as num?)?.toInt() ?? 1,
+      slotsFilled: (json['slotsFilled'] as num?)?.toInt() ?? 0,
       deadline: DateTime.parse(json['deadline'] as String),
       status: $enumDecodeNullable(_$CampaignStatusEnumMap, json['status']) ??
           CampaignStatus.active,
@@ -100,14 +107,19 @@ Map<String, dynamic> _$$CampaignImplToJson(_$CampaignImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'title': instance.title,
+      'description': instance.description,
       'brandCategory': instance.brandCategory,
       'brandInitial': instance.brandInitial,
       'brandSize': instance.brandSize,
+      'niche': instance.niche,
+      'requirements': instance.requirements,
       'minBudget': instance.minBudget,
       'maxBudget': instance.maxBudget,
       'collabType': _$CampaignCollabTypeEnumMap[instance.collabType]!,
       'deliverables': instance.deliverables,
       'bidCount': instance.bidCount,
+      'slotsTotal': instance.slotsTotal,
+      'slotsFilled': instance.slotsFilled,
       'deadline': instance.deadline.toIso8601String(),
       'status': _$CampaignStatusEnumMap[instance.status]!,
       'createdAt': instance.createdAt?.toIso8601String(),

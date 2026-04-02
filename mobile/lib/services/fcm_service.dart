@@ -9,7 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/router/router_holder.dart';
 import '../core/router/route_names.dart';
 import '../main.dart';
-import '../providers/chat_modal_provider.dart';
+import '../providers/chat_provider.dart';
 import '../providers/notification_provider.dart';
 
 enum PendingNavigationType {
@@ -61,7 +61,7 @@ class FCMService {
       FirebaseMessaging.onMessage.listen((message) {
         _showLocalNotification(message);
         ref.invalidate(notificationProvider);
-        ref.invalidate(chatModalProvider);
+        ref.invalidate(chatListProvider);
       });
 
       FirebaseMessaging.onMessageOpenedApp.listen((message) {
@@ -120,15 +120,15 @@ class FCMService {
       id: notification.hashCode,
       title: notification.title,
       body: notification.body,
-      notificationDetails: NotificationDetails(
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'beyondc_channel',
           'BeyondC Notifications',
           importance: Importance.high,
           priority: Priority.high,
-          color: const Color(0xFFC8FF00),
+          color: Color(0xFFC8FF00),
         ),
-        iOS: const DarwinNotificationDetails(),
+        iOS: DarwinNotificationDetails(),
       ),
       payload: jsonEncode(message.data),
     );

@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
+import '../../chat/chat_screen.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
-import '../../../widgets/bc_app_bar.dart';
 import '../../../widgets/bc_bottom_nav.dart';
+import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/cards/bc_card.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
@@ -49,9 +48,15 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
   void initState() {
     super.initState();
     Future<void>.microtask(() async {
-      await ref.read(brandRequestsProvider.notifier).refresh();
+      final cached = ref.read(brandRequestsProvider).valueOrNull;
+      if (cached == null) {
+        await ref.read(brandRequestsProvider.notifier).refresh();
+      }
       _resyncVisibleList(
           ref.read(brandRequestsProvider).valueOrNull ?? const []);
+
+      ref.read(brandProvider.notifier).fetchBrandHome();
+      ref.read(brandProfileProvider);
     });
 
     ref.listenManual<AsyncValue<List<CollabRequest>>>(
@@ -258,21 +263,28 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
     final requestsAsync = ref.watch(brandRequestsProvider);
 
     return Scaffold(
-      appBar: BCAppBar(
-        title: 'My Requests 📩',
-        actions: [
-          IconButton(
-            onPressed: _openFilters,
-            icon: const Icon(Icons.tune_rounded, color: AppColors.ink),
-          ),
-        ],
-      ),
+      extendBody: true,
+      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.brand,
         currentIndex: 2,
       ),
-      body: Column(
-        children: [
+      body: BCPageSwipeArea(
+        role: BCPortalRole.brand,
+        currentIndex: 2,
+        child: Column(
+          children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.screenPadding),
+              child: IconButton(
+                onPressed: _openFilters,
+                icon: const Icon(Icons.tune_rounded, color: AppColors.ink),
+                tooltip: 'Filter requests',
+              ),
+            ),
+          ),
           const SizedBox(height: AppSpacing.sm),
           _TabBarPills(
             activeTab: _activeTab,
@@ -329,7 +341,8 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
               },
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -484,10 +497,7 @@ class _RequestCard extends StatelessWidget {
                     BCPrimaryButton.dark(
                       label: 'Open Chat →',
                       isFullWidth: false,
-                      onPressed: () => context.push(
-                        RouteNames.brandChat
-                            .replaceFirst(':id', request.collabId!),
-                      ),
+                      onPressed: () => openChatDrawer(context, request.collabId!),
                     ),
                 ],
               ),

@@ -8,7 +8,7 @@ import '../data/models/creator_models.dart';
 import '../data/models/paginated_result.dart';
 import '../data/repositories/creator_repository.dart';
 import '../data/services/api_service.dart';
-import 'chat_modal_provider.dart';
+import 'chat_provider.dart';
 
 final creatorRepositoryProvider = Provider<CreatorRepository>((ref) {
   return CreatorRepository(ref.read(apiServiceProvider));
@@ -433,7 +433,7 @@ class CreatorActionsNotifier extends AsyncNotifier<void> {
           .respondToRequest(requestId: requestId, action: action);
       ref.invalidate(requestsProvider);
       ref.invalidate(creatorCollabsProvider);
-      ref.invalidate(chatModalProvider);
+      ref.invalidate(chatListProvider);
       ref.invalidate(walletProvider);
       ref.invalidate(creatorHomeProvider);
     });

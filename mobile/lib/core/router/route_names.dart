@@ -16,7 +16,6 @@ class RouteNames {
   static const String myBids = '/creator/bids';
   static const String creatorRequests = '/creator/requests';
   static const String creatorCollabs = '/creator/collabs';
-  static const String creatorChat = '/creator/collabs/:id/chat';
   static const String creatorEvents = '/creator/events';
   static const String creatorProfile = '/creator/profile';
   static const String creatorWallet = '/creator/wallet';
@@ -30,7 +29,6 @@ class RouteNames {
   static const String campaignBids = '/brand/campaigns/:id/bids';
   static const String brandRequests = '/brand/requests';
   static const String brandCollabs = '/brand/collabs';
-  static const String brandChat = '/brand/collabs/:id/chat';
   static const String brandDiscover = '/brand/discover';
   static const String brandProfile = '/brand/profile';
   static const String brandCredits = '/brand/credits';

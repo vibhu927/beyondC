@@ -109,6 +109,29 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
                   '${_collabLabel(campaign.collabType)}  •  Deadline ${DateFormat('d MMM').format(campaign.deadline ?? DateTime.now())}',
                   style: AppTypography.bodySM.copyWith(color: AppColors.muted),
                 ),
+                if (campaign.description.trim().isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    campaign.description,
+                    style: AppTypography.bodySM,
+                  ),
+                ],
+                if (campaign.deliverables.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Deliverables: ${campaign.deliverables.join(', ')}',
+                    style: AppTypography.bodyXS
+                        .copyWith(color: AppColors.muted),
+                  ),
+                ],
+                if (campaign.requirements.trim().isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    'Requirements: ${campaign.requirements}',
+                    style: AppTypography.bodyXS
+                        .copyWith(color: AppColors.muted),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.md),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
@@ -410,3 +433,4 @@ String _collabLabel(CampaignCollabType type) {
       return 'Hybrid';
   }
 }
+

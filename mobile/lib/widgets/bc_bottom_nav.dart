@@ -8,6 +8,110 @@ import '../core/theme/app_typography.dart';
 
 enum BCPortalRole { creator, brand }
 
+class BCPageSwipeArea extends StatefulWidget {
+  const BCPageSwipeArea({
+    super.key,
+    required this.role,
+    required this.currentIndex,
+    required this.child,
+  });
+
+  final BCPortalRole role;
+  final int currentIndex;
+  final Widget child;
+
+  @override
+  State<BCPageSwipeArea> createState() => _BCPageSwipeAreaState();
+}
+
+class _BCPageSwipeAreaState extends State<BCPageSwipeArea> {
+  double _dragDx = 0;
+  Duration _animationDuration = Duration.zero;
+
+  void _handleDragUpdate(DragUpdateDetails details) {
+    setState(() {
+      _animationDuration = Duration.zero;
+      _dragDx += details.delta.dx;
+    });
+  }
+
+  void _handleDragEnd(DragEndDetails details, double width) {
+    final velocity = details.primaryVelocity ?? 0;
+    final routes = _routesFor(widget.role);
+    final maxIndex = routes.length - 1;
+
+    final shouldMoveByDistance = _dragDx.abs() > width * 0.22;
+    final shouldMoveByVelocity = velocity.abs() > 450;
+
+    var targetIndex = widget.currentIndex;
+    if (shouldMoveByDistance || shouldMoveByVelocity) {
+      if (_dragDx < 0 || velocity < 0) {
+        targetIndex = (widget.currentIndex + 1).clamp(0, maxIndex);
+      } else {
+        targetIndex = (widget.currentIndex - 1).clamp(0, maxIndex);
+      }
+    }
+
+    if (targetIndex == widget.currentIndex) {
+      setState(() {
+        _animationDuration = const Duration(milliseconds: 220);
+        _dragDx = 0;
+      });
+      return;
+    }
+
+    final slideOutDx = targetIndex > widget.currentIndex ? -width : width;
+    setState(() {
+      _animationDuration = const Duration(milliseconds: 150);
+      _dragDx = slideOutDx;
+    });
+
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (!mounted) return;
+      context.go(routes[targetIndex]);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onHorizontalDragUpdate: _handleDragUpdate,
+          onHorizontalDragEnd: (details) =>
+              _handleDragEnd(details, constraints.maxWidth),
+          child: AnimatedContainer(
+            duration: _animationDuration,
+            curve: Curves.easeOutCubic,
+            transform: Matrix4.translationValues(_dragDx, 0, 0),
+            child: widget.child,
+          ),
+        );
+      },
+    );
+  }
+}
+
+List<String> _routesFor(BCPortalRole role) {
+  switch (role) {
+    case BCPortalRole.creator:
+      return const [
+        RouteNames.creatorHome,
+        RouteNames.creatorCampaigns,
+        RouteNames.myBids,
+        RouteNames.creatorProfile,
+      ];
+    case BCPortalRole.brand:
+      return const [
+        RouteNames.brandHome,
+        RouteNames.brandCampaigns,
+        RouteNames.brandRequests,
+        RouteNames.brandProfile,
+      ];
+  }
+}
+
 class BCBottomNav extends StatefulWidget {
   const BCBottomNav({
     super.key,
@@ -60,7 +164,7 @@ class _BCBottomNavState extends State<BCBottomNav> {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
@@ -77,12 +181,12 @@ class _BCBottomNavState extends State<BCBottomNav> {
               onHorizontalDragUpdate: _onDragUpdate,
               onHorizontalDragEnd: (_) => _onDragEnd(items, width, context),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(34),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                   child: Container(
                     key: _navKey,
-                    height: 74,
+                    height: 66,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -92,7 +196,7 @@ class _BCBottomNavState extends State<BCBottomNav> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(34),
                       border: Border.all(
                         color: Colors.white.withValues(alpha: 0.2),
                         width: 1.2,
@@ -113,13 +217,13 @@ class _BCBottomNavState extends State<BCBottomNav> {
                               : const Duration(milliseconds: 220),
                           curve: Curves.easeOutCubic,
                           left: capsuleLeft,
-                          top: 6,
+                          top: 5,
                           width: capsuleWidth,
-                          height: 62,
+                          height: 56,
                           child: Container(
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.14),
-                              borderRadius: BorderRadius.circular(24),
+                              borderRadius: BorderRadius.circular(30),
                               border: Border.all(
                                 color: Colors.white.withValues(alpha: 0.44),
                                 width: 1,
@@ -132,7 +236,7 @@ class _BCBottomNavState extends State<BCBottomNav> {
                             for (var i = 0; i < items.length; i++)
                               Expanded(
                                 child: InkWell(
-                                  borderRadius: BorderRadius.circular(24),
+                                  borderRadius: BorderRadius.circular(30),
                                   onTap: () {
                                     if (i == widget.currentIndex) return;
                                     context.go(items[i].route);
@@ -159,44 +263,45 @@ class _BCBottomNavState extends State<BCBottomNav> {
   }
 
   List<_NavItem> _itemsFor(BCPortalRole role) {
+    final routes = _routesFor(role);
     switch (role) {
       case BCPortalRole.creator:
-        return const [
+        return [
           _NavItem(
               icon: Icons.home_rounded,
               label: 'Home',
-              route: RouteNames.creatorHome),
+              route: routes[0]),
           _NavItem(
               icon: Icons.explore_rounded,
               label: 'Campaigns',
-              route: RouteNames.creatorCampaigns),
+              route: routes[1]),
           _NavItem(
               icon: Icons.bookmark_rounded,
               label: 'My Bids',
-              route: RouteNames.myBids),
+              route: routes[2]),
           _NavItem(
               icon: Icons.person_rounded,
               label: 'Profile',
-              route: RouteNames.creatorProfile),
+              route: routes[3]),
         ];
       case BCPortalRole.brand:
-        return const [
+        return [
           _NavItem(
               icon: Icons.home_rounded,
               label: 'Home',
-              route: RouteNames.brandHome),
+              route: routes[0]),
           _NavItem(
               icon: Icons.campaign_rounded,
               label: 'Campaigns',
-              route: RouteNames.brandCampaigns),
+              route: routes[1]),
           _NavItem(
               icon: Icons.send_rounded,
               label: 'Requests',
-              route: RouteNames.brandRequests),
+              route: routes[2]),
           _NavItem(
               icon: Icons.person_rounded,
               label: 'Profile',
-              route: RouteNames.brandProfile),
+              route: routes[3]),
         ];
     }
   }

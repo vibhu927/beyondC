@@ -7,6 +7,7 @@ import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../chat/chat_screen.dart';
 import '../../../data/repositories/notification_repository.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/notification_provider.dart';
@@ -123,6 +124,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       .markRead(notification.id);
 
                   if (!context.mounted) return;
+                  if (notification.referenceType == 'collab' &&
+                      notification.referenceId != null &&
+                      notification.referenceId!.isNotEmpty) {
+                    openChatDrawer(context, notification.referenceId!);
+                    return;
+                  }
+
                   final route = _routeForNotification(notification, role);
                   if (route != null) {
                     context.push(route);
@@ -206,8 +214,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
     switch (notification.referenceType) {
       case 'collab':
-        if (referenceId == null) return null;
-        return '/$role/collabs/$referenceId/chat';
+        return null;
       case 'bid':
         if (role == 'creator') {
           return RouteNames.myBids;

@@ -50,13 +50,28 @@ export async function POST(request: NextRequest) {
 
     // Validate campaign data
     const validatedData = createCampaignSchema.parse(body)
+    const normalizedNiche = Array.isArray(validatedData.niche)
+      ? validatedData.niche
+      : [validatedData.niche]
+    const normalizedBudgetMin = validatedData.budget_min ?? validatedData.budget
+    const normalizedBudgetMax = validatedData.budget_max ?? validatedData.budget
 
     // Create campaign
     const { data: campaign, error } = await supabase
       .from('campaigns')
       .insert({
         brand_id: user.id,
-        ...validatedData,
+        title: validatedData.title,
+        description: validatedData.description,
+        niche: normalizedNiche,
+        collab_type: validatedData.collab_type,
+        budget_min: normalizedBudgetMin,
+        budget_max: normalizedBudgetMax,
+        deliverables: validatedData.deliverables,
+        requirements: validatedData.requirements,
+        deadline: validatedData.deadline,
+        slots: validatedData.slots,
+        status: validatedData.status,
       })
       .select()
       .single()

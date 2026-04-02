@@ -185,12 +185,12 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 BCPrimaryButton.dark(
-                  label: 'Send Request → (1 credit)',
+                  label: 'Send Request →',
                   onPressed: () async {
                     final confirmed = await _showCreditConfirmDialog(
                       context,
                       title: 'Send request to ${creator.firstName}?',
-                      subtitle: '1 credit will be deducted.',
+                      subtitle: '1 credit will be deducted only if the creator accepts.',
                     );
                     if (!confirmed || !context.mounted) return;
 
@@ -202,7 +202,7 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                     if (!context.mounted) return;
                     if (!ok) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Not enough credits.')),
+                        const SnackBar(content: Text('Could not send request.')),
                       );
                       return;
                     }

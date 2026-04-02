@@ -30,7 +30,6 @@ import '../../features/creator/screens/my_tickets_screen.dart';
 import '../../features/creator/screens/profile_screen.dart';
 import '../../features/creator/screens/ticket_detail_screen.dart';
 import '../../features/creator/screens/wallet_screen.dart';
-import '../../features/shared/screens/chat_screen.dart';
 import '../../features/shared/screens/collab_detail_screen.dart';
 import '../../features/shared/screens/milestone_screen.dart';
 import '../../features/shared/screens/notifications_screen.dart';
@@ -177,10 +176,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (c, s) => const CreatorCollabsScreen(),
       ),
       GoRoute(
-        path: RouteNames.creatorChat,
-        builder: (c, s) => ChatScreen(collabId: s.pathParameters['id']!),
-      ),
-      GoRoute(
         path: RouteNames.creatorEvents,
         builder: (c, s) => const CreatorEventsScreen(),
       ),
@@ -232,10 +227,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.brandRequests,
         builder: (c, s) => const BrandRequestsScreen(),
-      ),
-      GoRoute(
-        path: RouteNames.brandChat,
-        builder: (c, s) => ChatScreen(collabId: s.pathParameters['id']!),
       ),
       GoRoute(
         path: RouteNames.brandProfile,

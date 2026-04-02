@@ -41,6 +41,27 @@ export async function PUT(
     }
 
     if (action === 'accept') {
+      const { data: brandProfile, error: brandProfileError } = await supabase
+        .from('brand_profiles')
+        .select('credit_balance')
+        .eq('id', collabRequest.brand_id)
+        .single()
+
+      if (brandProfileError || !brandProfile) {
+        return NextResponse.json({ error: 'Brand profile not found' }, { status: 404 })
+      }
+
+      if ((brandProfile.credit_balance ?? 0) < 1) {
+        return NextResponse.json(
+          {
+            error: 'Brand has insufficient credits',
+            required: 1,
+            current: brandProfile.credit_balance ?? 0,
+          },
+          { status: 400 }
+        )
+      }
+
       // Check wallet balance for collab fee
       const { data: creatorProfile, error: creatorError } = await supabase
         .from('creator_profiles')
@@ -106,6 +127,21 @@ export async function PUT(
         .from('collab_requests')
         .update({ status: 'accepted' })
         .eq('id', params.id)
+
+      const nextCredits = (brandProfile.credit_balance ?? 0) - 1
+      await supabase
+        .from('brand_profiles')
+        .update({ credit_balance: nextCredits })
+        .eq('id', collabRequest.brand_id)
+
+      await supabase.from('credit_transactions').insert({
+        brand_id: collabRequest.brand_id,
+        type: 'deduct',
+        amount: 1,
+        reason: 'direct_request_accepted',
+        reference_id: params.id,
+        balance_after: nextCredits,
+      })
 
       // Notify brand
       await supabase.from('notifications').insert({

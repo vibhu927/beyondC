@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/app_colors.dart';
@@ -9,10 +11,10 @@ import 'core/router/router_holder.dart';
 import 'providers/auth_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/theme_provider.dart';
-import 'providers/chat_modal_provider.dart';
 import 'services/fcm_service.dart';
-import 'widgets/chat_drawer/chat_drawer.dart';
-import 'widgets/chat_modal/chat_modal.dart';
+import 'features/chat/chat_modal.dart';
+import 'features/chat/chat_screen.dart';
+import 'features/chat/in_app_notification.dart';
 
 final GlobalKey<ScaffoldMessengerState> appScaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
@@ -35,13 +37,12 @@ class BeyondCApp extends ConsumerWidget {
         if (pending.type == PendingNavigationType.openChatDrawer) {
           final collabId = pending.collabId;
           if (collabId != null && collabId.isNotEmpty) {
-            ref.read(chatModalProvider.notifier).setOpenCollabId(collabId);
             openChatDrawer(context, collabId);
           }
         }
 
         if (pending.type == PendingNavigationType.openChatRequests) {
-          openChatModal(context, initialTab: ChatModalTab.requests);
+          openChatModal(context);
         }
 
         ref.read(pendingNavigationProvider.notifier).state = null;
@@ -92,12 +93,75 @@ class BeyondCApp extends ConsumerWidget {
       themeMode: themeMode,
       routerConfig: router,
       builder: (context, child) {
-        return SafeArea(
-          top: true,
-          bottom: false,
-          child: child ?? const SizedBox.shrink(),
+        return _BackPressExitScope(
+          child: SafeArea(
+            top: true,
+            bottom: false,
+            child: Stack(
+              children: [
+                child ?? const SizedBox.shrink(),
+                const InAppNotificationOverlay(),
+              ],
+            ),
+          ),
         );
       },
+    );
+  }
+}
+
+class _BackPressExitScope extends StatefulWidget {
+  const _BackPressExitScope({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_BackPressExitScope> createState() => _BackPressExitScopeState();
+}
+
+class _BackPressExitScopeState extends State<_BackPressExitScope> {
+  DateTime? _lastBackPressAt;
+
+  Future<void> _onBackAttempt() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return;
+    }
+
+    final navigator = RouterHolder.rootNavigatorKey?.currentState;
+    if (navigator != null && navigator.canPop()) {
+      navigator.pop();
+      return;
+    }
+
+    final now = DateTime.now();
+    final shouldExit = _lastBackPressAt != null &&
+        now.difference(_lastBackPressAt!) <= const Duration(seconds: 2);
+
+    if (shouldExit) {
+      await SystemNavigator.pop();
+      return;
+    }
+
+    _lastBackPressAt = now;
+    final messenger = appScaffoldMessengerKey.currentState;
+    messenger?.hideCurrentSnackBar();
+    messenger?.showSnackBar(
+      const SnackBar(
+        content: Text('Press back again to exit'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, _) {
+        if (didPop) return;
+        _onBackAttempt();
+      },
+      child: widget.child,
     );
   }
 }

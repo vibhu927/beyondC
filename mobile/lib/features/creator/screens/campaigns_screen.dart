@@ -9,8 +9,8 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
-import '../../../widgets/bc_app_bar.dart';
 import '../../../widgets/bc_bottom_nav.dart';
+import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
@@ -41,6 +41,10 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    Future<void>.microtask(() {
+      ref.read(creatorHomeProvider);
+      ref.read(myBidsProvider);
+    });
   }
 
   @override
@@ -73,8 +77,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
           (_sheetCollabTypes.length == 1 ? _sheetCollabTypes.first : null),
       niche:
           chipNiche ?? (_sheetNiches.length == 1 ? _sheetNiches.first : null),
-      minBudget: _minBudgetInr == null ? null : _minBudgetInr! * 100,
-      maxBudget: _maxBudgetInr == null ? null : _maxBudgetInr! * 100,
+      minBudget: _minBudgetInr,
+      maxBudget: _maxBudgetInr,
     );
 
     return ref.read(creatorCampaignsProvider.notifier).applyFilters(filter);
@@ -307,33 +311,36 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
     final campaignsAsync = ref.watch(creatorCampaignsProvider);
 
     return Scaffold(
-      appBar: BCAppBar(
-        title: 'Campaigns',
-        actions: [
-          IconButton(
-            onPressed: _openFiltersSheet,
-            icon: const Icon(Icons.tune_rounded, color: AppColors.ink),
-            tooltip: 'Filter campaigns',
-          ),
-        ],
-      ),
+      extendBody: true,
+      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.creator,
         currentIndex: 1,
       ),
-      body: RefreshIndicator(
-        color: AppColors.neon,
-        onRefresh: _refresh,
-        child: ListView(
+      body: BCPageSwipeArea(
+        role: BCPortalRole.creator,
+        currentIndex: 1,
+        child: RefreshIndicator(
+          color: AppColors.neon,
+          onRefresh: _refresh,
+          child: ListView(
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md,
-            AppSpacing.lg,
+            AppSpacing.sm,
             AppSpacing.md,
             AppSpacing.huge,
           ),
           children: [
+            Align(
+              alignment: Alignment.centerRight,
+              child: IconButton(
+                onPressed: _openFiltersSheet,
+                icon: const Icon(Icons.tune_rounded, color: AppColors.ink),
+                tooltip: 'Filter campaigns',
+              ),
+            ),
             SizedBox(
               height: 36,
               child: ListView.separated(
@@ -441,6 +448,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
               },
             ),
           ],
+          ),
         ),
       ),
     );

@@ -711,14 +711,19 @@ Campaign _$CampaignFromJson(Map<String, dynamic> json) {
 mixin _$Campaign {
   String get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
+  String get description => throw _privateConstructorUsedError;
   String get brandCategory => throw _privateConstructorUsedError;
   String get brandInitial => throw _privateConstructorUsedError;
   String? get brandSize => throw _privateConstructorUsedError;
+  List<String> get niche => throw _privateConstructorUsedError;
+  String get requirements => throw _privateConstructorUsedError;
   int get minBudget => throw _privateConstructorUsedError;
   int get maxBudget => throw _privateConstructorUsedError;
   CampaignCollabType get collabType => throw _privateConstructorUsedError;
   List<String> get deliverables => throw _privateConstructorUsedError;
   int get bidCount => throw _privateConstructorUsedError;
+  int get slotsTotal => throw _privateConstructorUsedError;
+  int get slotsFilled => throw _privateConstructorUsedError;
   DateTime get deadline => throw _privateConstructorUsedError;
   CampaignStatus get status => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
@@ -741,14 +746,19 @@ abstract class $CampaignCopyWith<$Res> {
   $Res call(
       {String id,
       String title,
+      String description,
       String brandCategory,
       String brandInitial,
       String? brandSize,
+      List<String> niche,
+      String requirements,
       int minBudget,
       int maxBudget,
       CampaignCollabType collabType,
       List<String> deliverables,
       int bidCount,
+      int slotsTotal,
+      int slotsFilled,
       DateTime deadline,
       CampaignStatus status,
       DateTime? createdAt});
@@ -771,14 +781,19 @@ class _$CampaignCopyWithImpl<$Res, $Val extends Campaign>
   $Res call({
     Object? id = null,
     Object? title = null,
+    Object? description = null,
     Object? brandCategory = null,
     Object? brandInitial = null,
     Object? brandSize = freezed,
+    Object? niche = null,
+    Object? requirements = null,
     Object? minBudget = null,
     Object? maxBudget = null,
     Object? collabType = null,
     Object? deliverables = null,
     Object? bidCount = null,
+    Object? slotsTotal = null,
+    Object? slotsFilled = null,
     Object? deadline = null,
     Object? status = null,
     Object? createdAt = freezed,
@@ -792,6 +807,10 @@ class _$CampaignCopyWithImpl<$Res, $Val extends Campaign>
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String,
+      description: null == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
       brandCategory: null == brandCategory
           ? _value.brandCategory
           : brandCategory // ignore: cast_nullable_to_non_nullable
@@ -804,6 +823,14 @@ class _$CampaignCopyWithImpl<$Res, $Val extends Campaign>
           ? _value.brandSize
           : brandSize // ignore: cast_nullable_to_non_nullable
               as String?,
+      niche: null == niche
+          ? _value.niche
+          : niche // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      requirements: null == requirements
+          ? _value.requirements
+          : requirements // ignore: cast_nullable_to_non_nullable
+              as String,
       minBudget: null == minBudget
           ? _value.minBudget
           : minBudget // ignore: cast_nullable_to_non_nullable
@@ -823,6 +850,14 @@ class _$CampaignCopyWithImpl<$Res, $Val extends Campaign>
       bidCount: null == bidCount
           ? _value.bidCount
           : bidCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      slotsTotal: null == slotsTotal
+          ? _value.slotsTotal
+          : slotsTotal // ignore: cast_nullable_to_non_nullable
+              as int,
+      slotsFilled: null == slotsFilled
+          ? _value.slotsFilled
+          : slotsFilled // ignore: cast_nullable_to_non_nullable
               as int,
       deadline: null == deadline
           ? _value.deadline
@@ -851,14 +886,19 @@ abstract class _$$CampaignImplCopyWith<$Res>
   $Res call(
       {String id,
       String title,
+      String description,
       String brandCategory,
       String brandInitial,
       String? brandSize,
+      List<String> niche,
+      String requirements,
       int minBudget,
       int maxBudget,
       CampaignCollabType collabType,
       List<String> deliverables,
       int bidCount,
+      int slotsTotal,
+      int slotsFilled,
       DateTime deadline,
       CampaignStatus status,
       DateTime? createdAt});
@@ -879,14 +919,19 @@ class __$$CampaignImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? title = null,
+    Object? description = null,
     Object? brandCategory = null,
     Object? brandInitial = null,
     Object? brandSize = freezed,
+    Object? niche = null,
+    Object? requirements = null,
     Object? minBudget = null,
     Object? maxBudget = null,
     Object? collabType = null,
     Object? deliverables = null,
     Object? bidCount = null,
+    Object? slotsTotal = null,
+    Object? slotsFilled = null,
     Object? deadline = null,
     Object? status = null,
     Object? createdAt = freezed,
@@ -900,6 +945,10 @@ class __$$CampaignImplCopyWithImpl<$Res>
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String,
+      description: null == description
+          ? _value.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
       brandCategory: null == brandCategory
           ? _value.brandCategory
           : brandCategory // ignore: cast_nullable_to_non_nullable
@@ -912,6 +961,14 @@ class __$$CampaignImplCopyWithImpl<$Res>
           ? _value.brandSize
           : brandSize // ignore: cast_nullable_to_non_nullable
               as String?,
+      niche: null == niche
+          ? _value._niche
+          : niche // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      requirements: null == requirements
+          ? _value.requirements
+          : requirements // ignore: cast_nullable_to_non_nullable
+              as String,
       minBudget: null == minBudget
           ? _value.minBudget
           : minBudget // ignore: cast_nullable_to_non_nullable
@@ -931,6 +988,14 @@ class __$$CampaignImplCopyWithImpl<$Res>
       bidCount: null == bidCount
           ? _value.bidCount
           : bidCount // ignore: cast_nullable_to_non_nullable
+              as int,
+      slotsTotal: null == slotsTotal
+          ? _value.slotsTotal
+          : slotsTotal // ignore: cast_nullable_to_non_nullable
+              as int,
+      slotsFilled: null == slotsFilled
+          ? _value.slotsFilled
+          : slotsFilled // ignore: cast_nullable_to_non_nullable
               as int,
       deadline: null == deadline
           ? _value.deadline
@@ -954,18 +1019,24 @@ class _$CampaignImpl implements _Campaign {
   const _$CampaignImpl(
       {required this.id,
       this.title = 'Campaign',
+      this.description = '',
       this.brandCategory = 'General',
       this.brandInitial = 'B',
       this.brandSize,
+      final List<String> niche = const <String>[],
+      this.requirements = '',
       this.minBudget = 0,
       this.maxBudget = 0,
       this.collabType = CampaignCollabType.paid,
       final List<String> deliverables = const <String>[],
       this.bidCount = 0,
+      this.slotsTotal = 1,
+      this.slotsFilled = 0,
       required this.deadline,
       this.status = CampaignStatus.active,
       this.createdAt})
-      : _deliverables = deliverables;
+      : _niche = niche,
+        _deliverables = deliverables;
 
   factory _$CampaignImpl.fromJson(Map<String, dynamic> json) =>
       _$$CampaignImplFromJson(json);
@@ -977,12 +1048,27 @@ class _$CampaignImpl implements _Campaign {
   final String title;
   @override
   @JsonKey()
+  final String description;
+  @override
+  @JsonKey()
   final String brandCategory;
   @override
   @JsonKey()
   final String brandInitial;
   @override
   final String? brandSize;
+  final List<String> _niche;
+  @override
+  @JsonKey()
+  List<String> get niche {
+    if (_niche is EqualUnmodifiableListView) return _niche;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_niche);
+  }
+
+  @override
+  @JsonKey()
+  final String requirements;
   @override
   @JsonKey()
   final int minBudget;
@@ -1005,6 +1091,12 @@ class _$CampaignImpl implements _Campaign {
   @JsonKey()
   final int bidCount;
   @override
+  @JsonKey()
+  final int slotsTotal;
+  @override
+  @JsonKey()
+  final int slotsFilled;
+  @override
   final DateTime deadline;
   @override
   @JsonKey()
@@ -1014,7 +1106,7 @@ class _$CampaignImpl implements _Campaign {
 
   @override
   String toString() {
-    return 'Campaign(id: $id, title: $title, brandCategory: $brandCategory, brandInitial: $brandInitial, brandSize: $brandSize, minBudget: $minBudget, maxBudget: $maxBudget, collabType: $collabType, deliverables: $deliverables, bidCount: $bidCount, deadline: $deadline, status: $status, createdAt: $createdAt)';
+    return 'Campaign(id: $id, title: $title, description: $description, brandCategory: $brandCategory, brandInitial: $brandInitial, brandSize: $brandSize, niche: $niche, requirements: $requirements, minBudget: $minBudget, maxBudget: $maxBudget, collabType: $collabType, deliverables: $deliverables, bidCount: $bidCount, slotsTotal: $slotsTotal, slotsFilled: $slotsFilled, deadline: $deadline, status: $status, createdAt: $createdAt)';
   }
 
   @override
@@ -1024,12 +1116,17 @@ class _$CampaignImpl implements _Campaign {
             other is _$CampaignImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.title, title) || other.title == title) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
             (identical(other.brandCategory, brandCategory) ||
                 other.brandCategory == brandCategory) &&
             (identical(other.brandInitial, brandInitial) ||
                 other.brandInitial == brandInitial) &&
             (identical(other.brandSize, brandSize) ||
                 other.brandSize == brandSize) &&
+            const DeepCollectionEquality().equals(other._niche, _niche) &&
+            (identical(other.requirements, requirements) ||
+                other.requirements == requirements) &&
             (identical(other.minBudget, minBudget) ||
                 other.minBudget == minBudget) &&
             (identical(other.maxBudget, maxBudget) ||
@@ -1040,6 +1137,10 @@ class _$CampaignImpl implements _Campaign {
                 .equals(other._deliverables, _deliverables) &&
             (identical(other.bidCount, bidCount) ||
                 other.bidCount == bidCount) &&
+            (identical(other.slotsTotal, slotsTotal) ||
+                other.slotsTotal == slotsTotal) &&
+            (identical(other.slotsFilled, slotsFilled) ||
+                other.slotsFilled == slotsFilled) &&
             (identical(other.deadline, deadline) ||
                 other.deadline == deadline) &&
             (identical(other.status, status) || other.status == status) &&
@@ -1053,14 +1154,19 @@ class _$CampaignImpl implements _Campaign {
       runtimeType,
       id,
       title,
+      description,
       brandCategory,
       brandInitial,
       brandSize,
+      const DeepCollectionEquality().hash(_niche),
+      requirements,
       minBudget,
       maxBudget,
       collabType,
       const DeepCollectionEquality().hash(_deliverables),
       bidCount,
+      slotsTotal,
+      slotsFilled,
       deadline,
       status,
       createdAt);
@@ -1085,14 +1191,19 @@ abstract class _Campaign implements Campaign {
   const factory _Campaign(
       {required final String id,
       final String title,
+      final String description,
       final String brandCategory,
       final String brandInitial,
       final String? brandSize,
+      final List<String> niche,
+      final String requirements,
       final int minBudget,
       final int maxBudget,
       final CampaignCollabType collabType,
       final List<String> deliverables,
       final int bidCount,
+      final int slotsTotal,
+      final int slotsFilled,
       required final DateTime deadline,
       final CampaignStatus status,
       final DateTime? createdAt}) = _$CampaignImpl;
@@ -1105,11 +1216,17 @@ abstract class _Campaign implements Campaign {
   @override
   String get title;
   @override
+  String get description;
+  @override
   String get brandCategory;
   @override
   String get brandInitial;
   @override
   String? get brandSize;
+  @override
+  List<String> get niche;
+  @override
+  String get requirements;
   @override
   int get minBudget;
   @override
@@ -1120,6 +1237,10 @@ abstract class _Campaign implements Campaign {
   List<String> get deliverables;
   @override
   int get bidCount;
+  @override
+  int get slotsTotal;
+  @override
+  int get slotsFilled;
   @override
   DateTime get deadline;
   @override

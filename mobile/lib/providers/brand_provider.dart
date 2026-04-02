@@ -8,7 +8,7 @@ import '../data/models/brand_models.dart';
 import '../data/models/paginated_result.dart';
 import '../data/repositories/brand_repository.dart';
 import '../data/services/api_service.dart';
-import 'chat_modal_provider.dart';
+import 'chat_provider.dart';
 
 export '../data/models/brand_models.dart';
 
@@ -198,18 +198,11 @@ class BrandRequestsNotifier extends AsyncNotifier<List<CollabRequest>> {
   }
 
   Future<CollabRequest> sendRequest(Map<String, dynamic> data) async {
-    await ref.read(creditsProvider.notifier).deductLocally(1);
-
-    try {
-      final request = await ref.read(brandRepositoryProvider).sendRequest(data);
-      final current = state.valueOrNull ?? const <CollabRequest>[];
-      state = AsyncData([request, ...current]);
-      ref.invalidateSelf();
-      return request;
-    } catch (_) {
-      await ref.read(creditsProvider.notifier).deductLocally(-1);
-      rethrow;
-    }
+    final request = await ref.read(brandRepositoryProvider).sendRequest(data);
+    final current = state.valueOrNull ?? const <CollabRequest>[];
+    state = AsyncData([request, ...current]);
+    ref.invalidateSelf();
+    return request;
   }
 
   Future<void> cancelRequest(String requestId) async {
@@ -231,18 +224,10 @@ class BrandCampaignsNotifier extends AsyncNotifier<List<Campaign>> {
   }
 
   Future<Campaign> postCampaign(Map<String, dynamic> data) async {
-    await ref.read(creditsProvider.notifier).deductLocally(1);
-
-    try {
-      final campaign =
-          await ref.read(brandRepositoryProvider).postCampaign(data);
-      final current = state.valueOrNull ?? const <Campaign>[];
-      state = AsyncData([campaign, ...current]);
-      return campaign;
-    } catch (_) {
-      await ref.read(creditsProvider.notifier).deductLocally(-1);
-      rethrow;
-    }
+    final campaign = await ref.read(brandRepositoryProvider).postCampaign(data);
+    final current = state.valueOrNull ?? const <Campaign>[];
+    state = AsyncData([campaign, ...current]);
+    return campaign;
   }
 
   Future<Campaign> updateCampaign(String id, Map<String, dynamic> data) async {
@@ -296,7 +281,7 @@ class CampaignBidsNotifier extends FamilyAsyncNotifier<List<Bid>, String> {
 
       if (isAccept) {
         ref.invalidate(brandCampaignsProvider);
-        ref.invalidate(chatModalProvider);
+        ref.invalidate(chatListProvider);
       }
 
       return response;
@@ -739,29 +724,14 @@ class BrandNotifier extends Notifier<BrandState> {
     required String creatorName,
   }) async {
     try {
-      await runWithCreditGuard<void>(
-        availableCredits: state.creditBalance,
-        cost: 1,
-        applyOptimisticDelta: (delta) {
-          return _applyCreditDelta(
-            delta,
-            spendReason: 'direct_request',
-            refundReason: 'direct_request_rollback',
-          );
-        },
-        action: () async {
-          await _repo.sendRequest({
-            'creator_id': creatorId,
-            'message': 'Interested in collaborating with you, $creatorName.',
-            'collab_type': 'paid',
-          });
-        },
-      );
+      await _repo.sendRequest({
+        'creator_id': creatorId,
+        'message': 'Interested in collaborating with you, $creatorName.',
+        'collab_type': 'paid',
+      });
 
       ref.invalidate(brandRequestsProvider);
       return true;
-    } on InsufficientCreditsException {
-      return false;
     } catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
@@ -770,44 +740,34 @@ class BrandNotifier extends Notifier<BrandState> {
 
   Future<bool> postCampaign({
     required String title,
+    required String description,
+    required String category,
     required CampaignCollabType collabType,
     required int minBudget,
     required int maxBudget,
+    required List<String> deliverables,
+    required String requirements,
     required DateTime deadline,
     required int slotsAvailable,
   }) async {
     try {
-      final campaign = await runWithCreditGuard<Campaign>(
-        availableCredits: state.creditBalance,
-        cost: 1,
-        applyOptimisticDelta: (delta) {
-          return _applyCreditDelta(
-            delta,
-            spendReason: 'post_campaign',
-            refundReason: 'post_campaign_rollback',
-          );
-        },
-        action: () {
-          return _repo.postCampaign({
-            'title': title,
-            'description': 'Campaign posted from mobile app',
-            'niche': const <String>['General'],
-            'collab_type': _collabTypeToApi(collabType),
-            'budget_min': minBudget,
-            'budget_max': maxBudget,
-            'deliverables': const <String>['Instagram Reel'],
-            'deadline': deadline.toIso8601String(),
-            'slots': slotsAvailable,
-          });
-        },
-      );
+      final campaign = await _repo.postCampaign({
+        'title': title,
+        'description': description,
+        'niche': <String>[category],
+        'collab_type': _collabTypeToApi(collabType),
+        'budget_min': minBudget,
+        'budget_max': maxBudget,
+        'deliverables': deliverables,
+        'requirements': requirements,
+        'deadline': deadline.toIso8601String(),
+        'slots': slotsAvailable,
+      });
 
       state = state.copyWith(campaigns: [campaign, ...state.campaigns]);
       ref.invalidate(brandCampaignsProvider);
-      ref.invalidate(chatModalProvider);
+      ref.invalidate(chatListProvider);
       return true;
-    } on InsufficientCreditsException {
-      return false;
     } catch (e) {
       state = state.copyWith(error: e.toString());
       return false;

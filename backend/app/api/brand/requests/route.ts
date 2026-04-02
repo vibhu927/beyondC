@@ -89,41 +89,6 @@ export async function POST(request: NextRequest) {
     // Validate request data
     const validatedData = createCollabRequestSchema.parse(body)
 
-    // Check if brand has enough credits
-    const { data: brandProfile, error: brandError } = await supabase
-      .from('brand_profiles')
-      .select('credit_balance')
-      .eq('id', user.id)
-      .single()
-
-    if (brandError || !brandProfile) {
-      return NextResponse.json({ error: 'Brand profile not found' }, { status: 404 })
-    }
-
-    if ((brandProfile.credit_balance ?? 0) < 1) {
-      return NextResponse.json(
-        { error: 'Insufficient credits', required: 1, current: brandProfile.credit_balance ?? 0 },
-        { status: 400 }
-      )
-    }
-
-    // Deduct 1 credit
-    const newCredits = (brandProfile.credit_balance ?? 0) - 1
-    
-    await supabase
-      .from('brand_profiles')
-      .update({ credit_balance: newCredits })
-      .eq('id', user.id)
-
-    // Record credit transaction
-    await supabase.from('credit_transactions').insert({
-      brand_id: user.id,
-      type: 'deduct',
-      amount: 1,
-      reason: 'collab_request_sent',
-      balance_after: newCredits,
-    })
-
     // Create collab request
     const { data: collabRequest, error: requestError } = await supabase
       .from('collab_requests')
@@ -165,7 +130,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       message: 'Request sent successfully',
       request: collabRequest,
-      credits_remaining: newCredits,
     })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 })

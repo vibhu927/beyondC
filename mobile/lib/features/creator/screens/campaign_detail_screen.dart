@@ -85,8 +85,9 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
         .firstOrNull;
     final hasBid = activeBid != null;
     final daysLeft = campaign.deadline.difference(DateTime.now()).inDays;
-    const slotCount = 3;
-    final filledSlots = (campaign.bidCount / 9).ceil().clamp(1, slotCount);
+    final slotCount = campaign.slotsTotal <= 0 ? 1 : campaign.slotsTotal;
+    final filledSlots = campaign.slotsFilled.clamp(0, slotCount);
+    final requirementChips = _requirementChips(campaign);
 
     return Scaffold(
       body: CustomScrollView(
@@ -198,7 +199,7 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   Text(
-                    '${Formatters.currency(campaign.minBudget)}–${Formatters.currency(campaign.maxBudget)}',
+                    '${Formatters.currencyFromINR(campaign.minBudget)}–${Formatters.currencyFromINR(campaign.maxBudget)}',
                     style: AppTypography.displayLG,
                   ),
                   const SizedBox(height: AppSpacing.sm),
@@ -206,6 +207,13 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                     label: _collabLabel(campaign.collabType),
                     variant: _collabVariant(campaign.collabType),
                   ),
+                  if (campaign.description.trim().isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      campaign.description,
+                      style: AppTypography.bodySM,
+                    ),
+                  ],
                   if (campaign.collabType != CampaignCollabType.paid) ...[
                     const SizedBox(height: AppSpacing.md),
                     BCCard(
@@ -226,7 +234,7 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           Text(
-                            'Estimated value: ${Formatters.currency((campaign.minBudget + campaign.maxBudget) ~/ 2)}',
+                            'Estimated value: ${Formatters.currencyFromINR((campaign.minBudget + campaign.maxBudget) ~/ 2)}',
                             style: AppTypography.labelSM,
                           ),
                         ],
@@ -239,7 +247,9 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                   Wrap(
                     spacing: AppSpacing.sm,
                     runSpacing: AppSpacing.sm,
-                    children: campaign.deliverables
+                    children: (campaign.deliverables.isEmpty
+                            ? const <String>['No deliverables specified']
+                            : campaign.deliverables)
                         .map(
                           (item) => BCBadge(
                             label: item,
@@ -248,32 +258,30 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                         )
                         .toList(),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'Keep tone native to your page. Focus on clear hooks and product storytelling in the first 3 seconds.',
-                    style:
-                        AppTypography.bodySM.copyWith(color: AppColors.muted),
-                  ),
+                  if (campaign.requirements.trim().isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      campaign.requirements,
+                      style: AppTypography.bodySM
+                          .copyWith(color: AppColors.muted),
+                    ),
+                  ],
                   const SizedBox(height: AppSpacing.xl),
                   const Text('Looking for', style: AppTypography.displaySM),
                   const SizedBox(height: AppSpacing.sm),
                   Wrap(
                     spacing: AppSpacing.sm,
                     runSpacing: AppSpacing.sm,
-                    children: [
-                      BCBadge(
-                        label: _targetTier(campaign),
-                        variant: BCBadgeVariant.outline,
-                      ),
-                      BCBadge(
-                        label: campaign.brandCategory,
-                        variant: BCBadgeVariant.outline,
-                      ),
-                      BCBadge(
-                        label: _minFollowers(campaign),
-                        variant: BCBadgeVariant.outline,
-                      ),
-                    ],
+                    children: (requirementChips.isEmpty
+                            ? campaign.niche
+                            : requirementChips)
+                        .map(
+                          (chip) => BCBadge(
+                            label: chip,
+                            variant: BCBadgeVariant.outline,
+                          ),
+                        )
+                        .toList(),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   Row(
@@ -401,6 +409,44 @@ String _deadlineLabel(DateTime deadline) {
   return '${duration.inMinutes.clamp(1, 59)}m left';
 }
 
+List<String> _requirementChips(Campaign campaign) {
+  final chips = <String>[];
+
+  for (final niche in campaign.niche) {
+    final text = niche.trim();
+    if (text.isNotEmpty) chips.add(text);
+  }
+
+  final rawRequirements = campaign.requirements
+      .split('|')
+      .map((item) => item.trim())
+      .where((item) => item.isNotEmpty)
+      .toList();
+
+  for (final item in rawRequirements) {
+    if (item.toLowerCase().startsWith('target tiers:')) {
+      final value = item.substring('target tiers:'.length).trim();
+      if (value.isNotEmpty) chips.add(value);
+      continue;
+    }
+
+    if (item.toLowerCase().startsWith('target niches:')) {
+      final value = item.substring('target niches:'.length).trim();
+      if (value.isNotEmpty) chips.add(value);
+      continue;
+    }
+
+    final match = RegExp(r'min\s+followers\s*:\s*(\d+)', caseSensitive: false)
+        .firstMatch(item);
+    if (match != null) {
+      chips.add('Min ${match.group(1)} followers');
+    }
+  }
+
+  final seen = <String>{};
+  return chips.where((item) => seen.add(item.toLowerCase())).toList();
+}
+
 Color _avatarColor(String initial) {
   const palette = [
     AppColors.pink,
@@ -409,18 +455,6 @@ Color _avatarColor(String initial) {
     AppColors.orange,
   ];
   return palette[initial.codeUnitAt(0) % palette.length];
-}
-
-String _targetTier(Campaign campaign) {
-  if (campaign.maxBudget >= 500000) return 'Micro · Mid creators';
-  if (campaign.maxBudget >= 250000) return 'Nano · Micro creators';
-  return 'Nano creators';
-}
-
-String _minFollowers(Campaign campaign) {
-  if (campaign.maxBudget >= 500000) return 'Min 50K followers';
-  if (campaign.maxBudget >= 250000) return 'Min 10K followers';
-  return 'Min 5K followers';
 }
 
 extension<T> on Iterable<T> {

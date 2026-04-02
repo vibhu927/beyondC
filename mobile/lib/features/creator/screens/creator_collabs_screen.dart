@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
-import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
+import '../../chat/chat_screen.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_empty_state.dart';
@@ -144,9 +143,7 @@ class _CollabCard extends StatelessWidget {
             child: BCPrimaryButton.dark(
               label: 'Open Chat →',
               isFullWidth: false,
-              onPressed: () => context.push(
-                RouteNames.creatorChat.replaceFirst(':id', collab.id),
-              ),
+              onPressed: () => openChatDrawer(context, collab.id),
             ),
           ),
         ],

@@ -12,20 +12,17 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
-import '../../../data/repositories/notification_repository.dart';
 import '../../../data/services/instagram_oauth_service.dart';
-import '../../../providers/chat_modal_provider.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../providers/notification_provider.dart';
-import '../../../providers/theme_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
+import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
-import '../../../widgets/chat_modal/chat_modal.dart';
 import '../widgets/campaign_card.dart';
 
 class CreatorHomeScreen extends ConsumerStatefulWidget {
@@ -44,6 +41,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
     Future<void>.microtask(() {
       unawaited(ref.read(notificationProvider.notifier).fetchNotifications());
       unawaited(ref.read(creatorHomeProvider.notifier).refreshSilently());
+      ref.read(creatorCampaignsProvider);
     });
   }
 
@@ -52,197 +50,6 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
       ref.read(creatorHomeProvider.notifier).refresh(),
       ref.read(notificationProvider.notifier).refreshNotifications(),
     ]);
-  }
-
-  Future<void> _openNotificationsSheet() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.55,
-          minChildSize: 0.45,
-          maxChildSize: 0.95,
-          expand: false,
-          builder: (context, scrollController) {
-            return Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppSpacing.radiusLG),
-                ),
-                border: const Border(
-                  top: BorderSide(color: AppColors.ink, width: 2),
-                ),
-              ),
-              child: Consumer(
-                builder: (context, ref, _) {
-                  final notificationsAsync = ref.watch(notificationProvider);
-                  return notificationsAsync.when(
-                    loading: () => const Center(child: BCAppLoader()),
-                    error: (error, _) => Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.xl),
-                        child: Text(
-                          error.toString(),
-                          textAlign: TextAlign.center,
-                          style: AppTypography.bodyMD,
-                        ),
-                      ),
-                    ),
-                    data: (notifications) {
-                      final unreadInSheet =
-                          notifications.where((item) => !item.isRead).length;
-                      return Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                              AppSpacing.screenPadding,
-                              AppSpacing.md,
-                              AppSpacing.sm,
-                              AppSpacing.sm,
-                            ),
-                            child: Row(
-                              children: [
-                                const Expanded(
-                                  child: Text(
-                                    'Notifications',
-                                    style: AppTypography.displaySM,
-                                  ),
-                                ),
-                                if (unreadInSheet > 0)
-                                  TextButton(
-                                    onPressed: () {
-                                      unawaited(ref
-                                          .read(notificationProvider.notifier)
-                                          .markAllRead());
-                                    },
-                                    child: Text(
-                                      'Clear ($unreadInSheet)',
-                                      style: AppTypography.labelMD.copyWith(
-                                        color: AppColors.pink,
-                                      ),
-                                    ),
-                                  ),
-                                IconButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  icon: const Icon(Icons.close_rounded),
-                                  tooltip: 'Close notifications',
-                                ),
-                              ],
-                            ),
-                          ),
-                          Expanded(
-                            child: notifications.isEmpty
-                                ? const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.all(AppSpacing.xl),
-                                      child: Text(
-                                        'No notifications yet.',
-                                        style: AppTypography.bodyMD,
-                                      ),
-                                    ),
-                                  )
-                                : ListView.separated(
-                                    controller: scrollController,
-                                    padding: const EdgeInsets.fromLTRB(
-                                      AppSpacing.screenPadding,
-                                      AppSpacing.lg,
-                                      AppSpacing.screenPadding,
-                                      AppSpacing.huge,
-                                    ),
-                                    itemCount: notifications.length,
-                                    separatorBuilder: (_, __) =>
-                                        const SizedBox(height: AppSpacing.sm),
-                                    itemBuilder: (context, index) {
-                                      final notification = notifications[index];
-                                      return BCCard(
-                                        child: InkWell(
-                                          onTap: () {
-                                            unawaited(ref
-                                                .read(notificationProvider
-                                                    .notifier)
-                                                .markRead(notification.id));
-
-                                            final route = _routeForNotification(
-                                                notification);
-                                            if (route == null) return;
-
-                                            Navigator.of(context).pop();
-                                            context.push(route);
-                                          },
-                                          child: Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      notification.title,
-                                                      style:
-                                                          AppTypography.labelMD,
-                                                    ),
-                                                    const SizedBox(
-                                                      height: AppSpacing.xs,
-                                                    ),
-                                                    Text(
-                                                      notification.body.isEmpty
-                                                          ? 'New activity'
-                                                          : notification.body,
-                                                      style:
-                                                          AppTypography.bodySM,
-                                                    ),
-                                                    const SizedBox(
-                                                      height: AppSpacing.xs,
-                                                    ),
-                                                    Text(
-                                                      timeago.format(
-                                                          notification
-                                                              .createdAt),
-                                                      style:
-                                                          AppTypography.bodyXS,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              if (!notification.isRead)
-                                                Container(
-                                                  margin: const EdgeInsets.only(
-                                                    left: AppSpacing.sm,
-                                                    top: AppSpacing.sm,
-                                                  ),
-                                                  width: 8,
-                                                  height: 8,
-                                                  decoration: BoxDecoration(
-                                                    color: AppColors.neon,
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                      AppSpacing.radiusFull,
-                                                    ),
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 
   Future<void> _connectInstagram() async {
@@ -287,43 +94,23 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
     }
   }
 
-  String? _routeForNotification(AppNotification notification) {
-    final referenceId = notification.referenceId;
-
-    switch (notification.referenceType) {
-      case 'collab':
-        if (referenceId == null || referenceId.isEmpty) return null;
-        return RouteNames.creatorChat.replaceFirst(':id', referenceId);
-      case 'bid':
-        return RouteNames.myBids;
-      case 'event_invite':
-        return RouteNames.creatorEvents;
-      case 'campaign':
-        if (referenceId == null || referenceId.isEmpty) {
-          return RouteNames.creatorCampaigns;
-        }
-        return RouteNames.campaignDetail.replaceFirst(':id', referenceId);
-      default:
-        return null;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final homeAsync = ref.watch(creatorHomeProvider);
-    final unreadCount = ref.watch(unreadCountProvider);
-    final unreadChats = ref.watch(chatModalUnreadCountProvider);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
+      extendBody: true,
+      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.creator,
         currentIndex: 0,
       ),
-      body: RefreshIndicator(
-        color: AppColors.neon,
-        onRefresh: _refresh,
-        child: homeAsync.when(
+      body: BCPageSwipeArea(
+        role: BCPortalRole.creator,
+        currentIndex: 0,
+        child: RefreshIndicator(
+          color: AppColors.neon,
+          onRefresh: _refresh,
+          child: homeAsync.when(
           loading: () => const BCLoadingOverlay(
             isLoading: true,
             child: SizedBox.expand(),
@@ -341,126 +128,12 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.screenPadding,
-                    AppSpacing.sm,
+                    0,
                     AppSpacing.screenPadding,
                     AppSpacing.huge,
                   ),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Hey, ${profile.firstName} 👋',
-                              style: AppTypography.displayMD,
-                            ),
-                          ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                onPressed: () =>
-                                    ref.read(themeProvider.notifier).toggle(),
-                                tooltip: isDark ? 'Light mode' : 'Dark mode',
-                                icon: Icon(
-                                  isDark
-                                      ? Icons.light_mode_rounded
-                                      : Icons.dark_mode_rounded,
-                                  color: isDark
-                                      ? AppColors.neon
-                                      : AppColors.lightText,
-                                ),
-                              ),
-                              Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  IconButton(
-                                    onPressed: () => openChatModal(context),
-                                    icon: Icon(
-                                      Icons.mark_chat_unread_rounded,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface,
-                                    ),
-                                  ),
-                                  if (unreadChats > 0)
-                                    Positioned(
-                                      top: 6,
-                                      right: 6,
-                                      child: Container(
-                                        width: 9,
-                                        height: 9,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.error,
-                                          borderRadius: BorderRadius.circular(
-                                            AppSpacing.radiusFull,
-                                          ),
-                                          border: Border.all(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .surface,
-                                            width: 1,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                              Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  IconButton(
-                                    onPressed: _openNotificationsSheet,
-                                    icon: Icon(
-                                      Icons.notifications_none_rounded,
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface,
-                                    ),
-                                  ),
-                                  if (unreadCount > 0)
-                                    Positioned(
-                                      top: 2,
-                                      right: 2,
-                                      child: Container(
-                                        constraints: const BoxConstraints(
-                                          minWidth: 18,
-                                          minHeight: 18,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                        ),
-                                        alignment: Alignment.center,
-                                        decoration: BoxDecoration(
-                                          color: AppColors.error,
-                                          borderRadius: BorderRadius.circular(
-                                            AppSpacing.radiusFull,
-                                          ),
-                                          border: Border.all(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .surface,
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          unreadCount > 99
-                                              ? '99+'
-                                              : '$unreadCount',
-                                          style: AppTypography.labelXS
-                                              .copyWith(
-                                            color: AppColors.white,
-                                            fontWeight: FontWeight.w800,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
                       if (!profile.instagramVerified) ...[
                         const SizedBox(height: AppSpacing.lg),
                         _InstagramConnectBanner(
@@ -500,7 +173,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: AppSpacing.md),
+                          const SizedBox(width: AppSpacing.sm),
                           Expanded(
                             child: _StatOrb(
                               emoji: '📩',
@@ -508,7 +181,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                               value: '${home.requests.length}',
                             ),
                           ),
-                          const SizedBox(width: AppSpacing.md),
+                          const SizedBox(width: AppSpacing.sm),
                           Expanded(
                             child: _StatOrb(
                               emoji: '🤝',
@@ -629,7 +302,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                     Row(
                                       children: [
                                         BCBadge(
-                                          label: Formatters.currency(
+                                          label: Formatters.currencyFromINR(
                                               request.budget),
                                           variant: BCBadgeVariant.neon,
                                         ),
@@ -789,6 +462,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
               ],
             );
           },
+          ),
         ),
       ),
     );
@@ -908,36 +582,47 @@ class _StatOrb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 88,
-          height: 88,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm,
+          ),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
             color: AppColors.white,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
             border: Border.all(color: AppColors.ink, width: 2),
             boxShadow: AppShadows.neon,
           ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(emoji),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
+          child: Row(
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 18)),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(
                   value,
-                  style: AppTypography.labelLG
-                      .copyWith(fontSize: 22, fontWeight: FontWeight.w800),
+                  style: AppTypography.labelLG.copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  textAlign: TextAlign.right,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          label,
-          style: AppTypography.bodyXS,
-          textAlign: TextAlign.center,
+        const SizedBox(height: AppSpacing.xs),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+          child: Text(
+            label,
+            style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );

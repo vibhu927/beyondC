@@ -243,7 +243,14 @@ class BrandRepository {
 
   Future<Campaign> postCampaign(Map<String, dynamic> data) async {
     try {
-      final response = await _dio.post('/brand/campaigns', data: data);
+      final response = await _dio.post(
+        '/brand/campaigns',
+        data: data,
+        options: Options(
+          sendTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 45),
+        ),
+      );
       final root = _asMap(response.data);
       final campaign = _asMap(root['campaign']);
       return _campaignFromApi(campaign);

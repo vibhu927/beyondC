@@ -73,30 +73,39 @@ class _BCErrorStateState extends State<BCErrorState> {
       );
     }
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('😵', style: TextStyle(fontSize: 42)),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              'Well, that escalated quickly. BeyondC tripped over its own sneakers.\nWe are fixing it behind the scenes, please try again.',
-              style: AppTypography.bodyMD.copyWith(color: AppColors.muted),
-              textAlign: TextAlign.center,
-            ),
-            if (widget.onRetry != null) ...[
-              const SizedBox(height: AppSpacing.lg),
-              BCPrimaryButton.dark(
-                label: widget.retryLabel,
-                onPressed: _handleRetry,
-                isFullWidth: false,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('😵', style: TextStyle(fontSize: 42)),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      'Well, that escalated quickly. BeyondC tripped over its own sneakers.\nWe are fixing it behind the scenes, please try again.',
+                      style: AppTypography.bodyMD.copyWith(color: AppColors.muted),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (widget.onRetry != null) ...[
+                      const SizedBox(height: AppSpacing.lg),
+                      BCPrimaryButton.dark(
+                        label: widget.retryLabel,
+                        onPressed: _handleRetry,
+                        isFullWidth: false,
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ],
-          ],
-        ),
-      ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

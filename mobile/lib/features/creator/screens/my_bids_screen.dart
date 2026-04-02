@@ -12,6 +12,7 @@ import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
+import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/cards/bc_card.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
@@ -28,6 +29,15 @@ class MyBidsScreen extends ConsumerStatefulWidget {
 class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
   _BidFilter _activeFilter = _BidFilter.all;
 
+  @override
+  void initState() {
+    super.initState();
+    Future<void>.microtask(() {
+      ref.read(creatorCampaignsProvider);
+      ref.read(creatorProfileProvider);
+    });
+  }
+
   Future<void> _refresh() async {
     await ref.read(myBidsProvider.notifier).refresh();
   }
@@ -39,14 +49,19 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
     final isActionRunning = actionState.isLoading;
 
     return Scaffold(
+      extendBody: true,
+      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.creator,
         currentIndex: 2,
       ),
-      body: RefreshIndicator(
-        color: AppColors.neon,
-        onRefresh: _refresh,
-        child: bidsAsync.when(
+      body: BCPageSwipeArea(
+        role: BCPortalRole.creator,
+        currentIndex: 2,
+        child: RefreshIndicator(
+          color: AppColors.neon,
+          onRefresh: _refresh,
+          child: bidsAsync.when(
           loading: () => const _MyBidsLoadingView(),
           error: (error, _) => BCErrorState(
             message: error.toString(),
@@ -192,6 +207,7 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
               ],
             );
           },
+          ),
         ),
       ),
     );
@@ -353,7 +369,7 @@ class _BidCard extends StatelessWidget {
               if (campaign != null)
                 BCBadge(
                   label:
-                      '${Formatters.currency(campaign.minBudget)} - ${Formatters.currency(campaign.maxBudget)}',
+                      '${Formatters.currencyFromINR(campaign.minBudget)} - ${Formatters.currencyFromINR(campaign.maxBudget)}',
                   variant: BCBadgeVariant.outline,
                 ),
               if (campaign != null) const SizedBox(width: AppSpacing.sm),
