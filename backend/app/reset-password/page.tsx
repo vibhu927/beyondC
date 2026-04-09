@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import Navbar from '@/components/landing/Navbar'
 import { createClient } from '@/lib/supabase/client'
 import { validators } from '@/lib/validators'
@@ -11,7 +11,6 @@ const inputClass =
   'w-full bg-white border-2 border-ink px-4 py-3 font-nunito text-base text-ink outline-none transition focus:shadow-[4px_4px_0_#C8FF00]'
 
 export default function ResetPasswordPage() {
-  const router = useRouter()
   const supabase = createClient()
 
   const [newPassword, setNewPassword] = useState('')
@@ -21,6 +20,74 @@ export default function ResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [checkingLink, setCheckingLink] = useState(true)
+  const [linkExpired, setLinkExpired] = useState(false)
+
+  useEffect(() => {
+    let disposed = false
+
+    const validateRecoveryLink = async () => {
+      try {
+        const url = new URL(window.location.href)
+        const search = url.searchParams
+        const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+
+        const hasError = Boolean(
+          search.get('error') ||
+            search.get('error_code') ||
+            hash.get('error') ||
+            hash.get('error_code')
+        )
+
+        const hasRecoveryMarker =
+          search.get('type') === 'recovery' ||
+          hash.get('type') === 'recovery' ||
+          Boolean(hash.get('access_token')) ||
+          Boolean(search.get('code')) ||
+          Boolean(search.get('token_hash'))
+
+        if (hasError || !hasRecoveryMarker) {
+          if (!disposed) {
+            setLinkExpired(true)
+            setCheckingLink(false)
+          }
+          return
+        }
+
+        const code = search.get('code')
+        if (code) {
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+          if (exchangeError) {
+            if (!disposed) {
+              setLinkExpired(true)
+              setCheckingLink(false)
+            }
+            return
+          }
+        }
+
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+
+        if (!disposed) {
+          setLinkExpired(!session)
+          setCheckingLink(false)
+        }
+      } catch {
+        if (!disposed) {
+          setLinkExpired(true)
+          setCheckingLink(false)
+        }
+      }
+    }
+
+    validateRecoveryLink()
+
+    return () => {
+      disposed = true
+    }
+  }, [supabase.auth])
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -47,8 +114,8 @@ export default function ResetPasswordPage() {
     }
 
     setSuccess(true)
+    await supabase.auth.signOut()
     setLoading(false)
-    setTimeout(() => router.push('/login'), 2000)
   }
 
   return (
@@ -57,6 +124,32 @@ export default function ResetPasswordPage() {
 
       <section className="px-4 pb-20 pt-28 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-xl border-2 border-ink bg-white p-6 shadow-[6px_6px_0_#9B5DE5] sm:p-8">
+          {checkingLink ? (
+            <>
+              <p className="text-center text-6xl leading-none">⏳</p>
+              <h1 className="mt-4 text-center font-jakarta text-4xl font-extrabold text-ink">Verifying link</h1>
+              <p className="mt-2 text-center font-nunito text-base text-ink/75">
+                Please wait while we verify your reset link.
+              </p>
+            </>
+          ) : linkExpired ? (
+            <>
+              <p className="text-center text-6xl leading-none">⚠️</p>
+              <h1 className="mt-4 text-center font-jakarta text-4xl font-extrabold text-ink">Oops this page is expired or changed.</h1>
+              <p className="mt-2 text-center font-nunito text-base text-ink/75">
+                This reset link is no longer valid. Please request a fresh password reset email.
+              </p>
+              <div className="mt-6">
+                <Link
+                  href="/forgot-password"
+                  className="block w-full border-2 border-ink bg-neon px-6 py-3 text-center font-space text-sm font-bold uppercase tracking-[0.08em] text-ink shadow-[4px_4px_0_#0D0D0D]"
+                >
+                  Request New Link →
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
           <p className="text-center text-6xl leading-none">🔑</p>
           <h1 className="mt-4 text-center font-jakarta text-4xl font-extrabold text-ink">Set new password</h1>
 
@@ -138,9 +231,19 @@ export default function ResetPasswordPage() {
               </form>
             </>
           ) : (
-            <p className="mt-6 text-center font-nunito text-base font-bold text-ink">
-              ✅ Password updated! Redirecting to login...
-            </p>
+            <>
+              <p className="mt-6 text-center font-nunito text-base font-bold text-ink">✅ Password has been updated.</p>
+              <div className="mt-6">
+                <Link
+                  href="/"
+                  className="block w-full border-2 border-ink bg-ink px-6 py-3 text-center font-space text-sm font-bold uppercase tracking-[0.08em] text-neon shadow-[4px_4px_0_#C8FF00]"
+                >
+                  Go to Home →
+                </Link>
+              </div>
+            </>
+          )}
+            </>
           )}
 
           <p className="mt-6 text-center font-nunito text-base text-ink/80">

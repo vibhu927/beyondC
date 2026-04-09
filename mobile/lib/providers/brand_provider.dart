@@ -597,7 +597,7 @@ class BrandNotifier extends Notifier<BrandState> {
     }
 
     final profileFuture = _safe(() => _repo.getProfile());
-    final creatorsFuture = _safe(() => _repo.getCreators(page: 1, limit: 40));
+    final creatorsFuture = _safe(() => _repo.getCreators(page: 1, limit: 200));
     final campaignsFuture = _safe(() => _repo.getCampaigns());
     final activeCollabsFuture = _safe(() => _repo.getActiveCollabs());
     final creditsFuture = _safe(() => _repo.getCredits());
@@ -672,7 +672,7 @@ class BrandNotifier extends Notifier<BrandState> {
       final result = await _repo.getCreators(
         niche: niche,
         page: 1,
-        limit: 40,
+        limit: 200,
       );
 
       state = state.copyWith(
@@ -728,6 +728,8 @@ class BrandNotifier extends Notifier<BrandState> {
         'creator_id': creatorId,
         'message': 'Interested in collaborating with you, $creatorName.',
         'collab_type': 'paid',
+        'deliverables': <String>[],
+        'budget': 0,
       });
 
       ref.invalidate(brandRequestsProvider);

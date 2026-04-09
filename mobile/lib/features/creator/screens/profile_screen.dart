@@ -1,7 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
@@ -30,6 +34,8 @@ class CreatorProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
+  String? _avatarUrl;
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +44,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
       ref.read(creatorProfileProvider);
       ref.read(creatorCollabsProvider);
       ref.read(walletProvider);
+      _loadAvatarUrl();
     });
   }
 
@@ -46,7 +53,54 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
       ref.read(creatorProfileProvider.notifier).refresh(),
       ref.read(creatorCollabsProvider.notifier).refresh(),
       ref.read(walletProvider.notifier).refresh(),
+      _loadAvatarUrl(),
     ]);
+  }
+
+  Future<void> _loadAvatarUrl() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    final row = await Supabase.instance.client
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (!mounted) return;
+
+    final fetched = (row?['avatar_url'] as String?)?.trim();
+    setState(() {
+      if (fetched != null && fetched.isNotEmpty) {
+        _avatarUrl = fetched;
+      }
+    });
+  }
+
+  Future<String?> _pickAndUploadAvatar() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+    if (picked == null) return null;
+
+    final bytes = await picked.readAsBytes();
+    return _uploadAvatarToStorage(bytes, picked.name);
+  }
+
+  Future<String> _uploadAvatarToStorage(
+      Uint8List bytes, String fileName) async {
+    final userId = Supabase.instance.client.auth.currentUser!.id;
+    final ext =
+        fileName.contains('.') ? fileName.split('.').last.toLowerCase() : 'jpg';
+    final version = DateTime.now().millisecondsSinceEpoch;
+    final path = 'creators/$userId-$version.$ext';
+
+    await Supabase.instance.client.storage.from('avatars').uploadBinary(
+          path,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
+
+    return Supabase.instance.client.storage.from('avatars').getPublicUrl(path);
   }
 
   Future<void> _logout() async {
@@ -73,6 +127,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
         TextEditingController(text: profile.contentTypes.join(', '));
     final youtubeController =
         TextEditingController(text: profile.youtubeHandle ?? '');
+    String? avatarUrl = _avatarUrl;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -133,6 +188,79 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                         hint: '@yourchannel',
                         controller: youtubeController,
                       ),
+                      const SizedBox(height: AppSpacing.lg),
+                      Center(
+                        child: Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            color: AppColors.darkSurface,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.neon,
+                              width: 2,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: (avatarUrl ?? '').trim().isNotEmpty
+                              ? ClipOval(
+                                  child: Image.network(
+                                    avatarUrl!,
+                                    width: 72,
+                                    height: 72,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Text(
+                                      _avatarInitials(profile.fullName),
+                                      style: AppTypography.labelMD.copyWith(
+                                        color: AppColors.white,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Text(
+                                  _avatarInitials(profile.fullName),
+                                  style: AppTypography.labelMD.copyWith(
+                                    color: AppColors.white,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      BCPrimaryButton.dark(
+                        label: 'Upload Profile Photo',
+                        isFullWidth: false,
+                        onPressed: () async {
+                          try {
+                            final url = await _pickAndUploadAvatar();
+                            if (url != null) {
+                              setSheetState(() {
+                                avatarUrl = url;
+                              });
+                              if (mounted) {
+                                ScaffoldMessenger.of(this.context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                        'Profile photo uploaded successfully.'),
+                                  ),
+                                );
+                              }
+                            }
+                          } catch (e) {
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              SnackBar(content: Text('Upload failed: $e')),
+                            );
+                          }
+                        },
+                      ),
+                      if ((avatarUrl ?? '').isNotEmpty) ...[
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          'Profile photo uploaded',
+                          style: AppTypography.bodySM
+                              .copyWith(color: AppColors.success),
+                        ),
+                      ],
                       const SizedBox(height: AppSpacing.xl),
                       BCPrimaryButton.pink(
                         label: 'Save Changes →',
@@ -154,8 +282,15 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                         contentTypesController.text),
                                     'youtube_handle': _normalizeHandle(
                                         youtubeController.text),
+                                    if ((avatarUrl ?? '').isNotEmpty)
+                                      'avatar_url': avatarUrl,
                                   });
 
+                                  if (mounted) {
+                                    setState(() {
+                                      _avatarUrl = avatarUrl;
+                                    });
+                                  }
                                   await _refresh();
                                   if (!mounted) return;
                                   Navigator.of(this.context).pop();
@@ -287,9 +422,12 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
       );
     } catch (error) {
       if (!mounted) return;
-      final message = ref.read(instagramOAuthServiceProvider).extractApiError(error);
+      final message =
+          ref.read(instagramOAuthServiceProvider).extractApiError(error);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message.isEmpty ? 'Could not refresh stats.' : message)),
+        SnackBar(
+            content:
+                Text(message.isEmpty ? 'Could not refresh stats.' : message)),
       );
     }
   }
@@ -361,356 +499,380 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
           color: AppColors.neon,
           onRefresh: _refresh,
           child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              expandedHeight: 200,
-              pinned: true,
-              backgroundColor: AppColors.ink,
-              foregroundColor: AppColors.white,
-              surfaceTintColor: Colors.transparent,
-              title: Text(
-                'Profile',
-                style: AppTypography.displaySM.copyWith(color: AppColors.white),
-              ),
-              flexibleSpace: FlexibleSpaceBar(
-                background: SafeArea(
-                  child: Stack(
-                    children: [
-                      Align(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: AppColors.darkSurface,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppColors.neon,
-                                  width: 3,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 200,
+                pinned: true,
+                backgroundColor: AppColors.ink,
+                foregroundColor: AppColors.white,
+                surfaceTintColor: Colors.transparent,
+                title: Text(
+                  'Profile',
+                  style:
+                      AppTypography.displaySM.copyWith(color: AppColors.white),
+                ),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: SafeArea(
+                    child: Stack(
+                      children: [
+                        Align(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: AppColors.darkSurface,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.neon,
+                                    width: 3,
+                                  ),
                                 ),
+                                alignment: Alignment.center,
+                                child: _avatarUrl != null &&
+                                        _avatarUrl!.trim().isNotEmpty
+                                    ? ClipOval(
+                                        child: Image.network(
+                                          _avatarUrl!,
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Text(
+                                            _avatarInitials(profile.fullName),
+                                            style: AppTypography.labelLG
+                                                .copyWith(
+                                                    color: AppColors.white),
+                                          ),
+                                        ),
+                                      )
+                                    : Text(
+                                        _avatarInitials(profile.fullName),
+                                        style: AppTypography.labelLG
+                                            .copyWith(color: AppColors.white),
+                                      ),
                               ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                _avatarInitials(profile.fullName),
+                              const SizedBox(height: AppSpacing.sm),
+                              Text(
+                                profile.fullName,
                                 style: AppTypography.labelLG
                                     .copyWith(color: AppColors.white),
                               ),
+                              const SizedBox(height: AppSpacing.xs),
+                              BCBadge(
+                                label: profile.tier,
+                                variant: BCBadgeVariant.neon,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          right: AppSpacing.lg,
+                          top: AppSpacing.lg,
+                          child: IconButton(
+                            onPressed: () => _openEditProfileSheet(profile),
+                            icon: const Icon(
+                              Icons.edit_rounded,
+                              color: AppColors.white,
                             ),
-                            const SizedBox(height: AppSpacing.sm),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screenPadding,
+                    AppSpacing.lg,
+                    AppSpacing.screenPadding,
+                    AppSpacing.huge +
+                        AppSpacing.xxxl +
+                        AppSpacing.lg +
+                        AppSpacing.xxl,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _StatCard(
+                              value:
+                                  Formatters.followerCount(profile.followers),
+                              label: 'Followers',
+                              shadow: AppShadows.neon,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: _StatCard(
+                              value:
+                                  '${profile.engagementRate.toStringAsFixed(1)}%',
+                              label: 'Engagement',
+                              shadow: AppShadows.blue,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: _StatCard(
+                              value:
+                                  Formatters.currency(profile.avgCollabPaise),
+                              label: 'Avg Collab',
+                              shadow: AppShadows.pink,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      const Text('About', style: AppTypography.displaySM),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        profile.bio,
+                        style: AppTypography.bodySM
+                            .copyWith(color: AppColors.muted),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Wrap(
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.sm,
+                        children: profile.niches
+                            .map((niche) => _ThemedWordPill(label: niche))
+                            .toList(),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      const Text(
+                        'Instagram Verification',
+                        style: AppTypography.displaySM,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(
+                        children: [
+                          BCBadge(
+                            label: profile.instagramVerified
+                                ? '🔵 Verified'
+                                : '⚠️ Unverified',
+                            variant: profile.instagramVerified
+                                ? BCBadgeVariant.blue
+                                : BCBadgeVariant.warning,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            profile.instagramVerified
+                                ? '@${profile.instagramUsername ?? 'instagram'}'
+                                : 'Connect from Home screen',
+                            style: AppTypography.bodySM.copyWith(
+                              color: AppColors.muted,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      if (profile.instagramVerified)
+                        _InstagramStatsCard(
+                          profile: profile,
+                          onRefreshStats: _refreshInstagramStats,
+                        ),
+                      const SizedBox(height: AppSpacing.xl),
+                      const Text('Content Types',
+                          style: AppTypography.displaySM),
+                      const SizedBox(height: AppSpacing.sm),
+                      Wrap(
+                        spacing: AppSpacing.sm,
+                        runSpacing: AppSpacing.sm,
+                        children: profile.contentTypes
+                            .map(
+                              (contentType) =>
+                                  _ThemedWordPill(label: contentType),
+                            )
+                            .toList(),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      BCCard(
+                        shadow: AppShadows.purple,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              profile.fullName,
-                              style: AppTypography.labelLG
-                                  .copyWith(color: AppColors.white),
+                              'Starting at ${Formatters.currency(profile.startingPricePaise)}/collab',
+                              style: AppTypography.displaySM,
                             ),
-                            const SizedBox(height: AppSpacing.xs),
-                            BCBadge(
-                              label: profile.tier,
-                              variant: BCBadgeVariant.neon,
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () => _openEditPricingSheet(profile),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.blue,
+                                ),
+                                child: const Text('Edit collab fee →'),
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      Positioned(
-                        right: AppSpacing.lg,
-                        top: AppSpacing.lg,
-                        child: IconButton(
-                          onPressed: () => _openEditProfileSheet(profile),
-                          icon: const Icon(
-                            Icons.edit_rounded,
-                            color: AppColors.white,
+                      const SizedBox(height: AppSpacing.xl),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Past Collabs (${collabsAsync.valueOrNull?.length ?? 0})',
+                              style: AppTypography.displaySM,
+                            ),
                           ),
+                          TextButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Showing latest 3 for now.'),
+                                ),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.blue,
+                            ),
+                            child: const Text('See all'),
+                          ),
+                        ],
+                      ),
+                      if (collabsAsync.isLoading)
+                        const _PastCollabsShimmerList()
+                      else if (collabsAsync.hasError)
+                        BCErrorState(
+                          message: collabsAsync.error.toString(),
+                          onRetry: () => ref.invalidate(creatorCollabsProvider),
+                        )
+                      else
+                        Column(
+                          children: pastCollabs
+                              .map(
+                                (collab) => Padding(
+                                  padding: const EdgeInsets.only(
+                                      bottom: AppSpacing.sm),
+                                  child: BCCard(
+                                    backgroundColor: AppColors.surfaceAlt,
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                '${collab.brandCategory} • ${_collabTypeLabel(collab.collabType)}',
+                                                style: AppTypography.labelMD,
+                                              ),
+                                              const SizedBox(
+                                                  height: AppSpacing.xs),
+                                              Text(
+                                                '⭐' *
+                                                    ((collab.rating ?? 4)
+                                                        .clamp(1, 5)),
+                                                style: AppTypography.bodySM,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Text(
+                                          Formatters.currency(collab.amount),
+                                          style: AppTypography.labelLG,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                        ),
+                      const SizedBox(height: AppSpacing.xl),
+                      BCCard(
+                        shadow: AppShadows.orange,
+                        onTap: () => context.push(RouteNames.creatorWallet),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    '💰 Wallet Balance',
+                                    style: AppTypography.labelMD,
+                                  ),
+                                  const SizedBox(height: AppSpacing.xs),
+                                  Text(
+                                    Formatters.currency(walletBalance),
+                                    style: AppTypography.displaySM
+                                        .copyWith(color: AppColors.purple),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            GestureDetector(
+                              onTap: () =>
+                                  context.push(RouteNames.creatorWallet),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                  vertical: AppSpacing.sm,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.ink,
+                                  borderRadius: BorderRadius.circular(
+                                      AppSpacing.radiusSM),
+                                  border: Border.all(
+                                      color: AppColors.ink, width: 2),
+                                ),
+                                child: Text(
+                                  'Top Up →',
+                                  style: AppTypography.labelSM
+                                      .copyWith(color: AppColors.orange),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      BCCard(
+                        child: Column(
+                          children: [
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              onTap: () => context.push(RouteNames.settings),
+                              leading: const Text('⚙️'),
+                              title: const Text(
+                                'Settings',
+                                style: AppTypography.labelMD,
+                              ),
+                              trailing: const Icon(Icons.chevron_right_rounded),
+                            ),
+                            const Divider(color: AppColors.divider, height: 1),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              onTap: _logout,
+                              leading: const Text('🚪'),
+                              title: Text(
+                                'Logout',
+                                style: AppTypography.labelMD
+                                    .copyWith(color: AppColors.error),
+                              ),
+                              trailing: const Icon(
+                                Icons.chevron_right_rounded,
+                                color: AppColors.error,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenPadding,
-                  AppSpacing.lg,
-                  AppSpacing.screenPadding,
-                  AppSpacing.huge,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _StatCard(
-                            value: Formatters.followerCount(profile.followers),
-                            label: 'Followers',
-                            shadow: AppShadows.neon,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: _StatCard(
-                            value:
-                                '${profile.engagementRate.toStringAsFixed(1)}%',
-                            label: 'Engagement',
-                            shadow: AppShadows.blue,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: _StatCard(
-                            value: Formatters.currency(profile.avgCollabPaise),
-                            label: 'Avg Collab',
-                            shadow: AppShadows.pink,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    const Text('About', style: AppTypography.displaySM),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      profile.bio,
-                      style:
-                          AppTypography.bodySM.copyWith(color: AppColors.muted),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      children: profile.niches
-                          .map((niche) => _ThemedWordPill(label: niche))
-                          .toList(),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    const Text(
-                      'Instagram Verification',
-                      style: AppTypography.displaySM,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Row(
-                      children: [
-                        BCBadge(
-                          label: profile.instagramVerified
-                              ? '🔵 Verified'
-                              : '⚠️ Unverified',
-                          variant: profile.instagramVerified
-                              ? BCBadgeVariant.blue
-                              : BCBadgeVariant.warning,
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Text(
-                          profile.instagramVerified
-                              ? '@${profile.instagramUsername ?? 'instagram'}'
-                              : 'Connect from Home screen',
-                          style: AppTypography.bodySM.copyWith(
-                            color: AppColors.muted,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    if (profile.instagramVerified)
-                      _InstagramStatsCard(
-                        profile: profile,
-                        onRefreshStats: _refreshInstagramStats,
-                      ),
-                    const SizedBox(height: AppSpacing.xl),
-                    const Text('Content Types', style: AppTypography.displaySM),
-                    const SizedBox(height: AppSpacing.sm),
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      children: profile.contentTypes
-                          .map(
-                            (contentType) =>
-                                _ThemedWordPill(label: contentType),
-                          )
-                          .toList(),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    BCCard(
-                      shadow: AppShadows.purple,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Starting at ${Formatters.currency(profile.startingPricePaise)}/collab',
-                            style: AppTypography.displaySM,
-                          ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () => _openEditPricingSheet(profile),
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppColors.blue,
-                              ),
-                              child: const Text('Edit collab fee →'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Past Collabs (${collabsAsync.valueOrNull?.length ?? 0})',
-                            style: AppTypography.displaySM,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Showing latest 3 for now.'),
-                              ),
-                            );
-                          },
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.blue,
-                          ),
-                          child: const Text('See all'),
-                        ),
-                      ],
-                    ),
-                    if (collabsAsync.isLoading)
-                      const _PastCollabsShimmerList()
-                    else if (collabsAsync.hasError)
-                      BCErrorState(
-                        message: collabsAsync.error.toString(),
-                        onRetry: () => ref.invalidate(creatorCollabsProvider),
-                      )
-                    else
-                      Column(
-                        children: pastCollabs
-                            .map(
-                              (collab) => Padding(
-                                padding: const EdgeInsets.only(
-                                    bottom: AppSpacing.sm),
-                                child: BCCard(
-                                  backgroundColor: AppColors.surfaceAlt,
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              '${collab.brandCategory} • ${_collabTypeLabel(collab.collabType)}',
-                                              style: AppTypography.labelMD,
-                                            ),
-                                            const SizedBox(
-                                                height: AppSpacing.xs),
-                                            Text(
-                                              '⭐' *
-                                                  ((collab.rating ?? 4)
-                                                      .clamp(1, 5)),
-                                              style: AppTypography.bodySM,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Text(
-                                        Formatters.currency(collab.amount),
-                                        style: AppTypography.labelLG,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                      ),
-                    const SizedBox(height: AppSpacing.xl),
-                    BCCard(
-                      shadow: AppShadows.orange,
-                      onTap: () => context.push(RouteNames.creatorWallet),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  '💰 Wallet Balance',
-                                  style: AppTypography.labelMD,
-                                ),
-                                const SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  Formatters.currency(walletBalance),
-                                  style: AppTypography.displaySM
-                                      .copyWith(color: AppColors.purple),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          GestureDetector(
-                            onTap: () => context.push(RouteNames.creatorWallet),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.md,
-                                vertical: AppSpacing.sm,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.ink,
-                                borderRadius:
-                                    BorderRadius.circular(AppSpacing.radiusSM),
-                                border:
-                                    Border.all(color: AppColors.ink, width: 2),
-                              ),
-                              child: Text(
-                                'Top Up →',
-                                style: AppTypography.labelSM
-                                    .copyWith(color: AppColors.orange),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    BCCard(
-                      child: Column(
-                        children: [
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            onTap: () => context.push(RouteNames.settings),
-                            leading: const Text('⚙️'),
-                            title: const Text(
-                              'Settings',
-                              style: AppTypography.labelMD,
-                            ),
-                            trailing: const Icon(Icons.chevron_right_rounded),
-                          ),
-                          const Divider(color: AppColors.divider, height: 1),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            onTap: _logout,
-                            leading: const Text('🚪'),
-                            title: Text(
-                              'Logout',
-                              style: AppTypography.labelMD
-                                  .copyWith(color: AppColors.error),
-                            ),
-                            trailing: const Icon(
-                              Icons.chevron_right_rounded,
-                              color: AppColors.error,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+            ],
           ),
         ),
       ),

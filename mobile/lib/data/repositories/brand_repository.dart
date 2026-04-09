@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/utils/api_error_handler.dart';
 import '../models/brand_models.dart';
@@ -132,7 +133,7 @@ class BrandRepository {
       final creators = creatorsRaw.map((item) {
         return CreatorDiscovery.fromJson({
           'id': _string(item['id']) ?? '',
-          'firstName': _string(item['first_name']) ?? 'Creator',
+          'firstName': _resolveCreatorFirstName(item),
           'avatarUrl': _string(item['avatar_url']),
           'niches': _stringList(item['niches'] ?? item['niche']),
           'contentTypes':
@@ -152,16 +153,54 @@ class BrandRepository {
         });
       }).toList();
 
+      final enrichedCreators = await _hydrateCreatorNamesFromProfiles(creators);
+
+      if (enrichedCreators.isNotEmpty) {
+        return PaginatedResult<CreatorDiscovery>(
+          items: enrichedCreators,
+          page: _int(pagination['page']) ?? page,
+          limit: _int(pagination['limit']) ?? limit,
+          total: _int(pagination['total']) ?? enrichedCreators.length,
+          totalPages: _int(pagination['total_pages']) ??
+              _int(pagination['totalPages']) ??
+              1,
+        );
+      }
+
+      final fallback = await _getCreatorsFallback(
+        niche: niche,
+        tier: tier,
+        minFollowers: minFollowers,
+        page: page,
+        limit: limit,
+      );
+
+      if (fallback.items.isNotEmpty) {
+        return fallback;
+      }
+
       return PaginatedResult<CreatorDiscovery>(
-        items: creators,
+        items: enrichedCreators,
         page: _int(pagination['page']) ?? page,
         limit: _int(pagination['limit']) ?? limit,
-        total: _int(pagination['total']) ?? creators.length,
+        total: _int(pagination['total']) ?? enrichedCreators.length,
         totalPages: _int(pagination['total_pages']) ??
             _int(pagination['totalPages']) ??
             1,
       );
     } on DioException catch (e) {
+      final fallback = await _getCreatorsFallback(
+        niche: niche,
+        tier: tier,
+        minFollowers: minFollowers,
+        page: page,
+        limit: limit,
+      );
+
+      if (fallback.items.isNotEmpty) {
+        return fallback;
+      }
+
       throw Exception(ApiErrorHandler.parseError(e));
     }
   }
@@ -178,8 +217,9 @@ class BrandRepository {
         'creatorId': _string(request['creator_id']) ?? '',
         'creatorFirstName': _string(request['creator_first_name']),
         'creatorFullName': _string(request['creator_full_name']),
-        'creatorInstagramHandle': _string(request['creator_instagram_handle']) ??
-          _string(request['creator_instagram_username']),
+        'creatorInstagramHandle':
+            _string(request['creator_instagram_handle']) ??
+                _string(request['creator_instagram_username']),
         'creatorTier': _string(request['creator_tier']),
         'collabId': _string(request['collab_id']),
         'message': _string(request['message']),
@@ -206,20 +246,31 @@ class BrandRepository {
         try {
           final creator = _asMap(item['creator']);
           final creatorUser = _asMap(item['creator_user']);
+          final creatorFirstName = _string(creatorUser['first_name']) ??
+              _string(item['creator_first_name']) ??
+              _string(creatorUser['full_name']) ??
+              _string(item['creator_full_name']) ??
+              'Creator';
+          final creatorFullName = _string(creatorUser['full_name']) ??
+              _string(item['creator_full_name']) ??
+              _string(creatorUser['first_name']) ??
+              _string(item['creator_first_name']) ??
+              'Creator';
+
           parsed.add(
             CollabRequest.fromJson({
               'id': _string(item['id']) ?? '',
               'brandId': _string(item['brand_id']) ?? '',
               'creatorId': _string(item['creator_id']) ?? '',
-              'creatorFirstName': _string(creatorUser['first_name']) ??
-                  _string(creatorUser['full_name']) ??
-                  'Creator',
-              'creatorFullName': _string(creatorUser['full_name']) ??
-                  _string(creatorUser['first_name']) ??
-                  'Creator',
-                'creatorInstagramHandle': _string(creator['instagram_username']) ??
-                  _string(creator['instagram_handle']),
-              'creatorTier': _string(creator['tier']) ?? 'micro',
+              'creatorFirstName': creatorFirstName,
+              'creatorFullName': creatorFullName,
+              'creatorInstagramHandle':
+                  _string(creator['instagram_username']) ??
+                      _string(item['creator_instagram_handle']) ??
+                      _string(creator['instagram_handle']),
+              'creatorTier': _string(creator['tier']) ??
+                  _string(item['creator_tier']) ??
+                  'micro',
               'collabId': _string(item['collab_id']),
               'message': _string(item['message']),
               'budget': _int(item['budget']),
@@ -236,9 +287,284 @@ class BrandRepository {
         }
       }
       return parsed;
-    } on DioException catch (e) {
-      throw Exception(ApiErrorHandler.parseError(e));
+    } on DioException {
+      final fallback = await _getRequestsFallback();
+      if (fallback.isNotEmpty) return fallback;
+
+      // Keep requests UI functional on hosted schema mismatches by
+      // surfacing an empty state instead of crashing the provider.
+      return const <CollabRequest>[];
     }
+  }
+
+  Future<PaginatedResult<CreatorDiscovery>> _getCreatorsFallback({
+    String? niche,
+    String? tier,
+    int? minFollowers,
+    required int page,
+    required int limit,
+  }) async {
+    final client = Supabase.instance.client;
+    final from = (page - 1) * limit;
+    final to = from + limit - 1;
+
+    try {
+      var filterQuery = client.from('creator_discovery_view').select();
+
+      if (niche != null && niche.isNotEmpty) {
+        filterQuery = filterQuery.contains('niche', [niche]);
+      }
+      if (tier != null && tier.isNotEmpty) {
+        filterQuery = filterQuery.eq('tier', tier.toLowerCase());
+      }
+      if (minFollowers != null) {
+        filterQuery = filterQuery.gte('follower_count', minFollowers);
+      }
+
+      final rows = (await filterQuery
+          .order('follower_count', ascending: false)
+          .range(from, to)) as List<dynamic>;
+      final mapped = rows
+          .whereType<Map>()
+          .map((row) => _mapCreatorRow(row.cast<String, dynamic>()))
+          .toList();
+
+      if (mapped.isNotEmpty) {
+        return PaginatedResult<CreatorDiscovery>(
+          items: mapped,
+          page: page,
+          limit: limit,
+          total: mapped.length,
+          totalPages: 1,
+        );
+      }
+    } catch (_) {
+      // Fall through to table fallback.
+    }
+
+    try {
+      var filterQuery = client.from('creator_profiles').select(
+            'id,niche,content_type,platforms,tier,starting_price,avg_rating,total_collabs,engagement_rate,bio,portfolio_links,follower_count,instagram_username,profile:profiles(first_name,avatar_url)',
+          );
+
+      if (niche != null && niche.isNotEmpty) {
+        filterQuery = filterQuery.contains('niche', [niche]);
+      }
+      if (tier != null && tier.isNotEmpty) {
+        filterQuery = filterQuery.eq('tier', tier.toLowerCase());
+      }
+      if (minFollowers != null) {
+        filterQuery = filterQuery.gte('follower_count', minFollowers);
+      }
+
+      final rows = (await filterQuery
+          .order('follower_count', ascending: false)
+          .range(from, to)) as List<dynamic>;
+      final mapped = <CreatorDiscovery>[];
+      for (final row in rows) {
+        if (row is! Map) continue;
+        final data = row.cast<String, dynamic>();
+        final profile = _firstMap(data['profile']);
+        mapped.add(
+          CreatorDiscovery.fromJson({
+            'id': _string(data['id']) ?? '',
+            'firstName': _resolveCreatorFirstName(data, profile: profile),
+            'avatarUrl': _string(profile['avatar_url']),
+            'niches': _stringList(data['niche']),
+            'contentTypes':
+                _stringList(data['platforms'] ?? data['content_type']),
+            'tier': _string(data['tier']) ?? 'micro',
+            'startingPrice': _int(data['starting_price']) ?? 0,
+            'avgRating': _double(data['avg_rating']) ?? 0,
+            'totalCollabs': _int(data['total_collabs']) ?? 0,
+            'engagementRate': _double(data['engagement_rate']) ?? 0,
+            'bio': _string(data['bio']) ?? '',
+            'portfolioLinks': _stringList(data['portfolio_links']),
+            'followerRange':
+                _followerRangeFromCount(_int(data['follower_count']) ?? 0),
+            'followersCount': _int(data['follower_count']) ?? 0,
+            'instagramVerified': false,
+          }),
+        );
+      }
+
+      final enriched = await _hydrateCreatorNamesFromProfiles(mapped);
+
+      return PaginatedResult<CreatorDiscovery>(
+        items: enriched,
+        page: page,
+        limit: limit,
+        total: enriched.length,
+        totalPages: 1,
+      );
+    } catch (_) {
+      return PaginatedResult<CreatorDiscovery>(
+        items: const <CreatorDiscovery>[],
+        page: page,
+        limit: limit,
+        total: 0,
+        totalPages: 1,
+      );
+    }
+  }
+
+  CreatorDiscovery _mapCreatorRow(Map<String, dynamic> item) {
+    final followers =
+        _int(item['follower_count']) ?? _int(item['followers_count']) ?? 0;
+    final profile = _firstMap(item['profile']);
+
+    return CreatorDiscovery.fromJson({
+      'id': _string(item['id']) ?? '',
+      'firstName': _resolveCreatorFirstName(item, profile: profile),
+      'avatarUrl':
+          _string(item['avatar_url']) ?? _string(profile['avatar_url']),
+      'niches': _stringList(item['niches'] ?? item['niche']),
+      'contentTypes': _stringList(item['platforms'] ?? item['content_type']),
+      'tier': _string(item['tier']) ?? 'micro',
+      'startingPrice': _int(item['starting_price']) ?? 0,
+      'avgRating': _double(item['avg_rating']) ?? 0,
+      'totalCollabs': _int(item['total_collabs']) ?? 0,
+      'engagementRate': _double(item['engagement_rate']) ?? 0,
+      'bio': _string(item['bio']) ?? '',
+      'portfolioLinks': _stringList(item['portfolio_links']),
+      'followerRange':
+          _string(item['follower_range']) ?? _followerRangeFromCount(followers),
+      'followersCount': followers,
+      'instagramVerified': _bool(item['instagram_verified']) ?? false,
+    });
+  }
+
+  String _resolveCreatorFirstName(
+    Map<String, dynamic> item, {
+    Map<String, dynamic>? profile,
+  }) {
+    final sourceProfile = profile ?? _firstMap(item['profile']);
+
+    final firstName = _normalizedName(_string(item['first_name'])) ??
+        _normalizedName(_string(sourceProfile['first_name'])) ??
+        _normalizedName(_firstToken(_string(item['display_name']))) ??
+        _normalizedName(_firstToken(_string(sourceProfile['display_name']))) ??
+        _normalizedName(_firstToken(_string(item['full_name']))) ??
+        _normalizedName(_firstToken(_string(sourceProfile['full_name']))) ??
+        _normalizedName(_firstToken(_string(item['creator_full_name']))) ??
+        _normalizedName(_firstToken(_string(item['username']))) ??
+        _normalizedName(_firstToken(_string(item['instagram_username'])));
+
+    return firstName ?? 'Creator';
+  }
+
+  String? _normalizedName(String? value) {
+    if (value == null) return null;
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+
+    final lowered = trimmed.toLowerCase();
+    if (lowered == 'creator' || lowered == 'user' || lowered == 'unknown') {
+      return null;
+    }
+
+    return trimmed;
+  }
+
+  String? _firstToken(String? value) {
+    if (value == null) return null;
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+
+    final token = trimmed.split(RegExp(r'\s+')).first.trim();
+    return token.isEmpty ? null : token;
+  }
+
+  Future<List<CreatorDiscovery>> _hydrateCreatorNamesFromProfiles(
+    List<CreatorDiscovery> creators,
+  ) async {
+    final unresolvedIds = creators
+        .where((c) => _normalizedName(c.firstName) == null)
+        .map((c) => c.id)
+        .where((id) => id.trim().isNotEmpty)
+        .toList();
+
+    if (unresolvedIds.isEmpty) return creators;
+
+    try {
+      final rows = await Supabase.instance.client
+          .from('profiles')
+          .select('id,first_name,full_name')
+          .inFilter('id', unresolvedIds);
+
+      final byId = <String, String>{};
+      for (final row in rows) {
+        final item = row;
+        final resolved = _normalizedName(_string(item['first_name'])) ??
+            _normalizedName(_firstToken(_string(item['full_name'])));
+        final id = _string(item['id']);
+        if (id != null && resolved != null) {
+          byId[id] = resolved;
+        }
+      }
+
+      return creators
+          .map((c) =>
+              byId.containsKey(c.id) ? c.copyWith(firstName: byId[c.id]!) : c)
+          .toList();
+    } catch (_) {
+      return creators;
+    }
+  }
+
+  Future<List<CollabRequest>> _getRequestsFallback() async {
+    final client = Supabase.instance.client;
+
+    try {
+      final rows = await client
+          .from('collab_requests')
+          .select(
+            'id,brand_id,creator_id,message,budget,collab_type,deliverables,status,expires_at,created_at,updated_at,creator:creator_profiles(id,tier)',
+          )
+          .order('created_at', ascending: false);
+
+      final parsed = <CollabRequest>[];
+      for (final row in rows) {
+        final item = row;
+        final creator = _asMap(item['creator']);
+        parsed.add(
+          CollabRequest.fromJson({
+            'id': _string(item['id']) ?? '',
+            'brandId': _string(item['brand_id']) ?? '',
+            'creatorId': _string(item['creator_id']) ?? '',
+            'creatorFirstName':
+                _string(item['creator_first_name']) ?? 'Creator',
+            'creatorFullName': _string(item['creator_full_name']) ?? 'Creator',
+            'creatorInstagramHandle': _string(item['creator_instagram_handle']),
+            'creatorTier': _string(creator['tier']) ??
+                _string(item['creator_tier']) ??
+                'micro',
+            'collabId': _string(item['collab_id']),
+            'message': _string(item['message']),
+            'budget': _int(item['budget']),
+            'collabType': _normalizeCollabType(_string(item['collab_type'])),
+            'deliverables': _stringList(item['deliverables']),
+            'status': _string(item['status']) ?? 'pending',
+            'expiresAt': _string(item['expires_at']),
+            'createdAt': _string(item['created_at']),
+            'updatedAt': _string(item['updated_at']),
+          }),
+        );
+      }
+
+      return parsed;
+    } catch (_) {
+      return const <CollabRequest>[];
+    }
+  }
+
+  String _followerRangeFromCount(int count) {
+    if (count >= 500000) return '500K+';
+    if (count >= 100000) return '100K-500K';
+    if (count >= 50000) return '50K-100K';
+    if (count >= 10000) return '10K-50K';
+    if (count >= 5000) return '5K-10K';
+    return '1K-5K';
   }
 
   Future<Campaign> postCampaign(Map<String, dynamic> data) async {

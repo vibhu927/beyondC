@@ -146,7 +146,24 @@ class AuthRepository {
   /// Send password reset email
   Future<void> resetPassword(String email) async {
     try {
-      await _supabase.auth.resetPasswordForEmail(email);
+      final response = await _dio.post(
+        '${ApiConstants.apiBaseUrl}/auth/forgot-password',
+        data: {
+          'email': email.trim().toLowerCase(),
+        },
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Could not send reset link. Please try again.');
+      }
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      if (data is Map && data['error'] is String) {
+        throw Exception(data['error'] as String);
+      }
+      throw Exception(
+        e.message ?? 'Could not send reset link. Please try again.',
+      );
     } catch (e) {
       rethrow;
     }

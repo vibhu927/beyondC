@@ -317,6 +317,22 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
         role: BCPortalRole.creator,
         currentIndex: 1,
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+        child: FloatingActionButton(
+          heroTag: 'creatorCampaignFiltersFab',
+          onPressed: _openFiltersSheet,
+          backgroundColor: AppColors.ink,
+          foregroundColor: AppColors.neon,
+          tooltip: 'Filter campaigns',
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+            side: const BorderSide(color: AppColors.neon, width: 2),
+          ),
+          child: const Icon(Icons.tune_rounded),
+        ),
+      ),
       body: BCPageSwipeArea(
         role: BCPortalRole.creator,
         currentIndex: 1,
@@ -333,16 +349,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
             AppSpacing.huge,
           ),
           children: [
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                onPressed: _openFiltersSheet,
-                icon: const Icon(Icons.tune_rounded, color: AppColors.ink),
-                tooltip: 'Filter campaigns',
-              ),
-            ),
             SizedBox(
-              height: 36,
+              height: 40,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _campaignFilterChips.length,
@@ -471,10 +479,11 @@ class _NeoPill extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
+        constraints: const BoxConstraints(minHeight: 36),
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs,
         ),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isActive ? AppColors.ink : AppColors.white,
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),

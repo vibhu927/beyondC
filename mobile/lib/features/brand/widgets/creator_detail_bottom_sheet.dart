@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
@@ -57,7 +57,8 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                     height: 6,
                     decoration: BoxDecoration(
                       color: AppColors.divider,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusFull),
                     ),
                   ),
                 ),
@@ -69,21 +70,38 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                       height: 64,
                       decoration: BoxDecoration(
                         color: AppColors.ink,
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusFull),
                         border: Border.all(color: AppColors.neon, width: 3),
                       ),
                       alignment: Alignment.center,
-                      child: Text(
-                        creator.initials,
-                        style: AppTypography.labelLG.copyWith(color: AppColors.neon),
-                      ),
+                      child: (creator.avatarUrl ?? '').trim().isNotEmpty
+                          ? ClipOval(
+                              child: Image.network(
+                                creator.avatarUrl!,
+                                width: 64,
+                                height: 64,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Text(
+                                  creator.initials,
+                                  style: AppTypography.labelLG
+                                      .copyWith(color: AppColors.neon),
+                                ),
+                              ),
+                            )
+                          : Text(
+                              creator.initials,
+                              style: AppTypography.labelLG
+                                  .copyWith(color: AppColors.neon),
+                            ),
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(creator.firstName, style: AppTypography.displaySM),
+                          Text(creator.firstName,
+                              style: AppTypography.displaySM),
                           const SizedBox(height: AppSpacing.xs),
                           BCBadge(
                             label: creator.tier,
@@ -100,7 +118,11 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                   child: Row(
                     children: [
                       Expanded(
-                        child: _stat('Follower Range', creator.followerRange),
+                        child: _stat(
+                          'Followers',
+                          Formatters.followerCount(creator.followersCount)
+                              .toLowerCase(),
+                        ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
@@ -111,7 +133,8 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
-                        child: _stat('Avg Price', _inr(avgPrice)),
+                        child:
+                            _stat('Avg Price', Formatters.currency(avgPrice)),
                       ),
                     ],
                   ),
@@ -163,7 +186,8 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                             ),
                             decoration: BoxDecoration(
                               color: AppColors.surfaceAlt,
-                              border: Border.all(color: AppColors.ink, width: 2),
+                              border:
+                                  Border.all(color: AppColors.ink, width: 2),
                               borderRadius:
                                   BorderRadius.circular(AppSpacing.radiusFull),
                             ),
@@ -187,27 +211,33 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                 BCPrimaryButton.dark(
                   label: 'Send Request →',
                   onPressed: () async {
+                    final messenger = ScaffoldMessenger.of(context);
                     final confirmed = await _showCreditConfirmDialog(
                       context,
                       title: 'Send request to ${creator.firstName}?',
-                      subtitle: '1 credit will be deducted only if the creator accepts.',
+                      subtitle:
+                          '1 credit will be deducted only if the creator accepts.',
                     );
                     if (!confirmed || !context.mounted) return;
 
-                    final ok = await ref.read(brandProvider.notifier).sendDirectRequest(
+                    final ok = await ref
+                        .read(brandProvider.notifier)
+                        .sendDirectRequest(
                           creatorId: creator.id,
                           creatorName: creator.firstName,
                         );
 
                     if (!context.mounted) return;
                     if (!ok) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Could not send request.')),
+                      messenger.showSnackBar(
+                        const SnackBar(
+                            content: Text('Could not send request.')),
                       );
                       return;
                     }
 
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    Navigator.of(context).pop();
+                    messenger.showSnackBar(
                       SnackBar(
                         content: Text(
                           'Request sent to ${creator.firstName}.',
@@ -263,14 +293,10 @@ Future<bool> _showCreditConfirmDialog(
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: BCPrimaryButton.pink(
+                      label: 'Cancel',
+                      isFullWidth: true,
                       onPressed: () => Navigator.of(dialogContext).pop(false),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.ink,
-                        side: const BorderSide(color: AppColors.ink, width: 2),
-                        minimumSize: const Size.fromHeight(46),
-                      ),
-                      child: const Text('Cancel'),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
@@ -292,8 +318,6 @@ Future<bool> _showCreditConfirmDialog(
 
   return confirmed ?? false;
 }
-
-String _inr(int value) => '₹${NumberFormat.decimalPattern('en_IN').format(value)}';
 
 BCBadgeVariant _tierVariant(String tier) {
   switch (tier.toLowerCase()) {

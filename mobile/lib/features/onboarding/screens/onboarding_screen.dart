@@ -490,8 +490,8 @@ class _OnboardingPage3 extends StatelessWidget {
                   angle: -0.03,
                   child: Container(
                     width: 260,
-                    margin: const EdgeInsets.only(top: 80),
-                    padding: const EdgeInsets.all(20),
+                    margin: const EdgeInsets.only(top: 44),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       border: Border.all(
@@ -520,11 +520,11 @@ class _OnboardingPage3 extends StatelessWidget {
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 14),
                         // Fake QR code grid
                         Container(
-                          width: 120,
-                          height: 120,
+                          width: 108,
+                          height: 108,
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: Colors.white,
@@ -558,7 +558,7 @@ class _OnboardingPage3 extends StatelessWidget {
                             },
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,

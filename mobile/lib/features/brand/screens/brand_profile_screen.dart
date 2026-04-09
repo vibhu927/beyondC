@@ -37,6 +37,8 @@ class BrandProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
+  String? _avatarUrl;
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +47,7 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
       ref.read(brandRequestsProvider);
       ref.read(brandProfileProvider);
       ref.read(creditsProvider);
+      _loadAvatarUrl();
     });
   }
 
@@ -54,7 +57,28 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
       ref.read(brandProfileProvider.notifier).refresh(),
       ref.read(creditsProvider.notifier).refresh(),
       ref.refresh(_completedCollabsProvider.future),
+      _loadAvatarUrl(),
     ]);
+  }
+
+  Future<void> _loadAvatarUrl() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+
+    final row = await Supabase.instance.client
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', userId)
+        .maybeSingle();
+
+    if (!mounted) return;
+
+    final fetched = (row?['avatar_url'] as String?)?.trim();
+    setState(() {
+      if (fetched != null && fetched.isNotEmpty) {
+        _avatarUrl = fetched;
+      }
+    });
   }
 
   Future<void> _logout() async {
@@ -157,7 +181,8 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
     final userId = Supabase.instance.client.auth.currentUser!.id;
     final ext =
         fileName.contains('.') ? fileName.split('.').last.toLowerCase() : 'jpg';
-    final path = 'brands/$userId.$ext';
+    final version = DateTime.now().millisecondsSinceEpoch;
+    final path = 'brands/$userId-$version.$ext';
 
     await Supabase.instance.client.storage.from('avatars').uploadBinary(
           path,
@@ -174,7 +199,7 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
     final descriptionController =
         TextEditingController(text: profile.description);
     String category = profile.brandCategory;
-    String? avatarUrl = profile.avatarUrl;
+    String? avatarUrl = _avatarUrl ?? profile.avatarUrl ?? profile.logoUrl;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -242,22 +267,74 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                         controller: descriptionController,
                       ),
                       const SizedBox(height: AppSpacing.lg),
+                      Center(
+                        child: Container(
+                          width: 72,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            color: AppColors.darkSurface,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.pink,
+                              width: 2,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: (avatarUrl ?? '').trim().isNotEmpty
+                              ? ClipOval(
+                                  child: Image.network(
+                                    avatarUrl!,
+                                    width: 72,
+                                    height: 72,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Text(
+                                      profile.logoInitial,
+                                      style: AppTypography.labelMD.copyWith(
+                                        color: AppColors.white,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Text(
+                                  profile.logoInitial,
+                                  style: AppTypography.labelMD.copyWith(
+                                    color: AppColors.white,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
                       BCPrimaryButton.dark(
-                        label: 'Upload Logo/Avatar',
+                        label: 'Upload Profile Photo',
                         isFullWidth: false,
                         onPressed: () async {
-                          final url = await _pickAndUploadLogo();
-                          if (url != null) {
-                            setSheetState(() {
-                              avatarUrl = url;
-                            });
+                          try {
+                            final url = await _pickAndUploadLogo();
+                            if (url != null) {
+                              setSheetState(() {
+                                avatarUrl = url;
+                              });
+                              if (mounted) {
+                                ScaffoldMessenger.of(this.context).showSnackBar(
+                                  const SnackBar(
+                                    content:
+                                        Text('Photo uploaded successfully.'),
+                                  ),
+                                );
+                              }
+                            }
+                          } catch (e) {
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(this.context).showSnackBar(
+                              SnackBar(content: Text('Upload failed: $e')),
+                            );
                           }
                         },
                       ),
                       if ((avatarUrl ?? '').isNotEmpty) ...[
                         const SizedBox(height: AppSpacing.sm),
                         Text(
-                          'Logo uploaded',
+                          'Photo uploaded',
                           style: AppTypography.bodySM
                               .copyWith(color: AppColors.success),
                         ),
@@ -274,9 +351,16 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                               'brand_category': category,
                               'website': websiteController.text.trim(),
                               'description': descriptionController.text.trim(),
-                              if ((avatarUrl ?? '').isNotEmpty)
+                              if ((avatarUrl ?? '').isNotEmpty) ...{
+                                'logo_url': avatarUrl,
                                 'avatar_url': avatarUrl,
+                              },
                             });
+                            if (mounted) {
+                              setState(() {
+                                _avatarUrl = avatarUrl;
+                              });
+                            }
                             await _refresh();
                             if (!mounted) return;
                             Navigator.of(context).pop();
@@ -349,431 +433,458 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
           color: AppColors.neon,
           onRefresh: _refresh,
           child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              expandedHeight: 200,
-              pinned: true,
-              backgroundColor: AppColors.ink,
-              foregroundColor: AppColors.white,
-              surfaceTintColor: Colors.transparent,
-              title: Text(
-                'Profile',
-                style: AppTypography.displaySM.copyWith(color: AppColors.white),
-              ),
-              flexibleSpace: FlexibleSpaceBar(
-                background: SafeArea(
-                  child: Stack(
-                    children: [
-                      Align(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: AppColors.darkSurface,
-                                shape: BoxShape.circle,
-                                border:
-                                    Border.all(color: AppColors.pink, width: 3),
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 200,
+                pinned: true,
+                backgroundColor: AppColors.ink,
+                foregroundColor: AppColors.white,
+                surfaceTintColor: Colors.transparent,
+                title: Text(
+                  'Profile',
+                  style:
+                      AppTypography.displaySM.copyWith(color: AppColors.white),
+                ),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: SafeArea(
+                    child: Stack(
+                      children: [
+                        Align(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: AppColors.darkSurface,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                      color: AppColors.pink, width: 3),
+                                ),
+                                alignment: Alignment.center,
+                                child: ((_avatarUrl ??
+                                            profile.avatarUrl ??
+                                            profile.logoUrl ??
+                                            ''))
+                                        .trim()
+                                        .isNotEmpty
+                                    ? ClipOval(
+                                        child: Image.network(
+                                          (_avatarUrl ??
+                                              profile.avatarUrl ??
+                                              profile.logoUrl)!,
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Text(
+                                            profile.logoInitial,
+                                            style: AppTypography.labelLG
+                                                .copyWith(
+                                                    color: AppColors.white),
+                                          ),
+                                        ),
+                                      )
+                                    : Text(
+                                        profile.logoInitial,
+                                        style: AppTypography.labelLG
+                                            .copyWith(color: AppColors.white),
+                                      ),
                               ),
-                              alignment: Alignment.center,
-                              child: Text(
-                                profile.logoInitial,
+                              const SizedBox(height: AppSpacing.sm),
+                              Text(
+                                profile.brandName,
                                 style: AppTypography.labelLG
                                     .copyWith(color: AppColors.white),
                               ),
+                              const SizedBox(height: AppSpacing.xs),
+                              Wrap(
+                                spacing: AppSpacing.sm,
+                                children: [
+                                  BCBadge(
+                                    label: profile.brandCategory,
+                                    variant: BCBadgeVariant.pink,
+                                  ),
+                                  if (profile.verified)
+                                    const BCBadge(
+                                      label: '✅ Verified',
+                                      variant: BCBadgeVariant.success,
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          right: AppSpacing.lg,
+                          top: AppSpacing.lg,
+                          child: IconButton(
+                            onPressed: () => _openEditSheet(profile),
+                            icon: const Icon(Icons.edit_rounded,
+                                color: AppColors.white),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screenPadding,
+                    AppSpacing.lg,
+                    AppSpacing.screenPadding,
+                    AppSpacing.huge,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _StatCard(
+                              label: 'Total Collabs',
+                              value: '${profile.totalCollabs}',
                             ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: _StatCard(
+                              label: 'Active Campaigns',
+                              value: '${brandState.activeCampaignCount}',
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: _StatCard(
+                              label: 'Avg Rating',
+                              value:
+                                  '${profile.avgRating.toStringAsFixed(1)} ★',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      BCCard(
+                        shadow: AppShadows.pink,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(profile.brandName,
+                                style: AppTypography.displaySM),
+                            const SizedBox(height: AppSpacing.sm),
+                            BCBadge(
+                              label: profile.brandCategory,
+                              variant: BCBadgeVariant.pink,
+                            ),
+                            if (profile.website.trim().isNotEmpty) ...[
+                              const SizedBox(height: AppSpacing.sm),
+                              GestureDetector(
+                                onTap: () async {
+                                  final uri =
+                                      Uri.tryParse(profile.website.trim());
+                                  if (uri != null) {
+                                    await launchUrl(uri);
+                                  }
+                                },
+                                child: Text(
+                                  profile.website,
+                                  style: AppTypography.labelSM
+                                      .copyWith(color: AppColors.blue),
+                                ),
+                              ),
+                            ],
                             const SizedBox(height: AppSpacing.sm),
                             Text(
-                              profile.brandName,
-                              style: AppTypography.labelLG
-                                  .copyWith(color: AppColors.white),
+                              profile.description.trim().isEmpty
+                                  ? 'No description added yet.'
+                                  : profile.description,
+                              style: AppTypography.bodySM
+                                  .copyWith(color: AppColors.muted),
                             ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Wrap(
-                              spacing: AppSpacing.sm,
-                              children: [
-                                BCBadge(
-                                  label: profile.brandCategory,
-                                  variant: BCBadgeVariant.pink,
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: () => _openEditSheet(profile),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.pink,
                                 ),
-                                if (profile.verified)
-                                  const BCBadge(
-                                    label: '✅ Verified',
-                                    variant: BCBadgeVariant.success,
-                                  ),
-                              ],
+                                child: const Text('Edit →'),
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      Positioned(
-                        right: AppSpacing.lg,
-                        top: AppSpacing.lg,
-                        child: IconButton(
-                          onPressed: () => _openEditSheet(profile),
-                          icon: const Icon(Icons.edit_rounded,
-                              color: AppColors.white),
+                      const SizedBox(height: AppSpacing.lg),
+                      if (!profile.verified)
+                        BCCard(
+                          backgroundColor: const Color(0xFFFFF3CC),
+                          shadow: AppShadows.orange,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                '⚠️ Your brand is not verified',
+                                style: AppTypography.labelMD,
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                'Upload GST number to get a verified badge and build creator trust.',
+                                style: AppTypography.bodySM
+                                    .copyWith(color: AppColors.muted),
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              BCPrimaryButton.dark(
+                                label: 'Verify Now →',
+                                isFullWidth: false,
+                                onPressed: () => _openVerifySheet(profile),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        BCCard(
+                          backgroundColor: const Color(0xFFE7FCEB),
+                          child: const Text(
+                            '✅ Verified Brand — Creators trust you more!',
+                            style: AppTypography.labelMD,
+                          ),
+                        ),
+                      const SizedBox(height: AppSpacing.lg),
+                      BCCard(
+                        shadow: AppShadows.blue,
+                        onTap: () => context.push(RouteNames.brandCredits),
+                        child: Row(
+                          children: [
+                            const Text('⚡ Credits',
+                                style: AppTypography.labelMD),
+                            const Spacer(),
+                            Text(
+                              '$credits',
+                              style: AppTypography.displaySM
+                                  .copyWith(color: AppColors.blue),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            TextButton(
+                              onPressed: () =>
+                                  context.push(RouteNames.brandCredits),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.blue,
+                              ),
+                              child: const Text('Buy Credits →'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Past Campaigns (${completedCampaigns.length})',
+                              style: AppTypography.displaySM,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                context.push(RouteNames.brandCampaigns),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.pink,
+                            ),
+                            child: const Text('See all →'),
+                          ),
+                        ],
+                      ),
+                      if (completedCampaigns.isEmpty)
+                        const Padding(
+                          padding:
+                              EdgeInsets.symmetric(vertical: AppSpacing.md),
+                          child: Text(
+                            '📢 No campaigns yet.',
+                            style: AppTypography.bodySM,
+                          ),
+                        )
+                      else
+                        Column(
+                          children: completedCampaigns.take(3).map((campaign) {
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.only(bottom: AppSpacing.sm),
+                              child: BCCard(
+                                shadow: AppShadows.neon,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            campaign.title,
+                                            style: AppTypography.labelMD,
+                                          ),
+                                        ),
+                                        const BCBadge(
+                                          label: 'Completed',
+                                          variant: BCBadgeVariant.blue,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: AppSpacing.xs),
+                                    Row(
+                                      children: [
+                                        BCBadge(
+                                          label: _campaignCollabType(
+                                              campaign.collabType),
+                                          variant: BCBadgeVariant.outline,
+                                        ),
+                                        const SizedBox(width: AppSpacing.sm),
+                                        BCBadge(
+                                          label:
+                                              '${campaign.slotsFilled} collabs done',
+                                          variant: BCBadgeVariant.neon,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: AppSpacing.xs),
+                                    Text(
+                                      campaign.deadline != null
+                                          ? 'Ended ${_date(campaign.deadline!)}'
+                                          : 'Date range unavailable',
+                                      style: AppTypography.bodyXS
+                                          .copyWith(color: AppColors.muted),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      const SizedBox(height: AppSpacing.xl),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Completed Collabs (${completedCollabs.length})',
+                              style: AppTypography.displaySM,
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () =>
+                                context.push(RouteNames.brandCollabs),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.pink,
+                            ),
+                            child: const Text('See all →'),
+                          ),
+                        ],
+                      ),
+                      if (completedCollabsAsync.isLoading)
+                        const _InlineShimmerList()
+                      else if (completedCollabsAsync.hasError)
+                        BCErrorState(
+                          message: completedCollabsAsync.error.toString(),
+                          onRetry: () => ref.refresh(_completedCollabsProvider),
+                        )
+                      else if (completedCollabs.isEmpty)
+                        const Padding(
+                          padding:
+                              EdgeInsets.symmetric(vertical: AppSpacing.md),
+                          child: Text(
+                            '🤝 No completed collabs yet.',
+                            style: AppTypography.bodySM,
+                          ),
+                        )
+                      else
+                        Column(
+                          children: completedCollabs.take(3).map((collab) {
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.only(bottom: AppSpacing.sm),
+                              child: BCCard(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            collab.creatorName,
+                                            style: AppTypography.labelMD,
+                                          ),
+                                        ),
+                                        const BCBadge(
+                                          label: 'micro',
+                                          variant: BCBadgeVariant.outline,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: AppSpacing.xs),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          collab.agreedAmount != null
+                                              ? '₹${collab.agreedAmount}'
+                                              : 'Amount not set',
+                                          style: AppTypography.labelSM,
+                                        ),
+                                        const SizedBox(width: AppSpacing.sm),
+                                        const BCBadge(
+                                          label: 'Completed',
+                                          variant: BCBadgeVariant.blue,
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: AppSpacing.xs),
+                                    Text(
+                                      '★★★★☆',
+                                      style: AppTypography.bodySM
+                                          .copyWith(color: AppColors.warning),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      const SizedBox(height: AppSpacing.xl),
+                      BCCard(
+                        child: Column(
+                          children: [
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              onTap: () => context.push(RouteNames.settings),
+                              leading: const Text('⚙️'),
+                              title: const Text(
+                                'Settings',
+                                style: AppTypography.labelMD,
+                              ),
+                              trailing: const Icon(Icons.chevron_right_rounded),
+                            ),
+                            const Divider(color: AppColors.divider, height: 1),
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              onTap: _logout,
+                              leading: const Text('🚪'),
+                              title: Text(
+                                'Logout',
+                                style: AppTypography.labelMD
+                                    .copyWith(color: AppColors.error),
+                              ),
+                              trailing: const Icon(
+                                Icons.chevron_right_rounded,
+                                color: AppColors.error,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
               ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenPadding,
-                  AppSpacing.lg,
-                  AppSpacing.screenPadding,
-                  AppSpacing.huge,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _StatCard(
-                            label: 'Total Collabs',
-                            value: '${profile.totalCollabs}',
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: _StatCard(
-                            label: 'Active Campaigns',
-                            value: '${brandState.activeCampaignCount}',
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: _StatCard(
-                            label: 'Avg Rating',
-                            value: '${profile.avgRating.toStringAsFixed(1)} ★',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    BCCard(
-                      shadow: AppShadows.pink,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(profile.brandName,
-                              style: AppTypography.displaySM),
-                          const SizedBox(height: AppSpacing.sm),
-                          BCBadge(
-                            label: profile.brandCategory,
-                            variant: BCBadgeVariant.pink,
-                          ),
-                          if (profile.website.trim().isNotEmpty) ...[
-                            const SizedBox(height: AppSpacing.sm),
-                            GestureDetector(
-                              onTap: () async {
-                                final uri =
-                                    Uri.tryParse(profile.website.trim());
-                                if (uri != null) {
-                                  await launchUrl(uri);
-                                }
-                              },
-                              child: Text(
-                                profile.website,
-                                style: AppTypography.labelSM
-                                    .copyWith(color: AppColors.blue),
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: AppSpacing.sm),
-                          Text(
-                            profile.description.trim().isEmpty
-                                ? 'No description added yet.'
-                                : profile.description,
-                            style: AppTypography.bodySM
-                                .copyWith(color: AppColors.muted),
-                          ),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () => _openEditSheet(profile),
-                              style: TextButton.styleFrom(
-                                foregroundColor: AppColors.pink,
-                              ),
-                              child: const Text('Edit →'),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    if (!profile.verified)
-                      BCCard(
-                        backgroundColor: const Color(0xFFFFF3CC),
-                        shadow: AppShadows.orange,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '⚠️ Your brand is not verified',
-                              style: AppTypography.labelMD,
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              'Upload GST number to get a verified badge and build creator trust.',
-                              style: AppTypography.bodySM
-                                  .copyWith(color: AppColors.muted),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            BCPrimaryButton.dark(
-                              label: 'Verify Now →',
-                              isFullWidth: false,
-                              onPressed: () => _openVerifySheet(profile),
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      BCCard(
-                        backgroundColor: const Color(0xFFE7FCEB),
-                        child: const Text(
-                          '✅ Verified Brand — Creators trust you more!',
-                          style: AppTypography.labelMD,
-                        ),
-                      ),
-                    const SizedBox(height: AppSpacing.lg),
-                    BCCard(
-                      shadow: AppShadows.blue,
-                      onTap: () => context.push(RouteNames.brandCredits),
-                      child: Row(
-                        children: [
-                          const Text('⚡ Credits', style: AppTypography.labelMD),
-                          const Spacer(),
-                          Text(
-                            '$credits',
-                            style: AppTypography.displaySM
-                                .copyWith(color: AppColors.blue),
-                          ),
-                          const SizedBox(width: AppSpacing.md),
-                          TextButton(
-                            onPressed: () =>
-                                context.push(RouteNames.brandCredits),
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.blue,
-                            ),
-                            child: const Text('Buy Credits →'),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Past Campaigns (${completedCampaigns.length})',
-                            style: AppTypography.displaySM,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () =>
-                              context.push(RouteNames.brandCampaigns),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.pink,
-                          ),
-                          child: const Text('See all →'),
-                        ),
-                      ],
-                    ),
-                    if (completedCampaigns.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-                        child: Text(
-                          '📢 No campaigns yet.',
-                          style: AppTypography.bodySM,
-                        ),
-                      )
-                    else
-                      Column(
-                        children: completedCampaigns.take(3).map((campaign) {
-                          return Padding(
-                            padding:
-                                const EdgeInsets.only(bottom: AppSpacing.sm),
-                            child: BCCard(
-                              shadow: AppShadows.neon,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          campaign.title,
-                                          style: AppTypography.labelMD,
-                                        ),
-                                      ),
-                                      const BCBadge(
-                                        label: 'Completed',
-                                        variant: BCBadgeVariant.blue,
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: AppSpacing.xs),
-                                  Row(
-                                    children: [
-                                      BCBadge(
-                                        label: _campaignCollabType(
-                                            campaign.collabType),
-                                        variant: BCBadgeVariant.outline,
-                                      ),
-                                      const SizedBox(width: AppSpacing.sm),
-                                      BCBadge(
-                                        label:
-                                            '${campaign.slotsFilled} collabs done',
-                                        variant: BCBadgeVariant.neon,
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: AppSpacing.xs),
-                                  Text(
-                                    campaign.deadline != null
-                                        ? 'Ended ${_date(campaign.deadline!)}'
-                                        : 'Date range unavailable',
-                                    style: AppTypography.bodyXS
-                                        .copyWith(color: AppColors.muted),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    const SizedBox(height: AppSpacing.xl),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Completed Collabs (${completedCollabs.length})',
-                            style: AppTypography.displaySM,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () =>
-                              context.push(RouteNames.brandCollabs),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.pink,
-                          ),
-                          child: const Text('See all →'),
-                        ),
-                      ],
-                    ),
-                    if (completedCollabsAsync.isLoading)
-                      const _InlineShimmerList()
-                    else if (completedCollabsAsync.hasError)
-                      BCErrorState(
-                        message: completedCollabsAsync.error.toString(),
-                        onRetry: () => ref.refresh(_completedCollabsProvider),
-                      )
-                    else if (completedCollabs.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-                        child: Text(
-                          '🤝 No completed collabs yet.',
-                          style: AppTypography.bodySM,
-                        ),
-                      )
-                    else
-                      Column(
-                        children: completedCollabs.take(3).map((collab) {
-                          return Padding(
-                            padding:
-                                const EdgeInsets.only(bottom: AppSpacing.sm),
-                            child: BCCard(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          collab.creatorName,
-                                          style: AppTypography.labelMD,
-                                        ),
-                                      ),
-                                      const BCBadge(
-                                        label: 'micro',
-                                        variant: BCBadgeVariant.outline,
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: AppSpacing.xs),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        collab.agreedAmount != null
-                                            ? '₹${collab.agreedAmount}'
-                                            : 'Amount not set',
-                                        style: AppTypography.labelSM,
-                                      ),
-                                      const SizedBox(width: AppSpacing.sm),
-                                      const BCBadge(
-                                        label: 'Completed',
-                                        variant: BCBadgeVariant.blue,
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: AppSpacing.xs),
-                                  Text(
-                                    '★★★★☆',
-                                    style: AppTypography.bodySM
-                                        .copyWith(color: AppColors.warning),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    const SizedBox(height: AppSpacing.xl),
-                    BCCard(
-                      child: Column(
-                        children: [
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            onTap: () => context.push(RouteNames.settings),
-                            leading: const Text('⚙️'),
-                            title: const Text(
-                              'Settings',
-                              style: AppTypography.labelMD,
-                            ),
-                            trailing: const Icon(Icons.chevron_right_rounded),
-                          ),
-                          const Divider(color: AppColors.divider, height: 1),
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            onTap: _logout,
-                            leading: const Text('🚪'),
-                            title: Text(
-                              'Logout',
-                              style: AppTypography.labelMD
-                                  .copyWith(color: AppColors.error),
-                            ),
-                            trailing: const Icon(
-                              Icons.chevron_right_rounded,
-                              color: AppColors.error,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+            ],
           ),
         ),
       ),

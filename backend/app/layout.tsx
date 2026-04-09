@@ -1,29 +1,29 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans, Space_Grotesk, Nunito } from 'next/font/google'
+import { League_Spartan, Space_Grotesk, Nunito } from 'next/font/google'
 import './globals.css'
 
-const plusJakarta = Plus_Jakarta_Sans({ 
-  subsets: ['latin'], 
+const leagueSpartanJakarta = League_Spartan({
+  subsets: ['latin'],
   variable: '--font-jakarta',
-  weight: ['400', '600', '700', '800'],
+  weight: ['600', '700', '800'],
   display: 'swap',
 })
 
-const spaceGrotesk = Space_Grotesk({ 
-  subsets: ['latin'], 
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
   variable: '--font-space',
   display: 'swap',
 })
 
-const nunito = Nunito({ 
-  subsets: ['latin'], 
+const nunito = Nunito({
+  subsets: ['latin'],
   variable: '--font-nunito',
   display: 'swap',
 })
 
 export const metadata: Metadata = {
   title: 'BeyondC - Collabs that go Beyond the feed',
-  description: 'BeyondC connects brands and creators for real paid collabs — starting at just ₹100. No fake followers. No cold DMs. Just results.',
+  description: 'BeyondC connects brands and creators  for real paid collabs — starting at just ₹100. No fake followers. No cold DMs. Just results.',
   keywords: 'brand collaboration, content creators, influencer marketing, paid collabs, creator economy, India',
   openGraph: {
     title: 'BeyondC - Collabs that go Beyond the feed',
@@ -38,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${plusJakarta.variable} ${spaceGrotesk.variable} ${nunito.variable}`}>
+    <html lang="en" className={`${leagueSpartanJakarta.variable} ${spaceGrotesk.variable} ${nunito.variable}`}>
       <body className={nunito.className}>{children}</body>
     </html>
   )

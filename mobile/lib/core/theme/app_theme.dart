@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 import 'app_typography.dart';
 import 'app_spacing.dart';
@@ -23,6 +24,8 @@ class AppTheme {
         onSurface: AppColors.lightText,
         error: AppColors.error,
       ),
+      textTheme: _buildLightTextTheme(),
+      primaryTextTheme: _buildLightTextTheme(),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.lightBg,
         foregroundColor: AppColors.lightText,
@@ -108,7 +111,7 @@ class AppTheme {
         ),
         behavior: SnackBarBehavior.floating,
       ),
-      fontFamily: 'Nunito',
+      fontFamily: GoogleFonts.nunito().fontFamily,
     );
   }
 
@@ -128,6 +131,8 @@ class AppTheme {
         onSurface: AppColors.darkText,
         error: AppColors.error,
       ),
+      textTheme: _buildDarkTextTheme(),
+      primaryTextTheme: _buildDarkTextTheme(),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.darkBg,
         foregroundColor: AppColors.darkText,
@@ -200,7 +205,47 @@ class AppTheme {
         ),
         behavior: SnackBarBehavior.floating,
       ),
-      fontFamily: 'Nunito',
+      fontFamily: GoogleFonts.nunito().fontFamily,
+    );
+  }
+
+  static TextTheme _buildLightTextTheme() {
+    return TextTheme(
+      displayLarge: GoogleFonts.leagueSpartan(),
+      displayMedium: GoogleFonts.leagueSpartan(),
+      displaySmall: GoogleFonts.leagueSpartan(),
+      headlineLarge: GoogleFonts.leagueSpartan(),
+      headlineMedium: GoogleFonts.leagueSpartan(),
+      headlineSmall: GoogleFonts.leagueSpartan(),
+      titleLarge: GoogleFonts.leagueSpartan(),
+      titleMedium: GoogleFonts.spaceGrotesk(),
+      titleSmall: GoogleFonts.spaceGrotesk(),
+      bodyLarge: GoogleFonts.nunito(),
+      bodyMedium: GoogleFonts.nunito(),
+      bodySmall: GoogleFonts.nunito(),
+      labelLarge: GoogleFonts.spaceGrotesk(),
+      labelMedium: GoogleFonts.spaceGrotesk(),
+      labelSmall: GoogleFonts.spaceGrotesk(),
+    );
+  }
+
+  static TextTheme _buildDarkTextTheme() {
+    return TextTheme(
+      displayLarge: GoogleFonts.leagueSpartan(),
+      displayMedium: GoogleFonts.leagueSpartan(),
+      displaySmall: GoogleFonts.leagueSpartan(),
+      headlineLarge: GoogleFonts.leagueSpartan(),
+      headlineMedium: GoogleFonts.leagueSpartan(),
+      headlineSmall: GoogleFonts.leagueSpartan(),
+      titleLarge: GoogleFonts.leagueSpartan(),
+      titleMedium: GoogleFonts.spaceGrotesk(),
+      titleSmall: GoogleFonts.spaceGrotesk(),
+      bodyLarge: GoogleFonts.nunito(),
+      bodyMedium: GoogleFonts.nunito(),
+      bodySmall: GoogleFonts.nunito(),
+      labelLarge: GoogleFonts.spaceGrotesk(),
+      labelMedium: GoogleFonts.spaceGrotesk(),
+      labelSmall: GoogleFonts.spaceGrotesk(),
     );
   }
 }

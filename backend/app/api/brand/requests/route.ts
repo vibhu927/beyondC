@@ -18,14 +18,13 @@ export async function GET(request: NextRequest) {
       .from('collab_requests')
       .select(`
         *,
-        creator:creator_profiles!collab_requests_creator_id_fkey (
+        creator:creator_profiles (
           id,
           bio,
           platforms,
           niche,
           follower_count,
           avg_rating,
-          instagram_username,
           tier
         )
       `)
@@ -59,9 +58,15 @@ export async function GET(request: NextRequest) {
 
     const enriched = (requests ?? []).map((item: any) => {
       const creatorUser = creatorUserById.get(item.creator_id)
-      const creatorInstagramHandle = item.creator?.instagram_username || null
+      const creatorInstagramHandle = item.creator?.instagram_username || item.creator?.instagram_handle || null
       return {
         ...item,
+        creator_user: creatorUser
+          ? {
+              first_name: creatorUser.first_name ?? null,
+              full_name: creatorUser.full_name ?? null,
+            }
+          : null,
         creator_first_name: creatorUser?.first_name ?? null,
         creator_full_name: creatorUser?.full_name ?? null,
         creator_instagram_handle: creatorInstagramHandle,

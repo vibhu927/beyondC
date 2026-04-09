@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -25,10 +26,11 @@ class NotificationNotifier extends AsyncNotifier<List<AppNotification>> {
     _hasMore = true;
     _isLoadingMore = false;
 
-    final notifications = await ref.read(notificationRepositoryProvider).getNotifications(
-          page: _currentPage,
-          limit: _pageSize,
-        );
+    final notifications =
+        await ref.read(notificationRepositoryProvider).getNotifications(
+              page: _currentPage,
+              limit: _pageSize,
+            );
     _hasMore = notifications.length >= _pageSize;
 
     _subscribe(userId);
@@ -40,8 +42,19 @@ class NotificationNotifier extends AsyncNotifier<List<AppNotification>> {
   }
 
   Future<void> fetchNotifications() async {
-    ref.invalidateSelf();
-    await future;
+    try {
+      ref.invalidateSelf();
+      await future;
+    } catch (error, stackTrace) {
+      if (kDebugMode) {
+        debugPrint('[Notifications] fetch failed: $error');
+      }
+
+      // Avoid bubbling an unhandled exception from fire-and-forget calls.
+      if (state.valueOrNull == null) {
+        state = AsyncError(error, stackTrace);
+      }
+    }
   }
 
   Future<void> refreshNotifications() async {
@@ -57,10 +70,11 @@ class NotificationNotifier extends AsyncNotifier<List<AppNotification>> {
     _isLoadingMore = true;
     try {
       final nextPage = _currentPage + 1;
-      final nextItems = await ref.read(notificationRepositoryProvider).getNotifications(
-            page: nextPage,
-            limit: _pageSize,
-          );
+      final nextItems =
+          await ref.read(notificationRepositoryProvider).getNotifications(
+                page: nextPage,
+                limit: _pageSize,
+              );
 
       if (nextItems.isEmpty) {
         _hasMore = false;

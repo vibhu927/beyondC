@@ -269,23 +269,27 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
         role: BCPortalRole.brand,
         currentIndex: 2,
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+        child: FloatingActionButton(
+          heroTag: 'brandRequestsFiltersFab',
+          onPressed: _openFilters,
+          backgroundColor: AppColors.ink,
+          foregroundColor: AppColors.neon,
+          tooltip: 'Filter requests',
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+            side: const BorderSide(color: AppColors.neon, width: 2),
+          ),
+          child: const Icon(Icons.tune_rounded),
+        ),
+      ),
       body: BCPageSwipeArea(
         role: BCPortalRole.brand,
         currentIndex: 2,
         child: Column(
           children: [
-          Align(
-            alignment: Alignment.centerRight,
-            child: Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.screenPadding),
-              child: IconButton(
-                onPressed: _openFilters,
-                icon: const Icon(Icons.tune_rounded, color: AppColors.ink),
-                tooltip: 'Filter requests',
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
           _TabBarPills(
             activeTab: _activeTab,
             onChanged: (tab) {

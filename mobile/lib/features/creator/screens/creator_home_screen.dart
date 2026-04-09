@@ -78,14 +78,18 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Instagram connection failed. Please try again.')),
+          const SnackBar(
+              content: Text('Instagram connection failed. Please try again.')),
         );
       }
     } catch (error) {
       if (!mounted) return;
-      final message = ref.read(instagramOAuthServiceProvider).extractApiError(error);
+      final message =
+          ref.read(instagramOAuthServiceProvider).extractApiError(error);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message.isEmpty ? 'Instagram connection failed.' : message)),
+        SnackBar(
+            content: Text(
+                message.isEmpty ? 'Instagram connection failed.' : message)),
       );
     } finally {
       if (mounted) {
@@ -111,357 +115,365 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
           color: AppColors.neon,
           onRefresh: _refresh,
           child: homeAsync.when(
-          loading: () => const BCLoadingOverlay(
-            isLoading: true,
-            child: SizedBox.expand(),
-          ),
-          error: (error, _) => BCErrorState(
-            message: error.toString(),
-            onRetry: _refresh,
-          ),
-          data: (home) {
-            final profile = home.profile;
+            loading: () => const BCLoadingOverlay(
+              isLoading: true,
+              child: SizedBox.expand(),
+            ),
+            error: (error, _) => BCErrorState(
+              message: error.toString(),
+              onRetry: _refresh,
+            ),
+            data: (home) {
+              final profile = home.profile;
 
-            return CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenPadding,
-                    0,
-                    AppSpacing.screenPadding,
-                    AppSpacing.huge,
-                  ),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      if (!profile.instagramVerified) ...[
-                        const SizedBox(height: AppSpacing.lg),
-                        _InstagramConnectBanner(
-                          isLoading: _isConnectingInstagram,
-                          onConnect: _connectInstagram,
+              return CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.screenPadding,
+                    ),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        const SizedBox(height: AppSpacing.huge),
+                        if (!profile.instagramVerified) ...[
+                          _InstagramConnectBanner(
+                            isLoading: _isConnectingInstagram,
+                            onConnect: _connectInstagram,
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                        ],
+                        Wrap(
+                          spacing: AppSpacing.md,
+                          runSpacing: AppSpacing.md,
+                          children: [
+                            _MiniStatPill(
+                              emoji: '💰',
+                              label: Formatters.currency(home.wallet.balance),
+                              backgroundColor: AppColors.neon,
+                              textColor: AppColors.ink,
+                            ),
+                            _MiniStatPill(
+                              emoji: '⚡',
+                              label: '${home.activeBidsCount} active bids',
+                              backgroundColor: AppColors.ink,
+                              textColor: AppColors.white,
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: AppSpacing.lg),
-                      ] else
-                        const SizedBox(height: AppSpacing.md),
-                      Wrap(
-                        spacing: AppSpacing.md,
-                        runSpacing: AppSpacing.md,
-                        children: [
-                          _MiniStatPill(
-                            emoji: '💰',
-                            label: Formatters.currency(home.wallet.balance),
-                            backgroundColor: AppColors.neon,
-                            textColor: AppColors.ink,
-                          ),
-                          _MiniStatPill(
-                            emoji: '⚡',
-                            label: '${home.activeBidsCount} active bids',
-                            backgroundColor: AppColors.ink,
-                            textColor: AppColors.white,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xxxl),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _StatOrb(
-                              emoji: '👀',
-                              label: 'Followers',
-                              value: Formatters.followerCount(
-                                home.profile.followersCount,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: _StatOrb(
-                              emoji: '📩',
-                              label: 'Requests',
-                              value: '${home.requests.length}',
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: _StatOrb(
-                              emoji: '🤝',
-                              label: 'Collabs',
-                              value: '${home.activeCollabs.length}',
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xxxl),
-                      _SectionHeader(
-                        title: 'New Campaigns 🔥',
-                        actionLabel: 'See all →',
-                        onTap: () => context.push(RouteNames.creatorCampaigns),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      SizedBox(
-                        height: 232,
-                        child: home.campaigns.isEmpty
-                            ? const BCEmptyState(
-                                emoji: '📣',
-                                message: 'No active campaigns right now.',
-                              )
-                            : ListView.separated(
-                                clipBehavior: Clip.none,
-                                padding: const EdgeInsets.fromLTRB(
-                                  0,
-                                  2,
-                                  AppSpacing.sm,
-                                  8,
-                                ),
-                                scrollDirection: Axis.horizontal,
-                                itemBuilder: (context, index) {
-                                  final campaign = home.campaigns[index];
-                                  return CampaignCard(
-                                    campaign: campaign,
-                                    onTap: () => context.push(
-                                      RouteNames.campaignDetail
-                                          .replaceFirst(':id', campaign.id),
-                                    ),
-                                  );
-                                },
-                                separatorBuilder: (_, __) =>
-                                    const SizedBox(width: AppSpacing.md),
-                                itemCount: home.campaigns.length,
-                              ),
-                      ),
-                      const SizedBox(height: AppSpacing.xxxl),
-                      _SectionHeader(
-                        title: 'Brand Requests 📩',
-                        actionLabel: 'See all →',
-                        onTap: () => context.push(RouteNames.creatorRequests),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      if (home.requests.isEmpty)
-                        const BCEmptyState(
-                          emoji: '📭',
-                          message:
-                              'No requests yet. Brands will reach out soon!',
-                        )
-                      else
-                        Column(
-                          children: home.requests.take(3).map((request) {
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.only(bottom: AppSpacing.md),
-                              child: BCCard(
-                                shadow: AppShadows.blue,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 44,
-                                          height: 44,
-                                          decoration: BoxDecoration(
-                                            color: AppColors.blue,
-                                            borderRadius: BorderRadius.circular(
-                                              AppSpacing.radiusFull,
-                                            ),
-                                            border: Border.all(
-                                              color: AppColors.ink,
-                                              width: 2,
-                                            ),
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            request.brandInitial,
-                                            style: AppTypography.labelMD
-                                                .copyWith(
-                                                    color: AppColors.white),
-                                          ),
-                                        ),
-                                        const SizedBox(width: AppSpacing.md),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const Text(
-                                                'A brand wants to collab',
-                                                style: AppTypography.labelLG,
-                                              ),
-                                              const SizedBox(
-                                                  height: AppSpacing.xs),
-                                              Text(
-                                                timeago
-                                                    .format(request.receivedAt),
-                                                style: AppTypography.bodyXS,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: AppSpacing.md),
-                                    Row(
-                                      children: [
-                                        BCBadge(
-                                          label: Formatters.currencyFromINR(
-                                              request.budget),
-                                          variant: BCBadgeVariant.neon,
-                                        ),
-                                        const SizedBox(width: AppSpacing.sm),
-                                        BCBadge(
-                                          label: _collabTypeLabel(
-                                              request.collabType),
-                                          variant: _collabTypeVariant(
-                                              request.collabType),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: AppSpacing.md),
-                                    Row(
-                                      children: [
-                                        _CompactActionButton(
-                                          label: 'View',
-                                          isFilled: false,
-                                          onTap: () => context
-                                              .push(RouteNames.creatorRequests),
-                                        ),
-                                        const SizedBox(width: AppSpacing.sm),
-                                        _CompactActionButton(
-                                          label: 'Accept',
-                                          isFilled: true,
-                                          onTap: () async {
-                                            try {
-                                              await ref
-                                                  .read(creatorActionsProvider
-                                                      .notifier)
-                                                  .respondToRequest(
-                                                    requestId: request.id,
-                                                    action: 'accept',
-                                                  );
-                                              if (!context.mounted) return;
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                const SnackBar(
-                                                  content:
-                                                      Text('Request accepted.'),
-                                                ),
-                                              );
-                                            } catch (_) {
-                                              if (!context.mounted) return;
-                                              ScaffoldMessenger.of(context)
-                                                  .showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                      'Could not accept request.'),
-                                                ),
-                                              );
-                                            }
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                        const SizedBox(height: AppSpacing.xxxl),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _StatOrb(
+                                emoji: '👀',
+                                label: 'Followers',
+                                value: Formatters.followerCount(
+                                  home.profile.followersCount,
                                 ),
                               ),
-                            );
-                          }).toList(),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: _StatOrb(
+                                emoji: '📩',
+                                label: 'Requests',
+                                value: '${home.requests.length}',
+                                onTap: () => context.push(RouteNames.creatorRequests),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: _StatOrb(
+                                emoji: '🤝',
+                                label: 'Collabs',
+                                value: '${home.activeCollabs.length}',
+                                onTap: () => context.push(RouteNames.creatorCollabs),
+                              ),
+                            ),
+                          ],
                         ),
-                      const SizedBox(height: AppSpacing.xxxl),
-                      _SectionHeader(
-                        title: 'Your Active Collabs',
-                        actionLabel: 'See all →',
-                        onTap: () => context.push(RouteNames.creatorCollabs),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      if (home.activeCollabs.isEmpty)
-                        const BCEmptyState(
-                          emoji: '🤝',
-                          message:
-                              'No active collabs yet. Start bidding on campaigns!',
-                        )
-                      else
-                        Column(
-                          children: home.activeCollabs.take(2).map((collab) {
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.only(bottom: AppSpacing.md),
-                              child: BCCard(
-                                shadow: AppShadows.neon,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            '${collab.brandCategory} collab',
-                                            style: AppTypography.labelLG,
-                                          ),
-                                        ),
-                                        Text(
-                                          Formatters.currency(collab.amount),
-                                          style: AppTypography.displaySM,
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: AppSpacing.md),
-                                    const Text(
-                                      'Brief  ·  Draft  ·  Approved  ·  Posted',
-                                      style: AppTypography.bodyXS,
-                                    ),
-                                    const SizedBox(height: AppSpacing.sm),
-                                    Row(
-                                      children: List.generate(4, (index) {
-                                        final step = index + 1;
-                                        final isCurrent =
-                                            collab.currentStep == step;
-                                        final isDone =
-                                            collab.currentStep > step;
-                                        return Padding(
-                                          padding: EdgeInsets.only(
-                                            right:
-                                                index == 3 ? 0 : AppSpacing.sm,
-                                          ),
-                                          child: Container(
-                                            width: 16,
-                                            height: 16,
+                        const SizedBox(height: AppSpacing.xxxl),
+                        _SectionHeader(
+                          title: 'New Campaigns 🔥',
+                          actionLabel: 'See all →',
+                          onTap: () =>
+                              context.push(RouteNames.creatorCampaigns),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        SizedBox(
+                          height: 232,
+                          child: home.campaigns.isEmpty
+                              ? const BCEmptyState(
+                                  emoji: '📣',
+                                  message: 'No active campaigns right now.',
+                                )
+                              : ListView.separated(
+                                  clipBehavior: Clip.none,
+                                  padding: const EdgeInsets.fromLTRB(
+                                    0,
+                                    2,
+                                    AppSpacing.sm,
+                                    8,
+                                  ),
+                                  scrollDirection: Axis.horizontal,
+                                  itemBuilder: (context, index) {
+                                    final campaign = home.campaigns[index];
+                                    return CampaignCard(
+                                      campaign: campaign,
+                                      onTap: () => context.push(
+                                        RouteNames.campaignDetail
+                                            .replaceFirst(':id', campaign.id),
+                                      ),
+                                    );
+                                  },
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(width: AppSpacing.md),
+                                  itemCount: home.campaigns.length,
+                                ),
+                        ),
+                        const SizedBox(height: AppSpacing.xxxl),
+                        _SectionHeader(
+                          title: 'Brand Requests 📩',
+                          actionLabel: 'See all →',
+                          onTap: () => context.push(RouteNames.creatorRequests),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        if (home.requests.isEmpty)
+                          const BCEmptyState(
+                            emoji: '📭',
+                            message:
+                                'No requests yet. Brands will reach out soon!',
+                          )
+                        else
+                          Column(
+                            children: home.requests.take(3).map((request) {
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.md),
+                                child: BCCard(
+                                  shadow: AppShadows.blue,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: 44,
+                                            height: 44,
                                             decoration: BoxDecoration(
-                                              color: isCurrent
-                                                  ? AppColors.neon
-                                                  : isDone
-                                                      ? AppColors.ink
-                                                      : AppColors.white,
-                                              shape: BoxShape.circle,
+                                              color: AppColors.blue,
+                                              borderRadius:
+                                                  BorderRadius.circular(
+                                                AppSpacing.radiusFull,
+                                              ),
                                               border: Border.all(
                                                 color: AppColors.ink,
                                                 width: 2,
                                               ),
                                             ),
+                                            alignment: Alignment.center,
+                                            child: Text(
+                                              request.brandInitial,
+                                              style: AppTypography.labelMD
+                                                  .copyWith(
+                                                      color: AppColors.white),
+                                            ),
                                           ),
-                                        );
-                                      }),
-                                    ),
-                                    const SizedBox(height: AppSpacing.md),
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: BCPrimaryButton.dark(
-                                        label: 'Continue →',
-                                        onPressed: () => context
-                                            .push(RouteNames.creatorCollabs),
-                                        isFullWidth: false,
+                                          const SizedBox(width: AppSpacing.md),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text(
+                                                  'A brand wants to collab',
+                                                  style: AppTypography.labelLG,
+                                                ),
+                                                const SizedBox(
+                                                    height: AppSpacing.xs),
+                                                Text(
+                                                  timeago.format(
+                                                      request.receivedAt),
+                                                  style: AppTypography.bodyXS,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: AppSpacing.md),
+                                      Row(
+                                        children: [
+                                          BCBadge(
+                                            label: Formatters.currencyFromINR(
+                                                request.budget),
+                                            variant: BCBadgeVariant.neon,
+                                          ),
+                                          const SizedBox(width: AppSpacing.sm),
+                                          BCBadge(
+                                            label: _collabTypeLabel(
+                                                request.collabType),
+                                            variant: _collabTypeVariant(
+                                                request.collabType),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: AppSpacing.md),
+                                      Row(
+                                        children: [
+                                          _CompactActionButton(
+                                            label: 'View',
+                                            isFilled: false,
+                                            onTap: () => context.push(
+                                                RouteNames.creatorRequests),
+                                          ),
+                                          const SizedBox(width: AppSpacing.sm),
+                                          _CompactActionButton(
+                                            label: 'Accept',
+                                            isFilled: true,
+                                            onTap: () async {
+                                              try {
+                                                await ref
+                                                    .read(creatorActionsProvider
+                                                        .notifier)
+                                                    .respondToRequest(
+                                                      requestId: request.id,
+                                                      action: 'accept',
+                                                    );
+                                                if (!context.mounted) return;
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                        'Request accepted.'),
+                                                  ),
+                                                );
+                                              } catch (_) {
+                                                if (!context.mounted) return;
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                        'Could not accept request.'),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            );
-                          }).toList(),
+                              );
+                            }).toList(),
+                          ),
+                        const SizedBox(height: AppSpacing.xxxl),
+                        _SectionHeader(
+                          title: 'Your Active Collabs',
+                          actionLabel: 'See all →',
+                          onTap: () => context.push(RouteNames.creatorCollabs),
                         ),
-                    ]),
+                        const SizedBox(height: AppSpacing.lg),
+                        if (home.activeCollabs.isEmpty)
+                          const BCEmptyState(
+                            emoji: '🤝',
+                            message:
+                                'No active collabs yet. Start bidding on campaigns!',
+                          )
+                        else
+                          Column(
+                            children: home.activeCollabs.take(2).map((collab) {
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.md),
+                                child: BCCard(
+                                  shadow: AppShadows.neon,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              '${collab.brandCategory} collab',
+                                              style: AppTypography.labelLG,
+                                            ),
+                                          ),
+                                          Text(
+                                            Formatters.currency(collab.amount),
+                                            style: AppTypography.displaySM,
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: AppSpacing.md),
+                                      const Text(
+                                        'Brief  ·  Draft  ·  Approved  ·  Posted',
+                                        style: AppTypography.bodyXS,
+                                      ),
+                                      const SizedBox(height: AppSpacing.sm),
+                                      Row(
+                                        children: List.generate(4, (index) {
+                                          final step = index + 1;
+                                          final isCurrent =
+                                              collab.currentStep == step;
+                                          final isDone =
+                                              collab.currentStep > step;
+                                          return Padding(
+                                            padding: EdgeInsets.only(
+                                              right: index == 3
+                                                  ? 0
+                                                  : AppSpacing.sm,
+                                            ),
+                                            child: Container(
+                                              width: 16,
+                                              height: 16,
+                                              decoration: BoxDecoration(
+                                                color: isCurrent
+                                                    ? AppColors.neon
+                                                    : isDone
+                                                        ? AppColors.ink
+                                                        : AppColors.white,
+                                                shape: BoxShape.circle,
+                                                border: Border.all(
+                                                  color: AppColors.ink,
+                                                  width: 2,
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }),
+                                      ),
+                                      const SizedBox(height: AppSpacing.md),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: BCPrimaryButton.dark(
+                                          label: 'Continue →',
+                                          onPressed: () => context
+                                              .push(RouteNames.creatorCollabs),
+                                          isFullWidth: false,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        const SizedBox(
+                            height: AppSpacing.huge +
+                                AppSpacing.xxxl +
+                                AppSpacing.lg +
+                                AppSpacing.xxl),
+                      ]),
+                    ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -491,13 +503,18 @@ class _InstagramConnectBanner extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                colors: [Color(0xFFE1306C), Color(0xFFF77737), Color(0xFF833AB4)],
+                colors: [
+                  Color(0xFFE1306C),
+                  Color(0xFFF77737),
+                  Color(0xFF833AB4)
+                ],
                 begin: Alignment.topRight,
                 end: Alignment.bottomLeft,
               ),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 20),
+            child: const Icon(Icons.camera_alt_rounded,
+                color: Colors.white, size: 20),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -510,7 +527,8 @@ class _InstagramConnectBanner extends StatelessWidget {
                 ),
                 Text(
                   'Verify your account to appear in brand search',
-                  style: AppTypography.bodyXS.copyWith(color: AppColors.lightMuted),
+                  style: AppTypography.bodyXS
+                      .copyWith(color: AppColors.lightMuted),
                 ),
               ],
             ),
@@ -573,15 +591,19 @@ class _StatOrb extends StatelessWidget {
     required this.emoji,
     required this.label,
     required this.value,
+    this.onTap,
   });
 
   final String emoji;
   final String label;
   final String value;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
@@ -625,6 +647,7 @@ class _StatOrb extends StatelessWidget {
           ),
         ),
       ],
+      ),
     );
   }
 }

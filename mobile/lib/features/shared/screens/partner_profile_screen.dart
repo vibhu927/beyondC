@@ -48,7 +48,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
         '';
     final role = (_readString(widget.data['role']) ?? 'creator').toLowerCase();
     final viewerRole =
-      (_readString(widget.data['viewerRole']) ?? '').toLowerCase();
+        (_readString(widget.data['viewerRole']) ?? '').toLowerCase();
 
     if (id.isEmpty) {
       return _PartnerProfileData.placeholder(role: role, fallback: widget.data);
@@ -56,11 +56,8 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
 
     final supabase = Supabase.instance.client;
 
-    final baseProfileResponse = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
+    final baseProfileResponse =
+        await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
     final baseProfile = _asMap(baseProfileResponse);
 
     if (role == 'brand') {
@@ -123,7 +120,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
           _readString(widget.data['tier']) ??
           'Rising Creator',
       bio: _readString(creator['bio']) ?? _readString(widget.data['bio']) ?? '',
-        niches: _resolveNiches(creator),
+      niches: _resolveNiches(creator),
       contentTypes:
           _stringList(creator['platforms'] ?? creator['content_type']),
       followers: _readInt(creator['followers_count']) ??
@@ -136,7 +133,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
       instagramUsername: _readString(creator['instagram_username']) ??
           _readString(widget.data['instagramUsername']),
       instagramVerified: _readBool(creator['instagram_verified']) ?? false,
-        canViewInstagram: canViewInstagram,
+      canViewInstagram: canViewInstagram,
       followingCount: _readInt(creator['following_count']) ?? 0,
       postsCount: _readInt(creator['posts_count']) ?? 0,
       highestVideoViews: _readInt(creator['highest_video_views']) ?? 0,
@@ -213,7 +210,8 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
           }
 
           final partner = snapshot.data ??
-              _PartnerProfileData.placeholder(role: role, fallback: widget.data);
+              _PartnerProfileData.placeholder(
+                  role: role, fallback: widget.data);
 
           return RefreshIndicator(
             color: AppColors.neon,
@@ -235,8 +233,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
                   flexibleSpace: FlexibleSpaceBar(
                     background: SafeArea(
                       child: Padding(
-                        padding:
-                            const EdgeInsets.only(top: AppSpacing.xl * 2),
+                        padding: const EdgeInsets.only(top: AppSpacing.xl * 2),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -254,11 +251,25 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
                                 ),
                               ),
                               alignment: Alignment.center,
-                              child: Text(
-                                _initials(partner.displayName),
-                                style: AppTypography.labelLG
-                                    .copyWith(color: AppColors.white),
-                              ),
+                              child: (partner.avatarUrl ?? '').trim().isNotEmpty
+                                  ? ClipOval(
+                                      child: Image.network(
+                                        partner.avatarUrl!,
+                                        width: 88,
+                                        height: 88,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => Text(
+                                          _initials(partner.displayName),
+                                          style: AppTypography.labelLG
+                                              .copyWith(color: AppColors.white),
+                                        ),
+                                      ),
+                                    )
+                                  : Text(
+                                      _initials(partner.displayName),
+                                      style: AppTypography.labelLG
+                                          .copyWith(color: AppColors.white),
+                                    ),
                             ),
                             const SizedBox(height: AppSpacing.sm),
                             Text(
@@ -454,7 +465,8 @@ class _CreatorProfileSection extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Performance Snapshot', style: AppTypography.displaySM),
+              const Text('Performance Snapshot',
+                  style: AppTypography.displaySM),
               const SizedBox(height: AppSpacing.md),
               _InfoRow(
                 label: 'Following',
@@ -608,7 +620,9 @@ class _BrandProfileSection extends StatelessWidget {
               ),
               _InfoRow(
                 label: 'Website',
-                value: partner.website.trim().isEmpty ? 'Not set' : partner.website,
+                value: partner.website.trim().isEmpty
+                    ? 'Not set'
+                    : partner.website,
               ),
               if (partner.website.trim().isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
@@ -793,9 +807,7 @@ class _PartnerProfileData {
 
   String get badgeLabel {
     if (isCreator) {
-      return instagramVerified
-          ? 'Creator • Verified'
-          : 'Creator • $tier';
+      return instagramVerified ? 'Creator • Verified' : 'Creator • $tier';
     }
     return verified ? 'Brand • Verified' : 'Brand';
   }
@@ -953,4 +965,3 @@ List<String> _resolveNiches(Map<String, dynamic> creator) {
   if (niches.isNotEmpty) return niches;
   return _stringList(creator['niche']);
 }
-

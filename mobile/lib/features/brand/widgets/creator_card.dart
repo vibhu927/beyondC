@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/formatters.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/cards/bc_card.dart';
@@ -42,10 +42,25 @@ class CreatorCard extends StatelessWidget {
                   border: Border.all(color: AppColors.ink, width: 2),
                 ),
                 alignment: Alignment.center,
-                child: Text(
-                  creator.initials,
-                  style: AppTypography.labelMD.copyWith(color: AppColors.white),
-                ),
+                child: (creator.avatarUrl ?? '').trim().isNotEmpty
+                    ? ClipOval(
+                        child: Image.network(
+                          creator.avatarUrl!,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Text(
+                            creator.initials,
+                            style: AppTypography.labelMD
+                                .copyWith(color: AppColors.white),
+                          ),
+                        ),
+                      )
+                    : Text(
+                        creator.initials,
+                        style: AppTypography.labelMD
+                            .copyWith(color: AppColors.white),
+                      ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -91,7 +106,7 @@ class CreatorCard extends StatelessWidget {
                       runSpacing: AppSpacing.sm,
                       children: [
                         Text(
-                          creator.followerRange,
+                          '${_followersExact(creator.followersCount)} followers',
                           style: AppTypography.labelSM,
                         ),
                         Text(
@@ -99,7 +114,7 @@ class CreatorCard extends StatelessWidget {
                           style: AppTypography.bodySM,
                         ),
                         Text(
-                          'from ${_rupees(creator.startingPrice)}',
+                          'from ${Formatters.currency(creator.startingPrice)}',
                           style: AppTypography.bodySM,
                         ),
                       ],
@@ -211,8 +226,8 @@ BCBadgeVariant _tierVariant(String tier) {
   }
 }
 
-String _rupees(int value) =>
-    '₹${NumberFormat.decimalPattern('en_IN').format(value)}';
+String _followersExact(int count) =>
+    Formatters.followerCount(count).toLowerCase();
 
 Color _avatarColor(String initials) {
   const palette = [

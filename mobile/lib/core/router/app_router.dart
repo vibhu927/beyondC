@@ -226,7 +226,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.brandRequests,
-        builder: (c, s) => const BrandRequestsScreen(),
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: BrandRequestsScreen(),
+        ),
       ),
       GoRoute(
         path: RouteNames.brandProfile,

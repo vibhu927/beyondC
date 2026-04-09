@@ -6,15 +6,15 @@ type ForgotPasswordEmailProps = {
 export function ForgotPasswordEmail({ firstName, resetLink }: ForgotPasswordEmailProps) {
   return (
     <html>
-      <body style={{ fontFamily: 'sans-serif', background: '#f7f7f7', padding: '40px 0' }}>
+      <body style={{ fontFamily: 'Helvetica, Arial, sans-serif', background: '#f7f7f7', padding: '40px 0' }}>
         <div
           style={{
-            maxWidth: '480px',
+            maxWidth: '520px',
             margin: '0 auto',
             background: '#ffffff',
             border: '2px solid #0D0D0D',
-            borderRadius: '16px',
-            boxShadow: '4px 4px 0px #C8FF00',
+            borderRadius: '18px',
+            boxShadow: '5px 5px 0px #C8FF00',
             overflow: 'hidden',
           }}
         >
@@ -33,6 +33,23 @@ export function ForgotPasswordEmail({ firstName, resetLink }: ForgotPasswordEmai
             >
               C
             </span>
+            <div style={{ marginTop: '12px' }}>
+              <span
+                style={{
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  letterSpacing: '0.8px',
+                  textTransform: 'uppercase',
+                  color: '#0D0D0D',
+                  background: '#C8FF00',
+                  borderRadius: '999px',
+                  border: '2px solid #0D0D0D',
+                  padding: '4px 10px',
+                }}
+              >
+                Security Reset
+              </span>
+            </div>
           </div>
 
           <div style={{ padding: '32px 24px' }}>
@@ -60,16 +77,31 @@ export function ForgotPasswordEmail({ firstName, resetLink }: ForgotPasswordEmai
                 marginBottom: '24px',
               }}
             >
-              Reset My Password →
+              Change Password →
             </a>
 
-            <p style={{ fontSize: '13px', color: '#6B6B6B', margin: 0 }}>
-              This link expires in <strong>1 hour</strong>. If you did not request this, ignore this email and your account will remain safe.
+            <div
+              style={{
+                background: '#F7F7F7',
+                border: '2px solid #0D0D0D',
+                borderRadius: '12px',
+                boxShadow: '3px 3px 0 #9B5DE5',
+                padding: '14px 16px',
+              }}
+            >
+              <p style={{ fontSize: '13px', color: '#444444', margin: 0, lineHeight: 1.55 }}>
+                This link is <strong style={{ color: '#0D0D0D' }}>unique</strong>, expires in <strong style={{ color: '#0D0D0D' }}>1 hour</strong>, and can be used only once.
+                If opened after expiry or reuse, it will show as expired.
+              </p>
+            </div>
+
+            <p style={{ fontSize: '12px', color: '#6B6B6B', margin: '16px 0 0' }}>
+              If you did not request this, ignore this email and your account will remain safe.
             </p>
           </div>
 
-          <div style={{ background: '#f7f7f7', padding: '16px 24px', textAlign: 'center' }}>
-            <p style={{ fontSize: '12px', color: '#888888', margin: 0 }}>© 2025 BeyondC · Made with love in India</p>
+          <div style={{ background: '#0D0D0D', padding: '16px 24px', textAlign: 'center' }}>
+            <p style={{ fontSize: '12px', color: '#555555', margin: 0 }}>© 2026 BeyondC · Made with love in India</p>
           </div>
         </div>
       </body>

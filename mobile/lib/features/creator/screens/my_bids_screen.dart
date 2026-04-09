@@ -85,15 +85,7 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
                   ),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      const Text('My Bids', style: AppTypography.displayMD),
                       const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        'Track every pitch, follow matches, and withdraw pending bids anytime.',
-                        style: AppTypography.bodySM.copyWith(
-                          color: AppColors.muted,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
                       SizedBox(
                         height: 86,
                         child: Row(

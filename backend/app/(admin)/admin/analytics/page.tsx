@@ -1,7 +1,47 @@
 import { PermissionGate } from '@/components/admin/permission-gate'
 import { AdminBarChart, AdminLineChart, AdminPieChart } from '@/components/admin/charts'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { createServiceClient } from '@/lib/supabase/service'
+import { headers } from 'next/headers'
+
+type AnalyticsResponse = {
+  profiles: Array<{ id: string; role: string | null; created_at: string }>
+  collabs: Array<{ id: string; agreed_amount: number | null; created_at: string }>
+  creators: Array<{ tier: string | null; niche: string[] | null }>
+  campaigns: Array<{ niche: string[] | null; created_at: string }>
+}
+
+async function loadAnalytics(): Promise<AnalyticsResponse> {
+  const requestHeaders = headers()
+  const host = requestHeaders.get('x-forwarded-host') ?? requestHeaders.get('host') ?? 'localhost:3000'
+  const proto = requestHeaders.get('x-forwarded-proto') ?? 'http'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${proto}://${host}`
+
+  try {
+    const response = await fetch(`${appUrl}/api/admin/analytics`, {
+      cache: 'no-store',
+      headers: {
+        cookie: requestHeaders.get('cookie') ?? '',
+      },
+    })
+
+    if (!response.ok) {
+      return { profiles: [], collabs: [], creators: [], campaigns: [] }
+    }
+
+    const payload = (await response.json()) as {
+      success?: boolean
+      data?: AnalyticsResponse
+    }
+
+    if (!payload.success || !payload.data) {
+      return { profiles: [], collabs: [], creators: [], campaigns: [] }
+    }
+
+    return payload.data
+  } catch {
+    return { profiles: [], collabs: [], creators: [], campaigns: [] }
+  }
+}
 
 function toLabel(dateString: string) {
   const date = new Date(dateString)
@@ -9,17 +49,10 @@ function toLabel(dateString: string) {
 }
 
 export default async function AdminAnalyticsPage() {
-  const service = createServiceClient()
-
-  const [profiles, collabs, creators, campaigns] = await Promise.all([
-    service.from('profiles').select('id,role,created_at'),
-    service.from('collabs').select('id,agreed_amount,created_at'),
-    service.from('creator_profiles').select('tier,niche'),
-    service.from('campaigns').select('niche,created_at'),
-  ])
+  const { profiles, collabs, creators, campaigns } = await loadAnalytics()
 
   const dailySignupMap = new Map<string, { creators: number; brands: number }>()
-  ;(profiles.data ?? []).forEach((row) => {
+  profiles.forEach((row) => {
     const key = toLabel(row.created_at)
     const current = dailySignupMap.get(key) ?? { creators: 0, brands: 0 }
     if (row.role === 'creator') current.creators += 1
@@ -30,7 +63,7 @@ export default async function AdminAnalyticsPage() {
 
   const monthlyRevenueMap = new Map<string, number>()
   const monthlyCollabMap = new Map<string, number>()
-  ;(collabs.data ?? []).forEach((row) => {
+  collabs.forEach((row) => {
     const d = new Date(row.created_at)
     const key = `${d.toLocaleString('default', { month: 'short' })} ${String(d.getFullYear()).slice(-2)}`
     monthlyRevenueMap.set(key, (monthlyRevenueMap.get(key) ?? 0) + Number(row.agreed_amount ?? 0))
@@ -42,7 +75,7 @@ export default async function AdminAnalyticsPage() {
 
   const tierMap = new Map<string, number>()
   const nicheMap = new Map<string, number>()
-  ;(creators.data ?? []).forEach((row) => {
+  creators.forEach((row) => {
     const tier = row.tier || 'unknown'
     tierMap.set(tier, (tierMap.get(tier) ?? 0) + 1)
 
@@ -50,7 +83,7 @@ export default async function AdminAnalyticsPage() {
     niches.forEach((niche) => nicheMap.set(niche, (nicheMap.get(niche) ?? 0) + 1))
   })
 
-  ;(campaigns.data ?? []).forEach((row) => {
+  campaigns.forEach((row) => {
     const niches = (row.niche as string[] | null) ?? []
     niches.forEach((niche) => nicheMap.set(niche, (nicheMap.get(niche) ?? 0) + 1))
   })
@@ -61,14 +94,14 @@ export default async function AdminAnalyticsPage() {
     .slice(0, 5)
     .map(([label, count]) => ({ label, count }))
 
-  const avgCollabValue = (collabs.data ?? []).length
+  const avgCollabValue = collabs.length
     ? Math.round(
-        (collabs.data ?? []).reduce((sum, row) => sum + Number(row.agreed_amount ?? 0), 0) / (collabs.data ?? []).length
+        collabs.reduce((sum, row) => sum + Number(row.agreed_amount ?? 0), 0) / collabs.length
       )
     : 0
 
-  const creatorCount = (profiles.data ?? []).filter((row) => row.role === 'creator').length
-  const brandCount = (profiles.data ?? []).filter((row) => row.role === 'brand').length
+  const creatorCount = profiles.filter((row) => row.role === 'creator').length
+  const brandCount = profiles.filter((row) => row.role === 'brand').length
 
   return (
     <PermissionGate page="analytics" action="can_view">

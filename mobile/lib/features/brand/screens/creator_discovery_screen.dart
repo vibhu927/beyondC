@@ -52,6 +52,22 @@ class _CreatorDiscoveryScreenState
     final creators = _filteredCreators(brandState.creators);
 
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+        child: FloatingActionButton(
+          heroTag: 'creatorDiscoveryFiltersFab',
+          onPressed: _openFilterBottomSheet,
+          backgroundColor: AppColors.ink,
+          foregroundColor: AppColors.neon,
+          tooltip: 'Filters',
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+            side: const BorderSide(color: AppColors.neon, width: 2),
+          ),
+          child: const Icon(Icons.tune_rounded),
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
@@ -62,11 +78,6 @@ class _CreatorDiscoveryScreenState
                   context.pop();
                 }
               },
-              trailing: IconButton(
-                onPressed: _openFilterBottomSheet,
-                icon: const Icon(Icons.tune_rounded, color: Colors.white),
-                tooltip: 'Filters',
-              ),
             ),
             Expanded(
               child: ListView(
@@ -162,7 +173,10 @@ class _CreatorDiscoveryScreenState
 
       if (!nicheMatch) return false;
 
-      if (_selectedTiers.isNotEmpty && !_selectedTiers.contains(creator.tier)) {
+      if (_selectedTiers.isNotEmpty &&
+          !_selectedTiers
+              .map((tier) => tier.toLowerCase())
+              .contains(creator.tier.toLowerCase())) {
         return false;
       }
 
@@ -177,11 +191,13 @@ class _CreatorDiscoveryScreenState
       final platformMatch = switch (_platform) {
         'Instagram' => creator.contentTypes.any(
             (item) =>
+                item.toLowerCase().contains('instagram') ||
                 item.toLowerCase().contains('reel') ||
                 item.toLowerCase().contains('story'),
           ),
         'YouTube' => creator.contentTypes.any((item) =>
             item.toLowerCase().contains('youtube') ||
+            item.toLowerCase().contains('yt') ||
             item.toLowerCase().contains('short')),
         _ => true,
       };
@@ -347,10 +363,9 @@ class _CreatorDiscoveryScreenState
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
+        constraints: const BoxConstraints(minHeight: 36),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         decoration: BoxDecoration(
           color: active ? AppColors.ink : AppColors.white,
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
@@ -360,7 +375,9 @@ class _CreatorDiscoveryScreenState
           label,
           style: AppTypography.labelSM.copyWith(
             color: active ? AppColors.neon : AppColors.ink,
+            height: 1,
           ),
+          textAlign: TextAlign.center,
         ),
       ),
     );
