@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 
 import '../../core/theme/app_colors.dart';
 
@@ -7,7 +6,7 @@ class BCBackButton extends StatelessWidget {
   const BCBackButton({
     super.key,
     required this.onPressed,
-    this.icon = Symbols.arrow_back_rounded,
+    this.icon = Icons.arrow_back_rounded,
     this.iconColor = AppColors.white,
     this.backgroundColor = AppColors.darkSurface,
     this.borderColor = AppColors.darkBorder,
