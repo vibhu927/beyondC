@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../core/utils/api_error_handler.dart';
 import '../models/brand_models.dart';
+import '../models/home_carousel_item.dart';
 import '../models/paginated_result.dart';
 import '../services/api_service.dart';
 
@@ -27,6 +28,7 @@ class BrandRepository {
         'displayName':
             _string(profile['display_name']) ?? _string(profile['full_name']),
         'avatarUrl': _string(profile['avatar_url']),
+        'portfolioLinks': _stringList(brand['portfolio_links']),
         'onboarded': _bool(profile['onboarded']) ??
             _bool(profile['is_onboarded']) ??
             false,
@@ -40,6 +42,8 @@ class BrandRepository {
         'description': _string(brand['description']) ?? '',
         'logoUrl': _string(brand['logo_url']),
         'website': _string(brand['website']) ?? '',
+        'state': _string(profile['state']),
+        'city': _string(profile['city']),
         'contactEmail': _string(brand['contact_email']),
         'size': _string(brand['size']),
         'creditsBalance': _int(brand['credit_balance']) ??
@@ -72,6 +76,7 @@ class BrandRepository {
         'displayName':
             _string(profile['display_name']) ?? _string(profile['full_name']),
         'avatarUrl': _string(profile['avatar_url']),
+        'portfolioLinks': _stringList(brand['portfolio_links']),
         'onboarded': _bool(profile['onboarded']) ??
             _bool(profile['is_onboarded']) ??
             false,
@@ -85,6 +90,8 @@ class BrandRepository {
         'description': _string(brand['description']) ?? '',
         'logoUrl': _string(brand['logo_url']),
         'website': _string(brand['website']) ?? '',
+        'state': _string(profile['state']),
+        'city': _string(profile['city']),
         'contactEmail': _string(brand['contact_email']),
         'size': _string(brand['size']),
         'creditsBalance': _int(brand['credit_balance']) ??
@@ -103,12 +110,44 @@ class BrandRepository {
     }
   }
 
+  Future<List<HomeCarouselItem>> fetchHomeCarouselItems() async {
+    try {
+      final response = await _dio.get(
+        '/home/carousel',
+        queryParameters: {'audience': 'brand'},
+      );
+
+      final root = _asMap(response.data);
+      final payload = _asMap(root['data']);
+      final items = _asMapList(
+        payload['items'] ?? root['items'],
+      );
+
+      return items
+          .map((item) {
+            return HomeCarouselItem(
+              id: _string(item['id']) ?? '',
+              audience: _string(item['audience']) ?? 'brand',
+              mediaUrl: _string(item['media_url']) ?? '',
+              caption: _string(item['caption']),
+              sortOrder: _int(item['sort_order']) ?? 0,
+            );
+          })
+          .where((item) => item.id.isNotEmpty && item.mediaUrl.isNotEmpty)
+          .toList();
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
   Future<PaginatedResult<CreatorDiscovery>> getCreators({
     String? niche,
     String? tier,
     int? minFollowers,
     int? maxPrice,
     String? platform,
+    String? state,
+    String? city,
     int page = 1,
     int limit = 20,
   }) async {
@@ -121,6 +160,8 @@ class BrandRepository {
           if (minFollowers != null) 'min_followers': minFollowers,
           if (maxPrice != null) 'max_price': maxPrice,
           if (platform != null && platform.isNotEmpty) 'platform': platform,
+          if (state != null && state.isNotEmpty) 'state': state,
+          if (city != null && city.isNotEmpty) 'city': city,
           'page': page,
           'limit': limit,
         },
@@ -135,6 +176,8 @@ class BrandRepository {
           'id': _string(item['id']) ?? '',
           'firstName': _resolveCreatorFirstName(item),
           'avatarUrl': _string(item['avatar_url']),
+          'state': _string(item['state']),
+          'city': _string(item['city']),
           'niches': _stringList(item['niches'] ?? item['niche']),
           'contentTypes':
               _stringList(item['platforms'] ?? item['content_type']),
@@ -171,6 +214,8 @@ class BrandRepository {
         niche: niche,
         tier: tier,
         minFollowers: minFollowers,
+        state: state,
+        city: city,
         page: page,
         limit: limit,
       );
@@ -193,6 +238,8 @@ class BrandRepository {
         niche: niche,
         tier: tier,
         minFollowers: minFollowers,
+        state: state,
+        city: city,
         page: page,
         limit: limit,
       );
@@ -301,6 +348,8 @@ class BrandRepository {
     String? niche,
     String? tier,
     int? minFollowers,
+    String? state,
+    String? city,
     required int page,
     required int limit,
   }) async {
@@ -319,6 +368,12 @@ class BrandRepository {
       }
       if (minFollowers != null) {
         filterQuery = filterQuery.gte('follower_count', minFollowers);
+      }
+      if (state != null && state.isNotEmpty) {
+        filterQuery = filterQuery.eq('state', state);
+      }
+      if (city != null && city.isNotEmpty) {
+        filterQuery = filterQuery.eq('city', city);
       }
 
       final rows = (await filterQuery
@@ -370,6 +425,8 @@ class BrandRepository {
             'id': _string(data['id']) ?? '',
             'firstName': _resolveCreatorFirstName(data, profile: profile),
             'avatarUrl': _string(profile['avatar_url']),
+            'state': _string(profile['state']),
+            'city': _string(profile['city']),
             'niches': _stringList(data['niche']),
             'contentTypes':
                 _stringList(data['platforms'] ?? data['content_type']),
@@ -670,29 +727,53 @@ class BrandRepository {
 
       final bids = _asMapList(root['bids']).map((item) {
         final creator = _asMap(item['creator']);
+        final campaign = _asMap(item['campaign']);
         final creatorId =
             _string(item['creator_id']) ?? _string(creator['id']) ?? '';
+        final creatorNiche = creator['niche'] ?? creator['niches'];
+        final creatorFollowers =
+            _int(creator['follower_count']) ?? _int(creator['followers_count']);
+        final creatorEngagement = _double(creator['engagement_rate']) ??
+            _double(creator['avg_rating']) ??
+            0;
+        final creatorFullName = _string(item['creator_full_name']) ??
+          _string(creator['full_name']);
+        final creatorFirstName = _string(item['creator_first_name']) ??
+          _string(creator['first_name']) ??
+            (() {
+              final name = (creatorFullName ?? '').trim();
+              if (name.isEmpty) return null;
+              return name.split(RegExp(r'\s+')).first;
+            })();
+        final creatorAvatarUrl = _string(item['creator_avatar_url']) ??
+          _string(creator['avatar_url']);
+        final bidAmount = _int(item['bid_amount']) ??
+            _int(campaign['budget_min']) ??
+            _int(campaign['budget']) ??
+            _int(campaign['budget_max']) ??
+            0;
 
         return Bid.fromJson({
           'id': _string(item['id']) ?? '',
           'campaignId': _string(item['campaign_id']) ?? campaignId,
           'creatorId': creatorId,
-          'bidAmount': _int(item['bid_amount']) ?? 0,
+          'bidAmount': bidAmount,
           'deliverables': _string(item['deliverables']) ?? '',
           'message': _string(item['message']),
           'status': _string(item['status']) ?? 'pending',
           'includeBarter': _bool(item['include_barter']) ?? false,
           'createdAt': _string(item['created_at']),
           'updatedAt': _string(item['updated_at']),
-          'creatorFirstName': _string(creator['first_name']) ?? 'Creator',
-          'creatorFullName': _string(creator['first_name']) ?? 'Creator',
-          'creatorHandle': _string(creator['handle']) ?? '',
+          'creatorFirstName': creatorFirstName ?? 'Creator',
+          'creatorFullName': creatorFullName ?? creatorFirstName ?? 'Creator',
+          'creatorHandle': _string(creator['instagram_handle']) ??
+              _string(creator['handle']) ??
+              '',
           'tier': _string(creator['tier']) ?? 'micro',
-          'followersCount': _int(creator['followers_count']) ?? 0,
-          'engagementRate': _double(creator['engagement_rate']) ??
-              _double(creator['avg_rating']) ??
-              0,
-          'niches': _stringList(creator['niches'] ?? creator['niche']),
+          'followersCount': creatorFollowers ?? 0,
+          'engagementRate': creatorEngagement,
+          'niches': _stringList(creatorNiche),
+          'creatorAvatarUrl': creatorAvatarUrl,
           'collabType': 'paid',
         });
       }).toList();
@@ -902,6 +983,8 @@ class BrandRepository {
       'budgetMax': _int(item['budget_max']),
       'deliverables': _stringList(item['deliverables']),
       'requirements': _string(item['requirements']) ?? '',
+      'targetState': _string(item['target_state']),
+      'targetCity': _string(item['target_city']),
       'deadline': deadline,
       'status': status,
       'slots': _int(item['slots']) ?? 1,
@@ -925,6 +1008,7 @@ class BrandRepository {
       'venueName': _string(item['venue_name']),
       'venueAddress': _string(item['venue_address']),
       'city': _string(item['city']),
+      'state': _string(item['state']),
       'isVirtual': _bool(item['is_virtual']) ?? false,
       'virtualLink': _string(item['virtual_link']),
       'totalSlots': _int(item['total_slots']) ?? 10,

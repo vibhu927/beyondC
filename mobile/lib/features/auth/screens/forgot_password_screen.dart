@@ -7,6 +7,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/utils/validators.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../widgets/buttons/bc_back_button.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 
@@ -84,12 +85,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           // Back arrow
           Align(
             alignment: Alignment.centerLeft,
-            child: IconButton(
+            child: BCBackButton(
               onPressed: () => context.pop(),
-              icon: const Icon(
-                Icons.arrow_back,
-                color: AppColors.ink,
-              ),
+              iconColor: AppColors.ink,
+              backgroundColor: AppColors.surface,
+              borderColor: AppColors.lightBorder,
+              buttonSize: 36,
             ),
           ),
           const SizedBox(height: 48),

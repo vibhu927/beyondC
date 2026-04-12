@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/app_spacing.dart';
@@ -94,7 +95,7 @@ class _BCDropdownState extends State<BCDropdown> {
               color: textColor,
             ),
             icon: Icon(
-              Icons.keyboard_arrow_down,
+              Symbols.keyboard_arrow_down,
               color: textColor,
             ),
             dropdownColor: surfaceColor,

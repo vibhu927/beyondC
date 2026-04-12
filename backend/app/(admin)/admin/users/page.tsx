@@ -22,11 +22,13 @@ export default async function AdminUsersPage({
     tier?: string
     niche?: string
     status?: string
+    state?: string
     page?: string
   }
 }) {
   const tab = searchParams.tab === 'brands' ? 'brands' : 'creators'
   const query = searchParams.q ?? ''
+  const stateFilter = searchParams.state ?? ''
   const page = Number(searchParams.page ?? '1') || 1
   const from = (page - 1) * PAGE_SIZE
   const to = from + PAGE_SIZE - 1
@@ -37,7 +39,7 @@ export default async function AdminUsersPage({
 
   let creatorQuery = service
     .from('profiles')
-    .select('id,full_name,email,created_at,is_suspended,creator_profiles(tier,follower_count,wallet_balance,niche,total_collabs)', {
+    .select('id,full_name,email,state,city,created_at,is_suspended,creator_profiles(tier,follower_count,wallet_balance,niche,total_collabs)', {
       count: 'exact',
     })
     .eq('role', 'creator')
@@ -47,10 +49,13 @@ export default async function AdminUsersPage({
   if (query) {
     creatorQuery = creatorQuery.or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
   }
+  if (stateFilter) {
+    creatorQuery = creatorQuery.eq('state', stateFilter)
+  }
 
   let brandQuery = service
     .from('profiles')
-    .select('id,full_name,email,created_at,is_suspended,brand_profiles(brand_name,credit_balance,is_brand_verified,total_collabs)', {
+    .select('id,full_name,email,state,city,created_at,is_suspended,brand_profiles(brand_name,credit_balance,is_brand_verified,total_collabs)', {
       count: 'exact',
     })
     .eq('role', 'brand')
@@ -59,6 +64,9 @@ export default async function AdminUsersPage({
 
   if (query) {
     brandQuery = brandQuery.or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
+  }
+  if (stateFilter) {
+    brandQuery = brandQuery.eq('state', stateFilter)
   }
 
   const [creatorsResult, brandsResult] = await Promise.all([creatorQuery, brandQuery])
@@ -74,6 +82,7 @@ export default async function AdminUsersPage({
           <form className="mt-3 flex flex-wrap gap-2">
             <input type="hidden" name="tab" value={tab} />
             <Input name="q" defaultValue={query} placeholder="Search users by name or email" className="max-w-sm" />
+            <Input name="state" defaultValue={stateFilter} placeholder="Filter by state" className="max-w-xs" />
             <Button type="submit" variant="outline">Search</Button>
           </form>
         </CardHeader>
@@ -96,6 +105,7 @@ export default async function AdminUsersPage({
                       <TableHead>Wallet</TableHead>
                       <TableHead>Collabs</TableHead>
                       <TableHead>Joined</TableHead>
+                      <TableHead>Location</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -115,6 +125,7 @@ export default async function AdminUsersPage({
                           <TableCell>Rs {(creator?.wallet_balance || 0).toLocaleString()}</TableCell>
                           <TableCell>{creator?.total_collabs || 0}</TableCell>
                           <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell>{[user.city, user.state].filter(Boolean).join(', ') || '-'}</TableCell>
                           <TableCell>
                             <Badge className={user.is_suspended ? 'border-red-300 text-red-600' : 'border-green-300 text-green-700'}>
                               {user.is_suspended ? 'Suspended' : 'Active'}
@@ -147,6 +158,7 @@ export default async function AdminUsersPage({
                       <TableHead>Credits</TableHead>
                       <TableHead>Collabs</TableHead>
                       <TableHead>Joined</TableHead>
+                      <TableHead>Location</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -165,6 +177,7 @@ export default async function AdminUsersPage({
                           <TableCell>{brand?.credit_balance || 0}</TableCell>
                           <TableCell>{brand?.total_collabs || 0}</TableCell>
                           <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell>{[user.city, user.state].filter(Boolean).join(', ') || '-'}</TableCell>
                           <TableCell>
                             <Badge className={user.is_suspended ? 'border-red-300 text-red-600' : 'border-green-300 text-green-700'}>
                               {user.is_suspended ? 'Suspended' : 'Active'}

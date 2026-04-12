@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -9,6 +10,7 @@ import '../../../core/router/route_names.dart';
 import '../../../core/utils/validators.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../widgets/bc_logo.dart';
+import '../../../widgets/buttons/bc_back_button.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 
@@ -90,7 +92,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 // Top row: Back arrow + Logo
                 Row(
                   children: [
-                    IconButton(
+                    BCBackButton(
                       onPressed: () {
                         if (context.canPop()) {
                           context.pop();
@@ -98,10 +100,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           context.go(RouteNames.roleSelect);
                         }
                       },
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: AppColors.ink,
-                      ),
+                      iconColor: AppColors.ink,
+                      backgroundColor: AppColors.surface,
+                      borderColor: AppColors.lightBorder,
+                      buttonSize: 36,
                     ),
                     const Spacer(),
                     const BCLogo(isDark: false, fontSize: 18),
@@ -152,8 +154,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
+                          ? Symbols.visibility_off
+                          : Symbols.visibility,
                       color: AppColors.ink,
                     ),
                     onPressed: () {

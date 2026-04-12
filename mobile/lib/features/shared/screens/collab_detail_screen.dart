@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,6 +11,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/collab_provider.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
@@ -33,9 +35,7 @@ class CollabDetailScreen extends ConsumerWidget {
         title: const Text('Collab Details', style: AppTypography.displaySM),
       ),
       body: collabAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.ink),
-        ),
+        loading: () => const Center(child: BCAppLoader()),
         error: (error, _) => BCErrorState(
           message: error.toString(),
           onRetry: () => ref.read(collabProvider(collabId).notifier).refresh(),
@@ -66,7 +66,7 @@ class CollabDetailScreen extends ConsumerWidget {
                   title: 'Brand',
                   name: 'Brand Partner',
                   handle: '@brand',
-                  icon: Icons.apartment_rounded,
+                  icon: Symbols.apartment_rounded,
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -76,7 +76,7 @@ class CollabDetailScreen extends ConsumerWidget {
                   title: 'Creator',
                   name: 'Creator Partner',
                   handle: '@creator',
-                  icon: Icons.palette_rounded,
+                  icon: Symbols.palette_rounded,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -243,7 +243,7 @@ class _MilestoneProgress extends StatelessWidget {
                   border: Border.all(color: AppColors.ink, width: 1.5),
                 ),
                 child: isDone
-                    ? const Icon(Icons.check, size: 12, color: AppColors.ink)
+                    ? const Icon(Symbols.check, size: 12, color: AppColors.ink)
                     : null,
               ),
               if (!isLast)

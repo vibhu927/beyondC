@@ -9,6 +9,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/creator_provider.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
@@ -29,9 +30,7 @@ class MyTicketsScreen extends ConsumerWidget {
         title: const Text('My Tickets 🎟️', style: AppTypography.displaySM),
       ),
       body: ticketsAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.ink),
-        ),
+        loading: () => const Center(child: BCAppLoader()),
         error: (error, _) => BCErrorState(
           message: error.toString(),
           onRetry: () => ref.read(ticketsProvider.notifier).refresh(),

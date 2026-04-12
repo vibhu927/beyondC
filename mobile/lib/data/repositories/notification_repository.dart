@@ -51,19 +51,62 @@ class AppNotification {
   }
 
   factory AppNotification.fromApi(Map<String, dynamic> raw) {
+    final userId = _string(raw['user_id']) ?? '';
+    final type = _string(raw['type']) ?? 'generic';
+    final title = _string(raw['title']) ?? 'Notification';
+    final body = _string(raw['body']) ?? _string(raw['message']) ?? '';
+    final createdAtRaw = _string(raw['created_at']) ?? '';
+    final referenceType = _string(raw['reference_type']);
+    final referenceId = _string(raw['reference_id']);
+
+    final resolvedId = _string(raw['id']) ??
+        _string(raw['notification_id']) ??
+        _string(raw['notificationId']) ??
+        _buildStableFallbackId(
+          userId: userId,
+          type: type,
+          title: title,
+          body: body,
+          createdAtRaw: createdAtRaw,
+          referenceType: referenceType,
+          referenceId: referenceId,
+        );
+
     return AppNotification(
-      id: _string(raw['id']) ?? 'note-${DateTime.now().microsecondsSinceEpoch}',
-      userId: _string(raw['user_id']) ?? '',
-      type: _string(raw['type']) ?? 'generic',
-      title: _string(raw['title']) ?? 'Notification',
-      body: _string(raw['body']) ?? _string(raw['message']) ?? '',
-        isRead: _bool(raw['is_read']) ?? _bool(raw['read']) ?? (_string(raw['status']) == 'read'),
-      createdAt:
-          DateTime.tryParse(_string(raw['created_at']) ?? '') ?? DateTime.now(),
-      referenceType: _string(raw['reference_type']),
-      referenceId: _string(raw['reference_id']),
+      id: resolvedId,
+      userId: userId,
+      type: type,
+      title: title,
+      body: body,
+      isRead: _bool(raw['is_read']) ??
+          _bool(raw['read']) ??
+          (_string(raw['status']) == 'read'),
+      createdAt: DateTime.tryParse(createdAtRaw) ?? DateTime.now(),
+      referenceType: referenceType,
+      referenceId: referenceId,
     );
   }
+}
+
+String _buildStableFallbackId({
+  required String userId,
+  required String type,
+  required String title,
+  required String body,
+  required String createdAtRaw,
+  String? referenceType,
+  String? referenceId,
+}) {
+  return [
+    'note',
+    userId,
+    type,
+    createdAtRaw,
+    referenceType ?? '',
+    referenceId ?? '',
+    title,
+    body,
+  ].join('|');
 }
 
 class NotificationRepository {

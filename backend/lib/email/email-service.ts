@@ -1,7 +1,7 @@
 import sanitizeHtml from 'sanitize-html'
 import nodemailer, { type Transporter } from 'nodemailer'
 
-import { emailConfig, resend } from '@/lib/email/resend-client'
+import { emailConfig, getResendClient } from '@/lib/email/resend-client'
 import { ForgotPasswordEmail } from '@/lib/email/templates/forgot-password'
 import { PromotionalEmail } from '@/lib/email/templates/promotional'
 import { buildWaitlistWelcomeHtml } from '@/lib/email/templates/waitlist-welcome'
@@ -86,12 +86,58 @@ function getSmtpTransporter() {
 
 export const emailService = {
   async sendForgotPassword({ to, firstName, resetLink }: SendForgotPasswordArgs) {
-    return resend.emails.send({
+    if (getEmailProvider() === 'gmail_smtp') {
+      const smtpUser = process.env.GMAIL_SMTP_USER?.trim()
+      const smtpFromEmail = process.env.GMAIL_FROM_EMAIL?.trim() || smtpUser
+      const smtpFromName = process.env.GMAIL_FROM_NAME || 'BeyondC'
+
+      if (!smtpFromEmail) {
+        throw new Error('GMAIL_FROM_EMAIL or GMAIL_SMTP_USER is required for gmail_smtp provider')
+      }
+
+      const transporter = getSmtpTransporter()
+      const info = await transporter.sendMail({
+        from: `${smtpFromName} <${smtpFromEmail}>`,
+        to,
+        subject: 'Reset your BeyondC password 🔑',
+        html: `
+          <div style="font-family: Arial, sans-serif; background:#f7f7f7; padding:24px;">
+            <div style="max-width:520px; margin:0 auto; background:#fff; border:2px solid #0D0D0D; border-radius:16px; padding:24px;">
+              <h2 style="margin:0 0 8px; color:#0D0D0D;">Hey ${firstName},</h2>
+              <p style="margin:0 0 16px; color:#4b5563;">We received a request to reset your BeyondC password.</p>
+              <a href="${resetLink}" style="display:inline-block; background:#C8FF00; color:#0D0D0D; font-weight:700; padding:12px 16px; text-decoration:none; border:2px solid #0D0D0D; border-radius:10px;">Change Password →</a>
+              <p style="margin:16px 0 0; font-size:12px; color:#6b7280;">This link expires in 1 hour and can be used once.</p>
+            </div>
+          </div>
+        `,
+      })
+
+      if (!info.messageId) {
+        throw new Error('Gmail SMTP did not return a message id for forgot-password email')
+      }
+
+      return { data: { id: info.messageId } }
+    }
+
+    const resend = getResendClient()
+    const result = await resend.emails.send({
       from: emailConfig.from,
       to,
       subject: 'Reset your BeyondC password 🔑',
       react: ForgotPasswordEmail({ firstName, resetLink }),
     })
+
+    const typedResult = result as ResendSendResult
+    if (typedResult?.error) {
+      const reason = typedResult.error.message || typedResult.error.name || 'Unknown Resend error'
+      throw new Error(`Resend rejected forgot-password email: ${reason}`)
+    }
+
+    if (!typedResult?.data?.id) {
+      throw new Error('Resend did not return a message id for forgot-password email')
+    }
+
+    return typedResult
   },
 
   async sendPromotional({ to, firstName, subject, bodyHtml, ctaText, ctaLink }: SendPromotionalArgs) {
@@ -103,6 +149,7 @@ export const emailService = {
       },
     })
 
+    const resend = getResendClient()
     return resend.emails.send({
       from: emailConfig.from,
       to,
@@ -176,6 +223,7 @@ export const emailService = {
 
     const waitlistFrom = process.env.RESEND_WAITLIST_FROM || 'BeyondC <onboarding@resend.dev>'
 
+    const resend = getResendClient()
     const result = await resend.emails.send({
       from: waitlistFrom,
       to,

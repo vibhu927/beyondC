@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -100,6 +101,31 @@ class CreatorCard extends StatelessWidget {
                               label: niche, variant: BCBadgeVariant.outline))
                           .toList(),
                     ),
+                    if ((creator.state ?? '').trim().isNotEmpty ||
+                        (creator.city ?? '').trim().isNotEmpty) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Row(
+                        children: [
+                          const Icon(
+                            Symbols.location_on_rounded,
+                            size: 12,
+                            color: AppColors.muted,
+                          ),
+                          const SizedBox(width: 3),
+                          Expanded(
+                            child: Text(
+                              (creator.city ?? '').trim().isNotEmpty
+                                  ? '${creator.city}, ${creator.state ?? ''}'
+                                  : (creator.state ?? ''),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.bodyXS
+                                  .copyWith(color: AppColors.muted),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.md),
                     Wrap(
                       spacing: AppSpacing.md,

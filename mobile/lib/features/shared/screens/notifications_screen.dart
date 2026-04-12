@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -11,6 +12,7 @@ import '../../chat/chat_screen.dart';
 import '../../../data/repositories/notification_repository.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/notification_provider.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 
@@ -91,9 +93,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         ],
       ),
       body: notificationsAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.ink),
-        ),
+        loading: () => const Center(child: BCAppLoader()),
         error: (error, _) => BCErrorState(
           message: error.toString(),
           onRetry: () =>
@@ -255,17 +255,17 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   IconData _typeIcon(String type) {
     switch (type) {
       case 'bid_received':
-        return Icons.assignment_rounded;
+        return Symbols.assignment_rounded;
       case 'bid_accepted':
-        return Icons.check_circle_rounded;
+        return Symbols.check_circle_rounded;
       case 'event_invite':
-        return Icons.confirmation_num_rounded;
+        return Symbols.confirmation_number_rounded;
       case 'collab_matched':
-        return Icons.handshake_rounded;
+        return Symbols.handshake_rounded;
       case 'request_received':
-        return Icons.mail_rounded;
+        return Symbols.mail_rounded;
       default:
-        return Icons.notifications_rounded;
+        return Symbols.notifications_rounded;
     }
   }
 }

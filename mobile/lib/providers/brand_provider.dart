@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/utils/credit_guard.dart';
 import '../data/models/brand_models.dart';
+import '../data/models/home_carousel_item.dart';
 import '../data/models/paginated_result.dart';
 import '../data/repositories/brand_repository.dart';
 import '../data/services/api_service.dart';
@@ -23,6 +24,8 @@ class CreatorDiscoveryFilters {
     this.minFollowers,
     this.maxPrice,
     this.platform,
+    this.state,
+    this.city,
   });
 
   final String? niche;
@@ -30,6 +33,8 @@ class CreatorDiscoveryFilters {
   final int? minFollowers;
   final int? maxPrice;
   final String? platform;
+  final String? state;
+  final String? city;
 
   CreatorDiscoveryFilters copyWith({
     Object? niche = _sentinel,
@@ -37,6 +42,8 @@ class CreatorDiscoveryFilters {
     Object? minFollowers = _sentinel,
     Object? maxPrice = _sentinel,
     Object? platform = _sentinel,
+    Object? state = _sentinel,
+    Object? city = _sentinel,
   }) {
     return CreatorDiscoveryFilters(
       niche: identical(niche, _sentinel) ? this.niche : niche as String?,
@@ -48,6 +55,8 @@ class CreatorDiscoveryFilters {
           identical(maxPrice, _sentinel) ? this.maxPrice : maxPrice as int?,
       platform:
           identical(platform, _sentinel) ? this.platform : platform as String?,
+      state: identical(state, _sentinel) ? this.state : state as String?,
+      city: identical(city, _sentinel) ? this.city : city as String?,
     );
   }
 }
@@ -180,6 +189,8 @@ class CreatorDiscoveryNotifier extends AsyncNotifier<CreatorDiscoveryState> {
           minFollowers: filters.minFollowers,
           maxPrice: filters.maxPrice,
           platform: filters.platform,
+          state: filters.state,
+          city: filters.city,
           page: page,
           limit: _pageSize,
         );
@@ -439,6 +450,7 @@ class BrandState {
     this.creators = const <CreatorPreview>[],
     this.campaigns = const <Campaign>[],
     this.activeCollabs = const <ActiveCollabSummary>[],
+    this.carouselItems = const <HomeCarouselItem>[],
     this.events = const <BrandEvent>[],
     this.creditBalance = 0,
     this.creditTransactions = const <CreditTransaction>[],
@@ -458,6 +470,7 @@ class BrandState {
   final List<CreatorPreview> creators;
   final List<Campaign> campaigns;
   final List<ActiveCollabSummary> activeCollabs;
+  final List<HomeCarouselItem> carouselItems;
   final List<BrandEvent> events;
   final int creditBalance;
   final List<CreditTransaction> creditTransactions;
@@ -518,6 +531,7 @@ class BrandState {
     List<CreatorPreview>? creators,
     List<Campaign>? campaigns,
     List<ActiveCollabSummary>? activeCollabs,
+    List<HomeCarouselItem>? carouselItems,
     List<BrandEvent>? events,
     int? creditBalance,
     List<CreditTransaction>? creditTransactions,
@@ -539,6 +553,7 @@ class BrandState {
       creators: creators ?? this.creators,
       campaigns: campaigns ?? this.campaigns,
       activeCollabs: activeCollabs ?? this.activeCollabs,
+      carouselItems: carouselItems ?? this.carouselItems,
       events: events ?? this.events,
       creditBalance: creditBalance ?? this.creditBalance,
       creditTransactions: creditTransactions ?? this.creditTransactions,
@@ -601,30 +616,35 @@ class BrandNotifier extends Notifier<BrandState> {
     final campaignsFuture = _safe(() => _repo.getCampaigns());
     final activeCollabsFuture = _safe(() => _repo.getActiveCollabs());
     final creditsFuture = _safe(() => _repo.getCredits());
+    final carouselFuture = _safe(() => _repo.fetchHomeCarouselItems());
 
     final profileResult = await profileFuture;
     final creatorsResult = await creatorsFuture;
     final campaignsResult = await campaignsFuture;
     final activeCollabsResult = await activeCollabsFuture;
     final creditsResult = await creditsFuture;
+    final carouselResult = await carouselFuture;
 
     final firstError = profileResult.error ??
         creatorsResult.error ??
         campaignsResult.error ??
         activeCollabsResult.error ??
-        creditsResult.error;
+        creditsResult.error ??
+        carouselResult.error;
 
     final profile = profileResult.data;
     final creators = creatorsResult.data;
     final campaigns = campaignsResult.data;
     final activeCollabs = activeCollabsResult.data;
     final credits = creditsResult.data;
+    final carouselItems = carouselResult.data;
 
     state = state.copyWith(
       brandProfile: profile ?? state.brandProfile,
       creators: creators?.items ?? state.creators,
       campaigns: campaigns ?? state.campaigns,
       activeCollabs: activeCollabs ?? state.activeCollabs,
+      carouselItems: carouselItems ?? state.carouselItems,
       creditBalance: credits?.balance ?? state.creditBalance,
       creditTransactions: credits?.transactions ?? state.creditTransactions,
       isLoading: false,
@@ -658,7 +678,7 @@ class BrandNotifier extends Notifier<BrandState> {
     state = state.copyWith(activeFilter: filter);
   }
 
-  Future<void> fetchDiscovery() async {
+  Future<void> fetchDiscovery({String? stateFilter, String? cityFilter}) async {
     final shouldShowLoader = state.creators.isEmpty;
     state = state.copyWith(
       isDiscoveryLoading: shouldShowLoader,
@@ -671,6 +691,8 @@ class BrandNotifier extends Notifier<BrandState> {
 
       final result = await _repo.getCreators(
         niche: niche,
+        state: stateFilter,
+        city: cityFilter,
         page: 1,
         limit: 200,
       );
@@ -688,7 +710,8 @@ class BrandNotifier extends Notifier<BrandState> {
   }
 
   Future<void> fetchCampaignBids(String campaignId) async {
-    final shouldShowLoader = (state.bidsByCampaign[campaignId] ?? const <CampaignBid>[]).isEmpty;
+    final shouldShowLoader =
+        (state.bidsByCampaign[campaignId] ?? const <CampaignBid>[]).isEmpty;
     state = state.copyWith(
       isBidsLoading: shouldShowLoader,
       error: null,
@@ -751,6 +774,8 @@ class BrandNotifier extends Notifier<BrandState> {
     required String requirements,
     required DateTime deadline,
     required int slotsAvailable,
+    String? targetState,
+    String? targetCity,
   }) async {
     try {
       final campaign = await _repo.postCampaign({
@@ -764,6 +789,8 @@ class BrandNotifier extends Notifier<BrandState> {
         'requirements': requirements,
         'deadline': deadline.toIso8601String(),
         'slots': slotsAvailable,
+        'target_state': targetState,
+        'target_city': targetCity,
       });
 
       state = state.copyWith(campaigns: [campaign, ...state.campaigns]);
@@ -887,6 +914,7 @@ class BrandNotifier extends Notifier<BrandState> {
     required String? venueName,
     required String? venueAddress,
     required String? city,
+    required String? locationState,
     required String? virtualLink,
     String? whatCreatorsGet,
   }) async {
@@ -904,6 +932,7 @@ class BrandNotifier extends Notifier<BrandState> {
         'venue_name': venueName,
         'venue_address': venueAddress,
         'city': city,
+        'state': locationState,
         'virtual_link': virtualLink,
         'what_creators_get': whatCreatorsGet,
         'description': whatCreatorsGet,

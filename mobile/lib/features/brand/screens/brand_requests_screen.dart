@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -200,20 +201,43 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
   Future<void> _cancelRequest(CollabRequest request) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
-          title: const Text('Cancel Request?'),
-          content: const Text('This will remove your pending request.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('No'),
+          backgroundColor: Colors.transparent,
+          contentPadding: EdgeInsets.zero,
+          content: BCCard(
+            shadow: AppShadows.ink,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Cancel Request?', style: AppTypography.displaySM),
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'This will remove your pending request.',
+                  style: AppTypography.bodySM.copyWith(color: AppColors.muted),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Row(
+                  children: [
+                    Expanded(
+                      child: BCPrimaryButton.pink(
+                        label: 'Cancel',
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: BCPrimaryButton.dark(
+                        label: 'Keep',
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Yes'),
-            ),
-          ],
+          ),
         );
       },
     );
@@ -271,7 +295,7 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
         child: FloatingActionButton(
           heroTag: 'brandRequestsFiltersFab',
           onPressed: _openFilters,
@@ -282,7 +306,7 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
             side: const BorderSide(color: AppColors.neon, width: 2),
           ),
-          child: const Icon(Icons.tune_rounded),
+          child: const Icon(Symbols.tune_rounded),
         ),
       ),
       body: BCPageSwipeArea(
@@ -290,61 +314,62 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
         currentIndex: 2,
         child: Column(
           children: [
-          _TabBarPills(
-            activeTab: _activeTab,
-            onChanged: (tab) {
-              setState(() {
-                _activeTab = tab;
-                _listKey = GlobalKey<AnimatedListState>();
-                _visibleRequests = _applyFilters(
-                  requestsAsync.valueOrNull ?? const [],
-                );
-              });
-            },
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Expanded(
-            child: requestsAsync.when(
-              loading: () => const _RequestListShimmer(),
-              error: (error, _) => BCErrorState(
-                message: error.toString(),
-                onRetry: () =>
-                    ref.read(brandRequestsProvider.notifier).refresh(),
-              ),
-              data: (_) {
-                if (_visibleRequests.isEmpty) {
-                  return BCEmptyState(
-                    emoji: _emptyEmoji(_activeTab),
-                    message: _emptyMessage(_activeTab),
+            const SizedBox(height: AppSpacing.sm),
+            _TabBarPills(
+              activeTab: _activeTab,
+              onChanged: (tab) {
+                setState(() {
+                  _activeTab = tab;
+                  _listKey = GlobalKey<AnimatedListState>();
+                  _visibleRequests = _applyFilters(
+                    requestsAsync.valueOrNull ?? const [],
                   );
-                }
-
-                return AnimatedList(
-                  key: _listKey,
-                  initialItemCount: _visibleRequests.length,
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenPadding,
-                    AppSpacing.sm,
-                    AppSpacing.screenPadding,
-                    AppSpacing.huge,
-                  ),
-                  itemBuilder: (context, index, animation) {
-                    final request = _visibleRequests[index];
-                    return SizeTransition(
-                      sizeFactor: animation,
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: _RequestCard(
-                          request: request,
-                          onCancel: () => _cancelRequest(request),
-                        ),
-                      ),
-                    );
-                  },
-                );
+                });
               },
             ),
-          ),
+            const SizedBox(height: AppSpacing.sm),
+            Expanded(
+              child: requestsAsync.when(
+                loading: () => const _RequestListShimmer(),
+                error: (error, _) => BCErrorState(
+                  message: error.toString(),
+                  onRetry: () =>
+                      ref.read(brandRequestsProvider.notifier).refresh(),
+                ),
+                data: (_) {
+                  if (_visibleRequests.isEmpty) {
+                    return BCEmptyState(
+                      emoji: _emptyEmoji(_activeTab),
+                      message: _emptyMessage(_activeTab),
+                    );
+                  }
+
+                  return AnimatedList(
+                    key: _listKey,
+                    initialItemCount: _visibleRequests.length,
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.screenPadding,
+                      AppSpacing.sm,
+                      AppSpacing.screenPadding,
+                      AppSpacing.huge,
+                    ),
+                    itemBuilder: (context, index, animation) {
+                      final request = _visibleRequests[index];
+                      return SizeTransition(
+                        sizeFactor: animation,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: _RequestCard(
+                            request: request,
+                            onCancel: () => _cancelRequest(request),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -501,7 +526,8 @@ class _RequestCard extends StatelessWidget {
                     BCPrimaryButton.dark(
                       label: 'Open Chat →',
                       isFullWidth: false,
-                      onPressed: () => openChatDrawer(context, request.collabId!),
+                      onPressed: () =>
+                          openChatDrawer(context, request.collabId!),
                     ),
                 ],
               ),
@@ -511,13 +537,10 @@ class _RequestCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             Align(
               alignment: Alignment.centerRight,
-              child: OutlinedButton(
+              child: BCPrimaryButton.pink(
+                label: 'Cancel Request',
+                isFullWidth: false,
                 onPressed: onCancel,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.error,
-                  side: const BorderSide(color: AppColors.error, width: 1.6),
-                ),
-                child: const Text('Cancel Request'),
               ),
             ),
           ],

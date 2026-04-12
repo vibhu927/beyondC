@@ -9,9 +9,12 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../../../widgets/buttons/bc_back_button.dart';
+import '../widgets/profile_posts_tab.dart';
 
 class PartnerProfileScreen extends StatefulWidget {
   const PartnerProfileScreen({
@@ -70,11 +73,16 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
 
       return _PartnerProfileData.forBrand(
         id: id,
-        fullName: _readString(baseProfile['full_name']) ??
-            _readString(brand['brand_name']) ??
-            _readString(widget.data['name']) ??
+        fullName: _bestDisplayName([
+              _readString(widget.data['full_name']),
+              _readString(widget.data['name']),
+              _readString(baseProfile['full_name']),
+              _readString(brand['brand_name']),
+            ]) ??
             'Brand',
-        avatarUrl: _readString(baseProfile['avatar_url']) ??
+        avatarUrl: _readString(widget.data['avatar_url']) ??
+            _readString(widget.data['avatarUrl']) ??
+            _readString(baseProfile['avatar_url']) ??
             _readString(brand['logo_url']),
         brandName: _readString(brand['brand_name']) ??
             _readString(widget.data['name']) ??
@@ -86,6 +94,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
             _readString(widget.data['bio']) ??
             '',
         website: _readString(brand['website']) ?? '',
+        portfolioLinks: _stringList(brand['portfolio_links']),
         contactEmail: _readString(brand['contact_email']),
         size: _readString(brand['size']),
         verified: _readBool(brand['verified']) ?? false,
@@ -111,16 +120,23 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
     final creator = _asMap(creatorResponse);
     return _PartnerProfileData.forCreator(
       id: id,
-      fullName: _readString(baseProfile['full_name']) ??
-          _readString(baseProfile['first_name']) ??
-          _readString(widget.data['name']) ??
+      fullName: _bestDisplayName([
+            _readString(widget.data['full_name']),
+            _readString(widget.data['name']),
+            _readString(widget.data['first_name']),
+            _readString(baseProfile['full_name']),
+            _readString(baseProfile['first_name']),
+          ]) ??
           'Creator',
-      avatarUrl: _readString(baseProfile['avatar_url']),
+      avatarUrl: _readString(widget.data['avatar_url']) ??
+          _readString(widget.data['avatarUrl']) ??
+          _readString(baseProfile['avatar_url']),
       tier: _readString(creator['tier']) ??
           _readString(widget.data['tier']) ??
           'Rising Creator',
       bio: _readString(creator['bio']) ?? _readString(widget.data['bio']) ?? '',
       niches: _resolveNiches(creator),
+      portfolioLinks: _stringList(creator['portfolio_links']),
       contentTypes:
           _stringList(creator['platforms'] ?? creator['content_type']),
       followers: _readInt(creator['followers_count']) ??
@@ -197,9 +213,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
         future: _future,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.neon),
-            );
+            return const Center(child: BCAppLoader());
           }
 
           if (snapshot.hasError) {
@@ -213,103 +227,167 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
               _PartnerProfileData.placeholder(
                   role: role, fallback: widget.data);
 
-          return RefreshIndicator(
-            color: AppColors.neon,
-            onRefresh: _refresh,
-            child: CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                SliverAppBar(
-                  expandedHeight: 220,
-                  pinned: true,
-                  backgroundColor: AppColors.ink,
-                  foregroundColor: AppColors.white,
-                  surfaceTintColor: Colors.transparent,
-                  title: Text(
-                    partner.isCreator ? 'Creator Profile' : 'Brand Profile',
-                    style: AppTypography.displaySM
-                        .copyWith(color: AppColors.white),
+          return DefaultTabController(
+            length: 2,
+            child: Column(
+              children: [
+                Container(
+                  width: double.infinity,
+                  color: AppColors.ink,
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screenPadding,
+                    AppSpacing.xl,
+                    AppSpacing.screenPadding,
+                    AppSpacing.lg,
                   ),
-                  flexibleSpace: FlexibleSpaceBar(
-                    background: SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: AppSpacing.xl * 2),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 88,
-                              height: 88,
-                              decoration: BoxDecoration(
-                                color: AppColors.darkSurface,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: partner.isCreator
-                                      ? AppColors.neon
-                                      : AppColors.pink,
-                                  width: 3,
+                  child: SafeArea(
+                    bottom: false,
+                    child: Stack(
+                      children: [
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 88,
+                                height: 88,
+                                decoration: BoxDecoration(
+                                  color: AppColors.darkSurface,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: partner.isCreator
+                                        ? AppColors.neon
+                                        : AppColors.pink,
+                                    width: 3,
+                                  ),
                                 ),
-                              ),
-                              alignment: Alignment.center,
-                              child: (partner.avatarUrl ?? '').trim().isNotEmpty
-                                  ? ClipOval(
-                                      child: Image.network(
-                                        partner.avatarUrl!,
-                                        width: 88,
-                                        height: 88,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Text(
-                                          _initials(partner.displayName),
-                                          style: AppTypography.labelLG
-                                              .copyWith(color: AppColors.white),
+                                alignment: Alignment.center,
+                                child: (partner.avatarUrl ?? '')
+                                        .trim()
+                                        .isNotEmpty
+                                    ? ClipOval(
+                                        child: Image.network(
+                                          partner.avatarUrl!,
+                                          width: 88,
+                                          height: 88,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Text(
+                                            _initials(partner.displayName),
+                                            style: AppTypography.labelLG
+                                                .copyWith(
+                                                    color: AppColors.white),
+                                          ),
                                         ),
+                                      )
+                                    : Text(
+                                        _initials(partner.displayName),
+                                        style: AppTypography.labelLG
+                                            .copyWith(color: AppColors.white),
                                       ),
-                                    )
-                                  : Text(
-                                      _initials(partner.displayName),
-                                      style: AppTypography.labelLG
-                                          .copyWith(color: AppColors.white),
-                                    ),
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            Text(
-                              partner.displayName,
-                              style: AppTypography.labelLG
-                                  .copyWith(color: AppColors.white),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            BCBadge(
-                              label: partner.badgeLabel,
-                              variant: partner.isCreator
-                                  ? BCBadgeVariant.neon
-                                  : BCBadgeVariant.pink,
-                            ),
-                          ],
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              Text(
+                                partner.displayName,
+                                style: AppTypography.labelLG
+                                    .copyWith(color: AppColors.white),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                              BCBadge(
+                                label: partner.badgeLabel,
+                                variant: partner.isCreator
+                                    ? BCBadgeVariant.neon
+                                    : BCBadgeVariant.pink,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          child: BCBackButton(
+                            onPressed: () => Navigator.of(context).maybePop(),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.screenPadding,
-                      AppSpacing.lg,
-                      AppSpacing.screenPadding,
-                      AppSpacing.huge,
+                Container(
+                  color: Theme.of(context).colorScheme.surface,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenPadding,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceAlt,
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusFull),
+                      border: Border.all(color: AppColors.lightBorder),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildStatRow(partner),
-                        const SizedBox(height: AppSpacing.xl),
-                        if (partner.isCreator)
-                          _CreatorProfileSection(partner: partner)
-                        else
-                          _BrandProfileSection(partner: partner),
+                    child: TabBar(
+                      dividerColor: Colors.transparent,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      indicatorPadding: const EdgeInsets.all(4),
+                      indicator: BoxDecoration(
+                        color: AppColors.ink,
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusFull),
+                      ),
+                      labelColor: AppColors.white,
+                      unselectedLabelColor: AppColors.ink,
+                      labelStyle: AppTypography.labelSM,
+                      unselectedLabelStyle: AppTypography.labelSM,
+                      overlayColor: WidgetStateProperty.all(Colors.transparent),
+                      tabs: const [
+                        Tab(text: 'Details'),
+                        Tab(text: 'Posts'),
                       ],
                     ),
+                  ),
+                ),
+                Expanded(
+                  child: TabBarView(
+                    children: [
+                      RefreshIndicator(
+                        color: AppColors.neon,
+                        onRefresh: _refresh,
+                        child: ListView(
+                          padding: const EdgeInsets.fromLTRB(
+                            0,
+                            AppSpacing.lg,
+                            0,
+                            AppSpacing.huge,
+                          ),
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.screenPadding,
+                              ),
+                              child: _buildStatRow(partner),
+                            ),
+                            const SizedBox(height: AppSpacing.xl),
+                            if (partner.isCreator)
+                              _CreatorProfileSection(partner: partner)
+                            else
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.screenPadding,
+                                ),
+                                child: _BrandProfileSection(partner: partner),
+                              ),
+                          ],
+                        ),
+                      ),
+                      ProfilePostsTab(
+                        mediaUrls: partner.portfolioLinks,
+                        canManage: false,
+                        emptyTitle: partner.isCreator
+                            ? 'No creator samples uploaded yet.'
+                            : 'No brand samples uploaded yet.',
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -400,103 +478,127 @@ class _CreatorProfileSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BCCard(
-          shadow: AppShadows.blue,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('About', style: AppTypography.displaySM),
-              const SizedBox(height: AppSpacing.sm),
-              Text(
-                partner.bio.trim().isEmpty
-                    ? 'No creator bio added yet.'
-                    : partner.bio,
-                style: AppTypography.bodySM.copyWith(color: AppColors.muted),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.screenPadding,
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: BCCard(
+              shadow: AppShadows.blue,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('About', style: AppTypography.displaySM),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    partner.bio.trim().isEmpty
+                        ? 'No creator bio added yet.'
+                        : partner.bio,
+                    style:
+                        AppTypography.bodySM.copyWith(color: AppColors.muted),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  _InfoRow(label: 'Tier', value: partner.tier),
+                  _InstagramInfoRow(partner: partner),
+                ],
               ),
-              const SizedBox(height: AppSpacing.md),
-              _InfoRow(label: 'Tier', value: partner.tier),
-              _InstagramInfoRow(partner: partner),
-            ],
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        BCCard(
-          shadow: AppShadows.neon,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Niches', style: AppTypography.displaySM),
-              const SizedBox(height: AppSpacing.sm),
-              if (partner.niches.isEmpty)
-                Text(
-                  'No niche details available.',
-                  style: AppTypography.bodySM.copyWith(color: AppColors.muted),
-                )
-              else
-                Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: partner.niches
-                      .map((niche) => _PillTag(label: niche))
-                      .toList(),
-                ),
-              const SizedBox(height: AppSpacing.md),
-              const Text('Content Types', style: AppTypography.labelMD),
-              const SizedBox(height: AppSpacing.sm),
-              if (partner.contentTypes.isEmpty)
-                Text(
-                  'No content type details available.',
-                  style: AppTypography.bodySM.copyWith(color: AppColors.muted),
-                )
-              else
-                Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.sm,
-                  children: partner.contentTypes
-                      .map((type) => _PillTag(label: type))
-                      .toList(),
-                ),
-            ],
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.screenPadding,
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: BCCard(
+              shadow: AppShadows.neon,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Niches', style: AppTypography.displaySM),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (partner.niches.isEmpty)
+                    Text(
+                      'No niche details available.',
+                      style:
+                          AppTypography.bodySM.copyWith(color: AppColors.muted),
+                    )
+                  else
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: partner.niches
+                          .map((niche) => _PillTag(label: niche))
+                          .toList(),
+                    ),
+                  const SizedBox(height: AppSpacing.md),
+                  const Text('Content Types', style: AppTypography.labelMD),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (partner.contentTypes.isEmpty)
+                    Text(
+                      'No content type details available.',
+                      style:
+                          AppTypography.bodySM.copyWith(color: AppColors.muted),
+                    )
+                  else
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: partner.contentTypes
+                          .map((type) => _PillTag(label: type))
+                          .toList(),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        BCCard(
-          shadow: AppShadows.purple,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('Performance Snapshot',
-                  style: AppTypography.displaySM),
-              const SizedBox(height: AppSpacing.md),
-              _InfoRow(
-                label: 'Following',
-                value: Formatters.followerCount(partner.followingCount),
-              ),
-              _InfoRow(
-                label: 'Posts',
-                value: '${partner.postsCount}',
-              ),
-              _InfoRow(
-                label: 'Highest Video Views',
-                value: Formatters.followerCount(partner.highestVideoViews),
-              ),
-              _InfoRow(
-                label: 'Avg Video Views',
-                value: Formatters.followerCount(partner.avgVideoViews),
-              ),
-              _InfoRow(
-                label: 'Avg Likes',
-                value: Formatters.followerCount(partner.avgLikes),
-              ),
-              _InfoRow(
-                label: 'Avg Comments',
-                value: Formatters.followerCount(partner.avgComments),
-              ),
-              _InfoRow(
-                label: 'Avg Collab Price',
-                value: Formatters.currency(partner.avgCollabPricePaise),
-              ),
-            ],
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.screenPadding,
+          ),
+          child: BCCard(
+            shadow: AppShadows.purple,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Performance Snapshot',
+                    style: AppTypography.displaySM),
+                const SizedBox(height: AppSpacing.md),
+                _InfoRow(
+                  label: 'Following',
+                  value: Formatters.followerCount(partner.followingCount),
+                ),
+                _InfoRow(
+                  label: 'Posts',
+                  value: '${partner.postsCount}',
+                ),
+                _InfoRow(
+                  label: 'Highest Video Views',
+                  value: Formatters.followerCount(partner.highestVideoViews),
+                ),
+                _InfoRow(
+                  label: 'Avg Video Views',
+                  value: Formatters.followerCount(partner.avgVideoViews),
+                ),
+                _InfoRow(
+                  label: 'Avg Likes',
+                  value: Formatters.followerCount(partner.avgLikes),
+                ),
+                _InfoRow(
+                  label: 'Avg Comments',
+                  value: Formatters.followerCount(partner.avgComments),
+                ),
+                _InfoRow(
+                  label: 'Avg Collab Price',
+                  value: Formatters.currency(partner.avgCollabPricePaise),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -746,6 +848,7 @@ class _PartnerProfileData {
     this.bio = '',
     this.niches = const <String>[],
     this.contentTypes = const <String>[],
+    this.portfolioLinks = const <String>[],
     this.followers = 0,
     this.engagementRate = 0,
     this.avgCollabPricePaise = 0,
@@ -779,6 +882,7 @@ class _PartnerProfileData {
   final String bio;
   final List<String> niches;
   final List<String> contentTypes;
+  final List<String> portfolioLinks;
   final int followers;
   final double engagementRate;
   final int avgCollabPricePaise;
@@ -819,6 +923,7 @@ class _PartnerProfileData {
     required String tier,
     required String bio,
     required List<String> niches,
+    required List<String> portfolioLinks,
     required List<String> contentTypes,
     required int followers,
     required double engagementRate,
@@ -842,6 +947,7 @@ class _PartnerProfileData {
       tier: tier,
       bio: bio,
       niches: niches,
+      portfolioLinks: portfolioLinks,
       contentTypes: contentTypes,
       followers: followers,
       engagementRate: engagementRate,
@@ -867,6 +973,7 @@ class _PartnerProfileData {
     required String brandCategory,
     required String description,
     required String website,
+    required List<String> portfolioLinks,
     String? contactEmail,
     String? size,
     required bool verified,
@@ -882,6 +989,7 @@ class _PartnerProfileData {
       brandCategory: brandCategory,
       description: description,
       website: website,
+      portfolioLinks: portfolioLinks,
       contactEmail: contactEmail,
       size: size,
       verified: verified,
@@ -898,7 +1006,11 @@ class _PartnerProfileData {
     return _PartnerProfileData(
       id: '',
       role: normalizedRole,
-      displayName: _readString(fallback['name']) ??
+      displayName: _bestDisplayName([
+            _readString(fallback['full_name']),
+            _readString(fallback['name']),
+            _readString(fallback['first_name']),
+          ]) ??
           (normalizedRole == 'creator' ? 'Creator' : 'Brand'),
       tier: _readString(fallback['tier']) ?? 'N/A',
       bio: _readString(fallback['bio']) ?? '',
@@ -958,6 +1070,31 @@ List<String> _stringList(dynamic value) {
       .map((item) => item.trim())
       .where((item) => item.isNotEmpty)
       .toList();
+}
+
+String? _bestDisplayName(List<String?> candidates) {
+  for (final item in candidates) {
+    final value = (item ?? '').trim();
+    if (value.isEmpty) continue;
+    if (_isGenericDisplayName(value)) continue;
+    return value;
+  }
+
+  for (final item in candidates) {
+    final value = (item ?? '').trim();
+    if (value.isNotEmpty) return value;
+  }
+
+  return null;
+}
+
+bool _isGenericDisplayName(String value) {
+  final normalized = value.trim().toLowerCase();
+  return normalized == 'creator' ||
+      normalized == 'brand' ||
+      normalized == 'partner' ||
+      normalized == 'profile' ||
+      normalized == 'user';
 }
 
 List<String> _resolveNiches(Map<String, dynamic> creator) {

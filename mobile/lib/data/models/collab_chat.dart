@@ -21,6 +21,8 @@ class CollabChat {
     this.otherPartyCategory,
     this.otherPartyInstagramVerified,
     this.otherPartyInstagramUsername,
+    this.otherPartyState,
+    this.otherPartyCity,
   });
 
   final String id;
@@ -44,6 +46,8 @@ class CollabChat {
   final String? otherPartyCategory;
   final bool? otherPartyInstagramVerified;
   final String? otherPartyInstagramUsername;
+  final String? otherPartyState;
+  final String? otherPartyCity;
 
   int unreadForRole(String role) {
     if (role == 'creator') return unreadCountCreator;
@@ -72,6 +76,8 @@ class CollabChat {
     Object? otherPartyCategory = _unset,
     Object? otherPartyInstagramVerified = _unset,
     Object? otherPartyInstagramUsername = _unset,
+    Object? otherPartyState = _unset,
+    Object? otherPartyCity = _unset,
   }) {
     return CollabChat(
       id: id ?? this.id,
@@ -99,6 +105,12 @@ class CollabChat {
       otherPartyInstagramUsername: identical(otherPartyInstagramUsername, _unset)
           ? this.otherPartyInstagramUsername
           : otherPartyInstagramUsername as String?,
+        otherPartyState: identical(otherPartyState, _unset)
+          ? this.otherPartyState
+          : otherPartyState as String?,
+        otherPartyCity: identical(otherPartyCity, _unset)
+          ? this.otherPartyCity
+          : otherPartyCity as String?,
     );
   }
 
@@ -139,6 +151,8 @@ class CollabChat {
       otherPartyCategory: _string(other['brand_category']),
       otherPartyInstagramVerified: _bool(other['instagram_verified']),
       otherPartyInstagramUsername: _string(other['instagram_username']),
+      otherPartyState: _string(otherProfile['state']),
+      otherPartyCity: _string(otherProfile['city']),
     );
   }
 }

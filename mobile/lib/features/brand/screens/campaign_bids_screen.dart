@@ -7,7 +7,9 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../chat/profile_view_sheet.dart';
 import '../../../providers/brand_provider.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
@@ -48,7 +50,7 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
 
     if (campaign == null && brandState.isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: AppColors.ink)),
+        body: Center(child: BCAppLoader()),
       );
     }
 
@@ -59,6 +61,9 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
     }
 
     final allBids = ref.read(brandProvider.notifier).bidsForCampaign(widget.id);
+    final creatorsById = {
+      for (final creator in brandState.creators) creator.id: creator,
+    };
     final bids = _applySort(allBids)
         .where((bid) => !_passedBidIds.contains(bid.id))
         .toList(growable: false);
@@ -120,16 +125,16 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     'Deliverables: ${campaign.deliverables.join(', ')}',
-                    style: AppTypography.bodyXS
-                        .copyWith(color: AppColors.muted),
+                    style:
+                        AppTypography.bodyXS.copyWith(color: AppColors.muted),
                   ),
                 ],
                 if (campaign.requirements.trim().isNotEmpty) ...[
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     'Requirements: ${campaign.requirements}',
-                    style: AppTypography.bodyXS
-                        .copyWith(color: AppColors.muted),
+                    style:
+                        AppTypography.bodyXS.copyWith(color: AppColors.muted),
                   ),
                 ],
                 const SizedBox(height: AppSpacing.md),
@@ -201,16 +206,35 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
                 for (var index = 0; index < bids.length; index++)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: BidReviewCard(
-                      bid: bids[index],
-                      shadow: index.isEven ? AppShadows.neon : AppShadows.pink,
-                      onAccept: () => _onAcceptBid(bids[index]),
-                      onPass: () =>
-                          setState(() => _passedBidIds.add(bids[index].id)),
-                      onReadMore: (bids[index].pitch ?? '').trim().isEmpty
-                          ? null
-                          : () => _showPitchDialog(bids[index]),
-                    ),
+                    child: (() {
+                      final creator = creatorsById[bids[index].creatorId];
+                      return BidReviewCard(
+                        bid: bids[index],
+                        shadow:
+                            index.isEven ? AppShadows.neon : AppShadows.pink,
+                        displayName: bids[index].creatorFullName,
+                        avatarUrl: (bids[index].creatorAvatarUrl ?? '')
+                                .trim()
+                                .isNotEmpty
+                            ? bids[index].creatorAvatarUrl
+                            : creator?.avatarUrl,
+                        onAccept: () => _onAcceptBid(bids[index]),
+                        onPass: () =>
+                            setState(() => _passedBidIds.add(bids[index].id)),
+                        onAvatarTap: () => _openCreatorProfile(
+                          bids[index],
+                          displayName: bids[index].creatorFullName,
+                          avatarUrl: (bids[index].creatorAvatarUrl ?? '')
+                                  .trim()
+                                  .isNotEmpty
+                              ? bids[index].creatorAvatarUrl
+                              : creator?.avatarUrl,
+                        ),
+                        onReadMore: (bids[index].pitch ?? '').trim().isEmpty
+                            ? null
+                            : () => _showPitchDialog(bids[index]),
+                      );
+                    })(),
                   ),
               ],
             ),
@@ -278,6 +302,37 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
           ),
         );
       },
+    );
+  }
+
+  Future<void> _openCreatorProfile(
+    CampaignBid bid, {
+    String? displayName,
+    String? avatarUrl,
+  }) async {
+    final normalizedDisplayName = (displayName ?? '').trim();
+
+    openProfilePreviewSheet(
+      context,
+      preview: ProfileSheetPreviewData(
+        partnerId: bid.creatorId,
+        viewerRole: 'brand',
+        partnerRole: 'creator',
+        name: normalizedDisplayName.isNotEmpty
+            ? normalizedDisplayName
+            : bid.creatorFirstName,
+        fullName: normalizedDisplayName.isNotEmpty
+            ? normalizedDisplayName
+            : bid.creatorFullName,
+        avatarUrl: avatarUrl,
+        instagramUsername:
+            bid.creatorHandle.trim().isNotEmpty ? bid.creatorHandle : null,
+        amountInr: bid.amount,
+        collabType: _collabLabel(bid.collabType),
+        niche: bid.niches.isNotEmpty ? bid.niches.join(', ') : null,
+        tier: bid.tier,
+        followers: bid.followersCount,
+      ),
     );
   }
 
@@ -391,14 +446,9 @@ Future<bool> _showNeoConfirmDialog(
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
+                    child: BCPrimaryButton.pink(
+                      label: 'Cancel',
                       onPressed: () => Navigator.of(dialogContext).pop(false),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.ink,
-                        side: const BorderSide(color: AppColors.ink, width: 2),
-                        minimumSize: const Size.fromHeight(46),
-                      ),
-                      child: const Text('Cancel'),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
@@ -433,4 +483,3 @@ String _collabLabel(CampaignCollabType type) {
       return 'Hybrid';
   }
 }
-

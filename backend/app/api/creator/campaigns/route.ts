@@ -17,6 +17,9 @@ export async function GET(request: NextRequest) {
     const collab_type = searchParams.get('collab_type')
     const budget_min = searchParams.get('budget_min')
     const budget_max = searchParams.get('budget_max')
+    const state = searchParams.get('state')
+    const city = searchParams.get('city')
+    const includePanIndia = searchParams.get('include_pan_india') !== 'false'
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = (page - 1) * limit
@@ -48,6 +51,22 @@ export async function GET(request: NextRequest) {
     }
     if (budget_max) {
       query = query.lte('budget_min', parseInt(budget_max))
+    }
+
+    if (state) {
+      if (includePanIndia) {
+        query = query.or(`target_state.eq.${state},target_state.is.null`)
+      } else {
+        query = query.eq('target_state', state)
+      }
+    }
+
+    if (city) {
+      if (includePanIndia) {
+        query = query.or(`target_city.eq.${city},target_city.is.null`)
+      } else {
+        query = query.eq('target_city', city)
+      }
     }
 
     // Apply pagination and ordering

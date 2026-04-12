@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -13,6 +14,7 @@ import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
 import '../../../widgets/bc_glass_header_bar.dart';
 import '../../../widgets/inputs/bc_dropdown.dart';
+import '../../../widgets/inputs/bc_location_picker.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 
 enum _PostStep { campaignInfo, targetCreator }
@@ -44,6 +46,9 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
 
   final Set<String> _targetTiers = {'Nano', 'Micro', 'Mid', 'Macro'};
   final Set<String> _targetNiches = <String>{};
+  bool _panIndia = true;
+  String? _targetState;
+  String? _targetCity;
 
   bool _isSubmitting = false;
 
@@ -144,6 +149,8 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           requirements: requirementsParts.join(' | '),
           deadline: _deadline ?? DateTime.now().add(const Duration(days: 7)),
           slotsAvailable: slots,
+          targetState: _panIndia ? null : _targetState,
+          targetCity: _panIndia ? null : _targetCity,
         );
 
     if (!mounted) return;
@@ -171,6 +178,13 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
       return 'Campaign title is required.';
     if (_category == null || _category!.trim().isEmpty) {
       return 'Please select a niche/category.';
+    }
+
+    if (!_panIndia) {
+      if ((_targetState ?? '').trim().isEmpty ||
+          (_targetCity ?? '').trim().isEmpty) {
+        return 'Please select target state and city or choose Pan India.';
+      }
     }
 
     if (_showBudgetFields) {
@@ -273,6 +287,41 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           onChanged: (value) => setState(() => _category = value),
         ),
         const SizedBox(height: AppSpacing.lg),
+        Text('Target Location', style: AppTypography.labelMD),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Switch(
+              value: _panIndia,
+              onChanged: (value) {
+                setState(() {
+                  _panIndia = value;
+                  if (_panIndia) {
+                    _targetState = null;
+                    _targetCity = null;
+                  }
+                });
+              },
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            const Text('Pan India', style: AppTypography.bodyMD),
+          ],
+        ),
+        if (!_panIndia) ...[
+          const SizedBox(height: AppSpacing.sm),
+          BCLocationPicker(
+            required: true,
+            initialState: _targetState,
+            initialCity: _targetCity,
+            onChanged: (state, city) {
+              setState(() {
+                _targetState = state;
+                _targetCity = city;
+              });
+            },
+          ),
+        ],
+        const SizedBox(height: AppSpacing.lg),
         Text('Collab Type', style: AppTypography.labelMD),
         const SizedBox(height: AppSpacing.sm),
         Wrap(
@@ -346,7 +395,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
               label: 'Deadline',
               hint: 'Select date',
               controller: _deadlineController,
-              suffixIcon: const Icon(Icons.calendar_today_rounded),
+              suffixIcon: const Icon(Symbols.calendar_today_rounded),
             ),
           ),
         ),

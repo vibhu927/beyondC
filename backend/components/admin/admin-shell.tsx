@@ -28,6 +28,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Wallets', href: '/admin/wallets', page: 'payments', icon: '🪙' },
   { label: 'Disputes', href: '/admin/disputes', page: 'disputes', icon: '⚠️' },
   { label: 'Notifications', href: '/admin/notifications', page: 'notifications', icon: '🔔' },
+  { label: 'Carousels', href: '/admin/carousels', page: 'carousels', icon: '🖼️' },
   { label: 'Analytics', href: '/admin/analytics', page: 'analytics', icon: '📈' },
   { label: 'Settings', href: '/admin/settings', page: 'settings', icon: '⚙️', superAdminOnly: true },
   { label: 'Staff Management', href: '/admin/staff', page: 'staff', icon: '👔', superAdminOnly: true },

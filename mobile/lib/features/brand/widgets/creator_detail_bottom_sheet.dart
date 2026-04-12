@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -206,6 +208,30 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                 Text(
                   'Full name and handle revealed after match 🔒',
                   style: AppTypography.bodySM.copyWith(color: AppColors.muted),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                BCPrimaryButton.dark(
+                  label: 'View Full Profile ->',
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    context.push(
+                      RouteNames.partnerProfile,
+                      extra: {
+                        'id': creator.id,
+                        'first_name': creator.firstName,
+                        'full_name': creator.firstName,
+                        'name': creator.firstName,
+                        'avatar_url': creator.avatarUrl,
+                        'avatarUrl': creator.avatarUrl,
+                        'role': 'creator',
+                        'viewerRole': 'brand',
+                        'tier': creator.tier,
+                        'bio': creator.niches.join(', '),
+                        'followers': creator.followersCount,
+                        'readOnly': true,
+                      },
+                    );
+                  },
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 BCPrimaryButton.dark(

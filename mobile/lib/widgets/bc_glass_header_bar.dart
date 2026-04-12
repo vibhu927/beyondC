@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_spacing.dart';
 import '../core/theme/app_typography.dart';
+import 'buttons/bc_back_button.dart';
 
 class BCGlassHeaderBar extends StatelessWidget {
   const BCGlassHeaderBar({
@@ -59,17 +60,12 @@ class BCGlassHeaderBar extends StatelessWidget {
           ),
           child: Row(
             children: [
-              InkWell(
-                onTap: onBack,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
-                child: const Padding(
-                  padding: EdgeInsets.all(6),
-                  child: Icon(
-                    Icons.arrow_back_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
+              BCBackButton(
+                onPressed: onBack,
+                iconColor: Colors.white,
+                backgroundColor: Colors.black.withValues(alpha: 0.22),
+                borderColor: Colors.white.withValues(alpha: 0.25),
+                buttonSize: 36,
               ),
               const SizedBox(width: AppSpacing.sm),
               Text(

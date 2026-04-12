@@ -71,6 +71,8 @@ export async function POST(request: NextRequest) {
         requirements: validatedData.requirements,
         deadline: validatedData.deadline,
         slots: validatedData.slots,
+        target_state: validatedData.target_state ?? null,
+        target_city: validatedData.target_city ?? null,
         status: validatedData.status,
       })
       .select()

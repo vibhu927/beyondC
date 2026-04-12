@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_typography.dart';
 import '../../providers/in_app_notification_provider.dart';
+import '../../widgets/buttons/bc_back_button.dart';
 import 'chat_screen.dart';
 
 class InAppNotificationOverlay extends ConsumerWidget {
@@ -16,27 +18,32 @@ class InAppNotificationOverlay extends ConsumerWidget {
 
     return IgnorePointer(
       ignoring: !notif.isVisible,
-      child: AnimatedPositioned(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOutCubic,
-        top: notif.isVisible ? MediaQuery.of(context).padding.top + 8 : -120,
-        left: 16,
-        right: 16,
-        child: notif.isVisible
-            ? _NotificationToast(
-                title: notif.chatTitle ?? '',
-                message: notif.message?.content ?? '',
-                collabId: notif.collabId ?? '',
-                onTap: () {
-                  ref.read(inAppNotificationProvider.notifier).hide();
-                  final id = notif.collabId;
-                  if (id != null && id.isNotEmpty) {
-                    openChatDrawer(context, id);
-                  }
-                },
-                onDismiss: () => ref.read(inAppNotificationProvider.notifier).hide(),
-              )
-            : const SizedBox.shrink(),
+      child: Stack(
+        children: [
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutCubic,
+            top: notif.isVisible ? MediaQuery.of(context).padding.top + 8 : -120,
+            left: 16,
+            right: 16,
+            child: notif.isVisible
+                ? _NotificationToast(
+                    title: notif.chatTitle ?? '',
+                    message: notif.message?.content ?? '',
+                    collabId: notif.collabId ?? '',
+                    onTap: () {
+                      ref.read(inAppNotificationProvider.notifier).hide();
+                      final id = notif.collabId;
+                      if (id != null && id.isNotEmpty) {
+                        openChatDrawer(context, id);
+                      }
+                    },
+                    onDismiss: () =>
+                        ref.read(inAppNotificationProvider.notifier).hide(),
+                  )
+                : const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }
@@ -81,7 +88,7 @@ class _NotificationToast extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
-                  Icons.chat_bubble_rounded,
+                  Symbols.chat_bubble_rounded,
                   color: AppColors.ink,
                   size: 18,
                 ),
@@ -107,17 +114,15 @@ class _NotificationToast extends StatelessWidget {
                   ],
                 ),
               ),
-              GestureDetector(
-                onTap: onDismiss,
-                child: Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.darkBorder, width: 1.5),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Icon(Icons.close, color: AppColors.darkMuted, size: 14),
-                ),
+              BCBackButton(
+                onPressed: onDismiss,
+                icon: Symbols.close_rounded,
+                iconSize: 14,
+                buttonSize: 24,
+                iconColor: AppColors.darkMuted,
+                backgroundColor: AppColors.darkSurface,
+                borderColor: AppColors.darkBorder,
+                tooltip: 'Close',
               ),
             ],
           ),

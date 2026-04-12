@@ -31,6 +31,9 @@ mixin _$CreatorProfile {
   String get bio => throw _privateConstructorUsedError;
   List<String> get niches => throw _privateConstructorUsedError;
   List<String> get contentTypes => throw _privateConstructorUsedError;
+  String? get state => throw _privateConstructorUsedError;
+  String? get city => throw _privateConstructorUsedError;
+  List<String> get portfolioLinks => throw _privateConstructorUsedError;
   int get startingPricePaise => throw _privateConstructorUsedError;
   String? get instagramUsername => throw _privateConstructorUsedError;
   bool get instagramVerified => throw _privateConstructorUsedError;
@@ -73,6 +76,9 @@ abstract class $CreatorProfileCopyWith<$Res> {
       String bio,
       List<String> niches,
       List<String> contentTypes,
+      String? state,
+      String? city,
+      List<String> portfolioLinks,
       int startingPricePaise,
       String? instagramUsername,
       bool instagramVerified,
@@ -114,6 +120,9 @@ class _$CreatorProfileCopyWithImpl<$Res, $Val extends CreatorProfile>
     Object? bio = null,
     Object? niches = null,
     Object? contentTypes = null,
+    Object? state = freezed,
+    Object? city = freezed,
+    Object? portfolioLinks = null,
     Object? startingPricePaise = null,
     Object? instagramUsername = freezed,
     Object? instagramVerified = null,
@@ -172,6 +181,18 @@ class _$CreatorProfileCopyWithImpl<$Res, $Val extends CreatorProfile>
       contentTypes: null == contentTypes
           ? _value.contentTypes
           : contentTypes // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      state: freezed == state
+          ? _value.state
+          : state // ignore: cast_nullable_to_non_nullable
+              as String?,
+      city: freezed == city
+          ? _value.city
+          : city // ignore: cast_nullable_to_non_nullable
+              as String?,
+      portfolioLinks: null == portfolioLinks
+          ? _value.portfolioLinks
+          : portfolioLinks // ignore: cast_nullable_to_non_nullable
               as List<String>,
       startingPricePaise: null == startingPricePaise
           ? _value.startingPricePaise
@@ -249,6 +270,9 @@ abstract class _$$CreatorProfileImplCopyWith<$Res>
       String bio,
       List<String> niches,
       List<String> contentTypes,
+      String? state,
+      String? city,
+      List<String> portfolioLinks,
       int startingPricePaise,
       String? instagramUsername,
       bool instagramVerified,
@@ -288,6 +312,9 @@ class __$$CreatorProfileImplCopyWithImpl<$Res>
     Object? bio = null,
     Object? niches = null,
     Object? contentTypes = null,
+    Object? state = freezed,
+    Object? city = freezed,
+    Object? portfolioLinks = null,
     Object? startingPricePaise = null,
     Object? instagramUsername = freezed,
     Object? instagramVerified = null,
@@ -346,6 +373,18 @@ class __$$CreatorProfileImplCopyWithImpl<$Res>
       contentTypes: null == contentTypes
           ? _value._contentTypes
           : contentTypes // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      state: freezed == state
+          ? _value.state
+          : state // ignore: cast_nullable_to_non_nullable
+              as String?,
+      city: freezed == city
+          ? _value.city
+          : city // ignore: cast_nullable_to_non_nullable
+              as String?,
+      portfolioLinks: null == portfolioLinks
+          ? _value._portfolioLinks
+          : portfolioLinks // ignore: cast_nullable_to_non_nullable
               as List<String>,
       startingPricePaise: null == startingPricePaise
           ? _value.startingPricePaise
@@ -418,6 +457,9 @@ class _$CreatorProfileImpl extends _CreatorProfile {
       this.bio = '',
       final List<String> niches = const <String>[],
       final List<String> contentTypes = const <String>[],
+      this.state,
+      this.city,
+      final List<String> portfolioLinks = const <String>[],
       this.startingPricePaise = 0,
       this.instagramUsername,
       this.instagramVerified = false,
@@ -433,6 +475,7 @@ class _$CreatorProfileImpl extends _CreatorProfile {
       this.walletBalancePaise = 0})
       : _niches = niches,
         _contentTypes = contentTypes,
+        _portfolioLinks = portfolioLinks,
         super._();
 
   factory _$CreatorProfileImpl.fromJson(Map<String, dynamic> json) =>
@@ -482,6 +525,19 @@ class _$CreatorProfileImpl extends _CreatorProfile {
   }
 
   @override
+  final String? state;
+  @override
+  final String? city;
+  final List<String> _portfolioLinks;
+  @override
+  @JsonKey()
+  List<String> get portfolioLinks {
+    if (_portfolioLinks is EqualUnmodifiableListView) return _portfolioLinks;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_portfolioLinks);
+  }
+
+  @override
   @JsonKey()
   final int startingPricePaise;
   @override
@@ -514,7 +570,7 @@ class _$CreatorProfileImpl extends _CreatorProfile {
 
   @override
   String toString() {
-    return 'CreatorProfile(id: $id, firstName: $firstName, fullName: $fullName, displayName: $displayName, tier: $tier, followersCount: $followersCount, engagementRate: $engagementRate, avgCollabPaise: $avgCollabPaise, bio: $bio, niches: $niches, contentTypes: $contentTypes, startingPricePaise: $startingPricePaise, instagramUsername: $instagramUsername, instagramVerified: $instagramVerified, followingCount: $followingCount, postsCount: $postsCount, highestVideoViews: $highestVideoViews, avgVideoViews: $avgVideoViews, avgLikes: $avgLikes, avgComments: $avgComments, statsFetchedAt: $statsFetchedAt, isDiscoverable: $isDiscoverable, youtubeHandle: $youtubeHandle, walletBalancePaise: $walletBalancePaise)';
+    return 'CreatorProfile(id: $id, firstName: $firstName, fullName: $fullName, displayName: $displayName, tier: $tier, followersCount: $followersCount, engagementRate: $engagementRate, avgCollabPaise: $avgCollabPaise, bio: $bio, niches: $niches, contentTypes: $contentTypes, state: $state, city: $city, portfolioLinks: $portfolioLinks, startingPricePaise: $startingPricePaise, instagramUsername: $instagramUsername, instagramVerified: $instagramVerified, followingCount: $followingCount, postsCount: $postsCount, highestVideoViews: $highestVideoViews, avgVideoViews: $avgVideoViews, avgLikes: $avgLikes, avgComments: $avgComments, statsFetchedAt: $statsFetchedAt, isDiscoverable: $isDiscoverable, youtubeHandle: $youtubeHandle, walletBalancePaise: $walletBalancePaise)';
   }
 
   @override
@@ -540,6 +596,10 @@ class _$CreatorProfileImpl extends _CreatorProfile {
             const DeepCollectionEquality().equals(other._niches, _niches) &&
             const DeepCollectionEquality()
                 .equals(other._contentTypes, _contentTypes) &&
+            (identical(other.state, state) || other.state == state) &&
+            (identical(other.city, city) || other.city == city) &&
+            const DeepCollectionEquality()
+                .equals(other._portfolioLinks, _portfolioLinks) &&
             (identical(other.startingPricePaise, startingPricePaise) ||
                 other.startingPricePaise == startingPricePaise) &&
             (identical(other.instagramUsername, instagramUsername) ||
@@ -583,6 +643,9 @@ class _$CreatorProfileImpl extends _CreatorProfile {
         bio,
         const DeepCollectionEquality().hash(_niches),
         const DeepCollectionEquality().hash(_contentTypes),
+        state,
+        city,
+        const DeepCollectionEquality().hash(_portfolioLinks),
         startingPricePaise,
         instagramUsername,
         instagramVerified,
@@ -628,6 +691,9 @@ abstract class _CreatorProfile extends CreatorProfile {
       final String bio,
       final List<String> niches,
       final List<String> contentTypes,
+      final String? state,
+      final String? city,
+      final List<String> portfolioLinks,
       final int startingPricePaise,
       final String? instagramUsername,
       final bool instagramVerified,
@@ -668,6 +734,12 @@ abstract class _CreatorProfile extends CreatorProfile {
   List<String> get niches;
   @override
   List<String> get contentTypes;
+  @override
+  String? get state;
+  @override
+  String? get city;
+  @override
+  List<String> get portfolioLinks;
   @override
   int get startingPricePaise;
   @override
@@ -722,6 +794,8 @@ mixin _$Campaign {
   CampaignCollabType get collabType => throw _privateConstructorUsedError;
   List<String> get deliverables => throw _privateConstructorUsedError;
   int get bidCount => throw _privateConstructorUsedError;
+  String? get targetState => throw _privateConstructorUsedError;
+  String? get targetCity => throw _privateConstructorUsedError;
   int get slotsTotal => throw _privateConstructorUsedError;
   int get slotsFilled => throw _privateConstructorUsedError;
   DateTime get deadline => throw _privateConstructorUsedError;
@@ -757,6 +831,8 @@ abstract class $CampaignCopyWith<$Res> {
       CampaignCollabType collabType,
       List<String> deliverables,
       int bidCount,
+      String? targetState,
+      String? targetCity,
       int slotsTotal,
       int slotsFilled,
       DateTime deadline,
@@ -792,6 +868,8 @@ class _$CampaignCopyWithImpl<$Res, $Val extends Campaign>
     Object? collabType = null,
     Object? deliverables = null,
     Object? bidCount = null,
+    Object? targetState = freezed,
+    Object? targetCity = freezed,
     Object? slotsTotal = null,
     Object? slotsFilled = null,
     Object? deadline = null,
@@ -851,6 +929,14 @@ class _$CampaignCopyWithImpl<$Res, $Val extends Campaign>
           ? _value.bidCount
           : bidCount // ignore: cast_nullable_to_non_nullable
               as int,
+      targetState: freezed == targetState
+          ? _value.targetState
+          : targetState // ignore: cast_nullable_to_non_nullable
+              as String?,
+      targetCity: freezed == targetCity
+          ? _value.targetCity
+          : targetCity // ignore: cast_nullable_to_non_nullable
+              as String?,
       slotsTotal: null == slotsTotal
           ? _value.slotsTotal
           : slotsTotal // ignore: cast_nullable_to_non_nullable
@@ -897,6 +983,8 @@ abstract class _$$CampaignImplCopyWith<$Res>
       CampaignCollabType collabType,
       List<String> deliverables,
       int bidCount,
+      String? targetState,
+      String? targetCity,
       int slotsTotal,
       int slotsFilled,
       DateTime deadline,
@@ -930,6 +1018,8 @@ class __$$CampaignImplCopyWithImpl<$Res>
     Object? collabType = null,
     Object? deliverables = null,
     Object? bidCount = null,
+    Object? targetState = freezed,
+    Object? targetCity = freezed,
     Object? slotsTotal = null,
     Object? slotsFilled = null,
     Object? deadline = null,
@@ -989,6 +1079,14 @@ class __$$CampaignImplCopyWithImpl<$Res>
           ? _value.bidCount
           : bidCount // ignore: cast_nullable_to_non_nullable
               as int,
+      targetState: freezed == targetState
+          ? _value.targetState
+          : targetState // ignore: cast_nullable_to_non_nullable
+              as String?,
+      targetCity: freezed == targetCity
+          ? _value.targetCity
+          : targetCity // ignore: cast_nullable_to_non_nullable
+              as String?,
       slotsTotal: null == slotsTotal
           ? _value.slotsTotal
           : slotsTotal // ignore: cast_nullable_to_non_nullable
@@ -1030,6 +1128,8 @@ class _$CampaignImpl implements _Campaign {
       this.collabType = CampaignCollabType.paid,
       final List<String> deliverables = const <String>[],
       this.bidCount = 0,
+      this.targetState,
+      this.targetCity,
       this.slotsTotal = 1,
       this.slotsFilled = 0,
       required this.deadline,
@@ -1091,6 +1191,10 @@ class _$CampaignImpl implements _Campaign {
   @JsonKey()
   final int bidCount;
   @override
+  final String? targetState;
+  @override
+  final String? targetCity;
+  @override
   @JsonKey()
   final int slotsTotal;
   @override
@@ -1106,7 +1210,7 @@ class _$CampaignImpl implements _Campaign {
 
   @override
   String toString() {
-    return 'Campaign(id: $id, title: $title, description: $description, brandCategory: $brandCategory, brandInitial: $brandInitial, brandSize: $brandSize, niche: $niche, requirements: $requirements, minBudget: $minBudget, maxBudget: $maxBudget, collabType: $collabType, deliverables: $deliverables, bidCount: $bidCount, slotsTotal: $slotsTotal, slotsFilled: $slotsFilled, deadline: $deadline, status: $status, createdAt: $createdAt)';
+    return 'Campaign(id: $id, title: $title, description: $description, brandCategory: $brandCategory, brandInitial: $brandInitial, brandSize: $brandSize, niche: $niche, requirements: $requirements, minBudget: $minBudget, maxBudget: $maxBudget, collabType: $collabType, deliverables: $deliverables, bidCount: $bidCount, targetState: $targetState, targetCity: $targetCity, slotsTotal: $slotsTotal, slotsFilled: $slotsFilled, deadline: $deadline, status: $status, createdAt: $createdAt)';
   }
 
   @override
@@ -1137,6 +1241,10 @@ class _$CampaignImpl implements _Campaign {
                 .equals(other._deliverables, _deliverables) &&
             (identical(other.bidCount, bidCount) ||
                 other.bidCount == bidCount) &&
+            (identical(other.targetState, targetState) ||
+                other.targetState == targetState) &&
+            (identical(other.targetCity, targetCity) ||
+                other.targetCity == targetCity) &&
             (identical(other.slotsTotal, slotsTotal) ||
                 other.slotsTotal == slotsTotal) &&
             (identical(other.slotsFilled, slotsFilled) ||
@@ -1150,26 +1258,29 @@ class _$CampaignImpl implements _Campaign {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      title,
-      description,
-      brandCategory,
-      brandInitial,
-      brandSize,
-      const DeepCollectionEquality().hash(_niche),
-      requirements,
-      minBudget,
-      maxBudget,
-      collabType,
-      const DeepCollectionEquality().hash(_deliverables),
-      bidCount,
-      slotsTotal,
-      slotsFilled,
-      deadline,
-      status,
-      createdAt);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        title,
+        description,
+        brandCategory,
+        brandInitial,
+        brandSize,
+        const DeepCollectionEquality().hash(_niche),
+        requirements,
+        minBudget,
+        maxBudget,
+        collabType,
+        const DeepCollectionEquality().hash(_deliverables),
+        bidCount,
+        targetState,
+        targetCity,
+        slotsTotal,
+        slotsFilled,
+        deadline,
+        status,
+        createdAt
+      ]);
 
   /// Create a copy of Campaign
   /// with the given fields replaced by the non-null parameter values.
@@ -1202,6 +1313,8 @@ abstract class _Campaign implements Campaign {
       final CampaignCollabType collabType,
       final List<String> deliverables,
       final int bidCount,
+      final String? targetState,
+      final String? targetCity,
       final int slotsTotal,
       final int slotsFilled,
       required final DateTime deadline,
@@ -1237,6 +1350,10 @@ abstract class _Campaign implements Campaign {
   List<String> get deliverables;
   @override
   int get bidCount;
+  @override
+  String? get targetState;
+  @override
+  String? get targetCity;
   @override
   int get slotsTotal;
   @override

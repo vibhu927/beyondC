@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/landing/Navbar'
 import StepProgress from '@/components/join/StepProgress'
+import { INDIAN_STATES, getCities } from '@/lib/constants/india-locations'
 import { createClient } from '@/lib/supabase/client'
 import { validators } from '@/lib/validators'
 
@@ -13,6 +14,8 @@ type BrandForm = {
   full_name: string
   email: string
   phone: string
+  state: string
+  city: string
   password: string
   confirmPassword: string
   brand_name: string
@@ -66,6 +69,8 @@ export default function BrandJoinPage() {
     full_name: '',
     email: '',
     phone: '',
+    state: '',
+    city: '',
     password: '',
     confirmPassword: '',
     brand_name: '',
@@ -83,6 +88,8 @@ export default function BrandJoinPage() {
       ['Full Name', form.full_name],
       ['Email', form.email],
       ['Phone', form.phone],
+      ['State', form.state],
+      ['City', form.city],
       ['Brand Name', form.brand_name],
       ['Brand Category', form.brand_category],
       ['Website', form.website || 'Not provided'],
@@ -116,6 +123,9 @@ export default function BrandJoinPage() {
 
     const passwordRequired = validators.required(form.password, 'Password')
     nextErrors.password = passwordRequired || validators.password(form.password) || ''
+
+    nextErrors.state = validators.required(form.state, 'State') || ''
+    nextErrors.city = validators.required(form.city, 'City') || ''
 
     const confirmRequired = validators.required(form.confirmPassword, 'Confirm password')
     nextErrors.confirmPassword =
@@ -176,6 +186,8 @@ export default function BrandJoinPage() {
           first_name: form.first_name.trim(),
           full_name: form.full_name.trim(),
           phone: form.phone.trim(),
+          state: form.state,
+          city: form.city,
           brand_name: form.brand_name.trim(),
           brand_category: form.brand_category,
           website: form.website.trim() || null,
@@ -283,6 +295,45 @@ export default function BrandJoinPage() {
                       placeholder="9876543210"
                     />
                     {errors.phone && <p className="mt-2 text-sm text-[#EF4444]">{errors.phone}</p>}
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>State</label>
+                    <select
+                      className={inputClass}
+                      value={form.state}
+                      onChange={(e) => {
+                        const nextState = e.target.value
+                        setField('state', nextState)
+                        setField('city', '')
+                      }}
+                    >
+                      <option value="">Select your state</option>
+                      {INDIAN_STATES.map((state) => (
+                        <option key={state} value={state}>
+                          {state}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.state && <p className="mt-2 text-sm text-[#EF4444]">{errors.state}</p>}
+                  </div>
+
+                  <div>
+                    <label className={labelClass}>City</label>
+                    <select
+                      className={inputClass}
+                      value={form.city}
+                      disabled={!form.state}
+                      onChange={(e) => setField('city', e.target.value)}
+                    >
+                      <option value="">Select your city</option>
+                      {getCities(form.state).map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))}
+                    </select>
+                    {errors.city && <p className="mt-2 text-sm text-[#EF4444]">{errors.city}</p>}
                   </div>
 
                   <div>

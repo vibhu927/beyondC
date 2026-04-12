@@ -10,10 +10,10 @@ export async function GET(request: NextRequest) {
   const service = createServiceClient()
 
   const [profiles, collabs, creators, campaigns] = await Promise.all([
-    service.from('profiles').select('id,role,created_at'),
-    service.from('collabs').select('id,agreed_amount,created_at,status'),
+    service.from('profiles').select('id,role,state,city,created_at'),
+    service.from('collabs').select('id,brand_id,creator_id,agreed_amount,created_at,status'),
     service.from('creator_profiles').select('tier,niche'),
-    service.from('campaigns').select('niche,created_at'),
+    service.from('campaigns').select('niche,target_state,created_at'),
   ])
 
   return apiSuccess({

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -101,13 +102,13 @@ class MessageBubble extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.copy_rounded),
+                leading: const Icon(Symbols.content_copy_rounded),
                 title: const Text('Copy'),
                 onTap: () => Navigator.of(context).pop('copy'),
               ),
               if (isMine)
                 ListTile(
-                  leading: const Icon(Icons.delete_outline_rounded),
+                  leading: const Icon(Symbols.delete_outline_rounded),
                   title: const Text('Delete'),
                   onTap: () => Navigator.of(context).pop('delete'),
                 ),

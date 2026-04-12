@@ -7,6 +7,7 @@ export const ADMIN_PAGES = [
   'payments',
   'disputes',
   'notifications',
+  'carousels',
   'settings',
   'analytics',
   'staff',

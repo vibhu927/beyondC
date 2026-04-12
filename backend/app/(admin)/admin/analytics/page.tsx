@@ -4,10 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { headers } from 'next/headers'
 
 type AnalyticsResponse = {
-  profiles: Array<{ id: string; role: string | null; created_at: string }>
-  collabs: Array<{ id: string; agreed_amount: number | null; created_at: string }>
+  profiles: Array<{ id: string; role: string | null; state: string | null; city: string | null; created_at: string }>
+  collabs: Array<{ id: string; brand_id: string | null; creator_id: string | null; agreed_amount: number | null; created_at: string }>
   creators: Array<{ tier: string | null; niche: string[] | null }>
-  campaigns: Array<{ niche: string[] | null; created_at: string }>
+  campaigns: Array<{ niche: string[] | null; target_state: string | null; created_at: string }>
 }
 
 async function loadAnalytics(): Promise<AnalyticsResponse> {
@@ -103,6 +103,48 @@ export default async function AdminAnalyticsPage() {
   const creatorCount = profiles.filter((row) => row.role === 'creator').length
   const brandCount = profiles.filter((row) => row.role === 'brand').length
 
+  const creatorCityMap = new Map<string, number>()
+  const brandCityMap = new Map<string, number>()
+  const profileById = new Map<string, { state: string | null; city: string | null }>()
+
+  profiles.forEach((row) => {
+    profileById.set(row.id, { state: row.state, city: row.city })
+    const city = row.city || 'Unknown'
+    if (row.role === 'creator') {
+      creatorCityMap.set(city, (creatorCityMap.get(city) ?? 0) + 1)
+    }
+    if (row.role === 'brand') {
+      brandCityMap.set(city, (brandCityMap.get(city) ?? 0) + 1)
+    }
+  })
+
+  const topCreatorCities = Array.from(creatorCityMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([label, count]) => ({ label, count }))
+
+  const topBrandCities = Array.from(brandCityMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([label, count]) => ({ label, count }))
+
+  const collabStateMap = new Map<string, number>()
+  collabs.forEach((row) => {
+    const creatorState = row.creator_id ? profileById.get(row.creator_id)?.state : null
+    const brandState = row.brand_id ? profileById.get(row.brand_id)?.state : null
+    const state = creatorState || brandState || 'Unknown'
+    collabStateMap.set(state, (collabStateMap.get(state) ?? 0) + 1)
+  })
+  campaigns.forEach((row) => {
+    const state = row.target_state || 'Pan India'
+    collabStateMap.set(state, (collabStateMap.get(state) ?? 0) + 1)
+  })
+
+  const topStatesByVolume = Array.from(collabStateMap.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([label, count]) => ({ label, count }))
+
   return (
     <PermissionGate page="analytics" action="can_view">
       <div className="space-y-6">
@@ -115,9 +157,14 @@ export default async function AdminAnalyticsPage() {
           <Card><CardHeader><CardTitle>Creator Tier Distribution</CardTitle></CardHeader><CardContent><AdminPieChart data={tierData} dataKey="value" /></CardContent></Card>
           <Card><CardHeader><CardTitle>Top 5 Niches by Collab Volume</CardTitle></CardHeader><CardContent><AdminBarChart data={topNiches} keyName="count" color="#f97316" /></CardContent></Card>
         </div>
+        <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+          <Card><CardHeader><CardTitle>Top 10 Cities by Creator Count</CardTitle></CardHeader><CardContent><AdminBarChart data={topCreatorCities} keyName="count" color="#22c55e" /></CardContent></Card>
+          <Card><CardHeader><CardTitle>Top 10 Cities by Brand Count</CardTitle></CardHeader><CardContent><AdminBarChart data={topBrandCities} keyName="count" color="#ec4899" /></CardContent></Card>
+          <Card><CardHeader><CardTitle>Top States by Collab Volume</CardTitle></CardHeader><CardContent><AdminBarChart data={topStatesByVolume} keyName="count" color="#0ea5e9" /></CardContent></Card>
+        </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
           <Card><CardHeader><CardTitle>Avg Collab Value</CardTitle></CardHeader><CardContent className="text-xl font-bold">Rs {avgCollabValue.toLocaleString()}</CardContent></Card>
-          <Card><CardHeader><CardTitle>Most Active City</CardTitle></CardHeader><CardContent className="text-xl font-bold">Bengaluru</CardContent></Card>
+          <Card><CardHeader><CardTitle>Most Active City</CardTitle></CardHeader><CardContent className="text-xl font-bold">{topCreatorCities[0]?.label || topBrandCities[0]?.label || '-'}</CardContent></Card>
           <Card><CardHeader><CardTitle>Top Niche</CardTitle></CardHeader><CardContent className="text-xl font-bold">{topNiches[0]?.label || '-'}</CardContent></Card>
           <Card><CardHeader><CardTitle>Creator:Brand Ratio</CardTitle></CardHeader><CardContent className="text-xl font-bold">{creatorCount}:{brandCount || 1}</CardContent></Card>
         </div>

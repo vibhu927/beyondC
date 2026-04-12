@@ -16,20 +16,33 @@ class BidReviewCard extends StatelessWidget {
     required this.shadow,
     required this.onAccept,
     required this.onPass,
+    this.displayName,
+    this.avatarUrl,
     this.onReadMore,
+    this.onAvatarTap,
   });
 
   final CampaignBid bid;
   final List<BoxShadow> shadow;
   final VoidCallback? onAccept;
   final VoidCallback? onPass;
+  final String? displayName;
+  final String? avatarUrl;
   final VoidCallback? onReadMore;
+  final VoidCallback? onAvatarTap;
 
   @override
   Widget build(BuildContext context) {
-    final titleText = bid.isUnlocked
-        ? '${bid.creatorFullName} ${bid.creatorHandle}'
+    final resolvedAvatarUrl = (avatarUrl ?? '').trim().isNotEmpty
+        ? avatarUrl!.trim()
+        : (bid.creatorAvatarUrl ?? '').trim();
+    final fallbackTitle = bid.isUnlocked
+        ? '${bid.creatorFullName} ${bid.creatorHandle}'.trim()
         : bid.creatorFirstName;
+    final titleText = (displayName ?? '').trim().isNotEmpty
+        ? displayName!.trim()
+        : fallbackTitle;
+    final niches = bid.niches.where((item) => item.trim().isNotEmpty).toList();
 
     return BCCard(
       shadow: shadow,
@@ -39,18 +52,33 @@ class BidReviewCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.ink,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                  border: Border.all(color: AppColors.ink, width: 2),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  bid.creatorInitials,
-                  style: AppTypography.labelSM.copyWith(color: AppColors.neon),
+              GestureDetector(
+                onTap: onAvatarTap,
+                child: Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.ink,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                    border: Border.all(color: AppColors.ink, width: 2),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  alignment: Alignment.center,
+                  child: resolvedAvatarUrl.isNotEmpty
+                      ? Image.network(
+                          resolvedAvatarUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Text(
+                            bid.creatorInitials,
+                            style: AppTypography.labelSM
+                                .copyWith(color: AppColors.neon),
+                          ),
+                        )
+                      : Text(
+                          bid.creatorInitials,
+                          style: AppTypography.labelSM
+                              .copyWith(color: AppColors.neon),
+                        ),
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -78,18 +106,9 @@ class BidReviewCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: AppSpacing.xs),
-                    Row(
-                      children: [
-                        BCBadge(
-                          label: bid.tier,
-                          variant: _tierVariant(bid.tier),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Text(
-                          '${bid.engagementRate.toStringAsFixed(1)}% ER',
-                          style: AppTypography.bodySM,
-                        ),
-                      ],
+                    BCBadge(
+                      label: bid.tier,
+                      variant: _tierVariant(bid.tier),
                     ),
                   ],
                 ),
@@ -101,8 +120,12 @@ class BidReviewCard extends StatelessWidget {
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
             children: [
-              _pill(bid.followerRange),
-              ...bid.niches.take(2).map(_pill),
+              _pill(_compactFollowers(bid.followersCount), AppColors.neon,
+                  AppColors.ink),
+              if (niches.isNotEmpty)
+                _pill(niches[0], AppColors.pink, AppColors.white),
+              if (niches.length > 1)
+                _pill(niches[1], AppColors.blue, AppColors.white),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -153,25 +176,18 @@ class BidReviewCard extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: BCPrimaryButton.neon(
-                  label: '✓ Accept',
-                  onPressed: bid.isAccepted ? null : onAccept,
+                child: BCPrimaryButton.pink(
+                  label: 'Pass',
+                  onPressed: bid.isAccepted ? null : onPass,
                   isFullWidth: false,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: OutlinedButton(
-                  onPressed: bid.isAccepted ? null : onPass,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.ink,
-                    side: const BorderSide(color: AppColors.ink, width: 2),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
-                    ),
-                    minimumSize: const Size.fromHeight(50),
-                  ),
-                  child: const Text('✗ Pass'),
+                child: BCPrimaryButton.neon(
+                  label: 'Accept',
+                  onPressed: bid.isAccepted ? null : onAccept,
+                  isFullWidth: false,
                 ),
               ),
             ],
@@ -181,20 +197,39 @@ class BidReviewCard extends StatelessWidget {
     );
   }
 
-  Widget _pill(String value) {
+  Widget _pill(String value, Color bgColor, Color textColor) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
+        color: bgColor,
         borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
         border: Border.all(color: AppColors.ink, width: 1.5),
       ),
-      child: Text(value, style: AppTypography.labelXS),
+      child: Text(
+        value,
+        style: AppTypography.labelXS.copyWith(color: textColor),
+      ),
     );
   }
+}
+
+String _compactFollowers(int followers) {
+  if (followers >= 1000000) {
+    final value = followers / 1000000;
+    final str =
+        value % 1 == 0 ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
+    return '${str}m';
+  }
+  if (followers >= 1000) {
+    final value = followers / 1000;
+    final str =
+        value % 1 == 0 ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
+    return '${str}k';
+  }
+  return followers.toString();
 }
 
 String _collabLabel(CampaignCollabType type) {

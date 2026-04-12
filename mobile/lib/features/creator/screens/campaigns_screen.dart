@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/india_locations.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
@@ -14,6 +16,7 @@ import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
+import '../../../widgets/inputs/bc_dropdown.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 import '../widgets/campaign_card.dart';
 
@@ -36,6 +39,9 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
   final Set<String> _sheetNiches = <String>{};
   int? _minBudgetInr;
   int? _maxBudgetInr;
+  String? _filterState;
+  String? _filterCity;
+  bool _includePanIndia = true;
 
   @override
   void initState() {
@@ -79,6 +85,9 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
           chipNiche ?? (_sheetNiches.length == 1 ? _sheetNiches.first : null),
       minBudget: _minBudgetInr,
       maxBudget: _maxBudgetInr,
+      state: _filterState,
+      city: _filterCity,
+      includePanIndia: _includePanIndia,
     );
 
     return ref.read(creatorCampaignsProvider.notifier).applyFilters(filter);
@@ -94,6 +103,9 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
 
     final workingCollabTypes = Set<CampaignCollabType>.from(_sheetCollabTypes);
     final workingNiches = Set<String>.from(_sheetNiches);
+    String? workingState = _filterState;
+    String? workingCity = _filterCity;
+    bool workingIncludePanIndia = _includePanIndia;
 
     showModalBottomSheet<void>(
       context: context,
@@ -178,6 +190,63 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                           ],
                         ),
                         const SizedBox(height: AppSpacing.lg),
+                        const Divider(color: AppColors.divider),
+                        const SizedBox(height: AppSpacing.md),
+                        const Text('Location', style: AppTypography.labelMD),
+                        const SizedBox(height: AppSpacing.sm),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: BCDropdown(
+                                label: 'State',
+                                value: workingState,
+                                hint: 'All India',
+                                items: const ['All India', ...IndiaLocations.states],
+                                onChanged: (value) {
+                                  setSheetState(() {
+                                    workingState = value == 'All India' ? null : value;
+                                    workingCity = null;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.md),
+                            Expanded(
+                              child: BCDropdown(
+                                label: 'City',
+                                value: workingCity,
+                                hint: workingState == null ? 'All Cities' : 'Select city',
+                                items: workingState == null
+                                    ? const ['All Cities']
+                                    : ['All Cities', ...IndiaLocations.getCities(workingState!)],
+                                onChanged: workingState == null
+                                    ? null
+                                    : (value) {
+                                        setSheetState(() {
+                                          workingCity = value == 'All Cities' ? null : value;
+                                        });
+                                      },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: workingIncludePanIndia,
+                              onChanged: (value) {
+                                setSheetState(() {
+                                  workingIncludePanIndia = value ?? true;
+                                });
+                              },
+                            ),
+                            const Expanded(
+                              child: Text('Include Pan India campaigns'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.md),
                         const Text('Niche', style: AppTypography.labelMD),
                         const SizedBox(height: AppSpacing.sm),
                         Wrap(
@@ -215,6 +284,9 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                   int.tryParse(minController.text.trim());
                               _maxBudgetInr =
                                   int.tryParse(maxController.text.trim());
+                                _filterState = workingState;
+                                _filterCity = workingCity;
+                                _includePanIndia = workingIncludePanIndia;
                             });
                             Navigator.of(context).pop();
                             await _applyServerFilters();
@@ -230,6 +302,9 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                 _sheetNiches.clear();
                                 _minBudgetInr = null;
                                 _maxBudgetInr = null;
+                                _filterState = null;
+                                _filterCity = null;
+                                _includePanIndia = true;
                               });
                               Navigator.of(context).pop();
                               await _applyServerFilters();
@@ -319,7 +394,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
         child: FloatingActionButton(
           heroTag: 'creatorCampaignFiltersFab',
           onPressed: _openFiltersSheet,
@@ -330,7 +405,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
             side: const BorderSide(color: AppColors.neon, width: 2),
           ),
-          child: const Icon(Icons.tune_rounded),
+          child: const Icon(Symbols.tune_rounded),
         ),
       ),
       body: BCPageSwipeArea(
@@ -340,122 +415,123 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
           color: AppColors.neon,
           onRefresh: _refresh,
           child: ListView(
-          controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            AppSpacing.sm,
-            AppSpacing.md,
-            AppSpacing.huge,
-          ),
-          children: [
-            SizedBox(
-              height: 40,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _campaignFilterChips.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(width: AppSpacing.sm),
-                itemBuilder: (context, index) {
-                  final chip = _campaignFilterChips[index];
-                  final isActive = chip == _activeChip;
-                  return _NeoPill(
-                    label: chip,
-                    isActive: isActive,
-                    onTap: () async {
-                      setState(() {
-                        _activeChip = chip;
-                      });
-                      await _applyServerFilters();
-                    },
-                  );
-                },
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.sm,
+              AppSpacing.md,
+              AppSpacing.huge,
+            ),
+            children: [
+              SizedBox(
+                height: 40,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _campaignFilterChips.length,
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(width: AppSpacing.sm),
+                  itemBuilder: (context, index) {
+                    final chip = _campaignFilterChips[index];
+                    final isActive = chip == _activeChip;
+                    return _NeoPill(
+                      label: chip,
+                      isActive: isActive,
+                      onTap: () async {
+                        setState(() {
+                          _activeChip = chip;
+                        });
+                        await _applyServerFilters();
+                      },
+                    );
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                const Text('Sort by:', style: AppTypography.labelMD),
-                const SizedBox(width: AppSpacing.sm),
-                _SortPill(
-                  label: 'Newest',
-                  isActive: _activeSort == _CampaignSort.newest,
-                  onTap: () =>
-                      setState(() => _activeSort = _CampaignSort.newest),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                _SortPill(
-                  label: 'Budget ↑',
-                  isActive: _activeSort == _CampaignSort.budgetAsc,
-                  onTap: () =>
-                      setState(() => _activeSort = _CampaignSort.budgetAsc),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                _SortPill(
-                  label: 'Budget ↓',
-                  isActive: _activeSort == _CampaignSort.budgetDesc,
-                  onTap: () =>
-                      setState(() => _activeSort = _CampaignSort.budgetDesc),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            campaignsAsync.when(
-              loading: () => Column(
-                children: List.generate(
-                  4,
-                  (index) => const Padding(
-                    padding: EdgeInsets.only(bottom: AppSpacing.md),
-                    child: SizedBox(
-                      height: 220,
-                      child: CampaignCardSkeleton(width: double.infinity),
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: [
+                  const Text('Sort by:', style: AppTypography.labelMD),
+                  const SizedBox(width: AppSpacing.sm),
+                  _SortPill(
+                    label: 'Newest',
+                    isActive: _activeSort == _CampaignSort.newest,
+                    onTap: () =>
+                        setState(() => _activeSort = _CampaignSort.newest),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  _SortPill(
+                    label: 'Budget ↑',
+                    isActive: _activeSort == _CampaignSort.budgetAsc,
+                    onTap: () =>
+                        setState(() => _activeSort = _CampaignSort.budgetAsc),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  _SortPill(
+                    label: 'Budget ↓',
+                    isActive: _activeSort == _CampaignSort.budgetDesc,
+                    onTap: () =>
+                        setState(() => _activeSort = _CampaignSort.budgetDesc),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              campaignsAsync.when(
+                loading: () => Column(
+                  children: List.generate(
+                    4,
+                    (index) => const Padding(
+                      padding: EdgeInsets.only(bottom: AppSpacing.md),
+                      child: SizedBox(
+                        height: 220,
+                        child: CampaignCardSkeleton(width: double.infinity),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              error: (error, _) => BCErrorState(
-                message: error.toString(),
-                onRetry: _refresh,
-              ),
-              data: (state) {
-                final visibleCampaigns = _applyLocalFilters(state.campaigns);
-                if (visibleCampaigns.isEmpty) {
-                  return const BCEmptyState(
-                    emoji: '🔍',
-                    message: 'No campaigns match your filters.',
-                  );
-                }
+                error: (error, _) => BCErrorState(
+                  message: error.toString(),
+                  onRetry: _refresh,
+                ),
+                data: (state) {
+                  final visibleCampaigns = _applyLocalFilters(state.campaigns);
+                  if (visibleCampaigns.isEmpty) {
+                    return const BCEmptyState(
+                      emoji: '🔍',
+                      message: 'No campaigns match your filters.',
+                    );
+                  }
 
-                return Column(
-                  children: [
-                    for (final campaign in visibleCampaigns)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: SizedBox(
-                          height: 220,
-                          child: CampaignCard(
-                            width: double.infinity,
-                            campaign: campaign,
-                            onTap: () => context.push(
-                              RouteNames.campaignDetail
-                                  .replaceFirst(':id', campaign.id),
+                  return Column(
+                    children: [
+                      for (final campaign in visibleCampaigns)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          child: SizedBox(
+                            height: 220,
+                            child: CampaignCard(
+                              width: double.infinity,
+                              campaign: campaign,
+                              onTap: () => context.push(
+                                RouteNames.campaignDetail
+                                    .replaceFirst(':id', campaign.id),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    if (state.isLoadingMore)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                        child: Center(
-                          child:
-                              CircularProgressIndicator(color: AppColors.ink),
+                      if (state.isLoadingMore)
+                        const Padding(
+                          padding:
+                              EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                          child: Center(
+                            child:
+                                CircularProgressIndicator(color: AppColors.ink),
+                          ),
                         ),
-                      ),
-                  ],
-                );
-              },
-            ),
-          ],
+                    ],
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ),

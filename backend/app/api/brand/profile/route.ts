@@ -85,12 +85,15 @@ export async function PUT(request: NextRequest) {
 
     if (validatedData.display_name !== undefined) profileFields.display_name = validatedData.display_name
     if (validatedData.avatar_url !== undefined) profileFields.avatar_url = validatedData.avatar_url
+    if (validatedData.state !== undefined) profileFields.state = validatedData.state
+    if (validatedData.city !== undefined) profileFields.city = validatedData.city
     if (validatedData.onboarded !== undefined) profileFields.onboarded = validatedData.onboarded
 
     if (validatedData.brand_name !== undefined) brandFields.brand_name = validatedData.brand_name
     if (validatedData.brand_category !== undefined) brandFields.brand_category = validatedData.brand_category
     if (validatedData.description !== undefined) brandFields.description = validatedData.description
     if (validatedData.logo_url !== undefined) brandFields.logo_url = validatedData.logo_url
+    if (validatedData.portfolio_links !== undefined) brandFields.portfolio_links = validatedData.portfolio_links
     if (validatedData.website !== undefined) brandFields.website = validatedData.website
     if (validatedData.contact_email !== undefined) brandFields.contact_email = validatedData.contact_email
     if (validatedData.size !== undefined) brandFields.size = validatedData.size

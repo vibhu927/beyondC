@@ -112,6 +112,15 @@ class CampaignCard extends StatelessWidget {
                     style: AppTypography.bodyXS,
                   ),
                 ),
+                BCBadge(
+                  label: campaign.targetCity != null
+                      ? '📍 ${campaign.targetCity}'
+                      : campaign.targetState != null
+                          ? '📍 ${campaign.targetState}'
+                          : '🌏 Pan India',
+                  variant: BCBadgeVariant.outline,
+                ),
+                const SizedBox(width: AppSpacing.sm),
                 _SmallNeoButton(label: 'Bid Now →', onTap: onTap),
               ],
             ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -18,6 +19,7 @@ import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../../shared/widgets/home_carousel_strip.dart';
 
 class BrandHomeScreen extends ConsumerStatefulWidget {
   const BrandHomeScreen({super.key});
@@ -89,6 +91,13 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                   ),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
+                      if (brandState.carouselItems.isNotEmpty) ...[
+                        HomeCarouselStrip(
+                          items: brandState.carouselItems,
+                          height: 136,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
                       Wrap(
                         spacing: AppSpacing.md,
                         runSpacing: AppSpacing.md,
@@ -159,7 +168,7 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                                 ],
                               ),
                             ),
-                            Icon(Icons.arrow_forward_rounded,
+                            Icon(Symbols.arrow_forward_rounded,
                                 color: AppColors.ink),
                           ],
                         ),

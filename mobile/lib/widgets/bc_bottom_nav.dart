@@ -1,10 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/router/route_names.dart';
-import '../core/theme/app_typography.dart';
 
 enum BCPortalRole { creator, brand }
 
@@ -164,16 +164,16 @@ class _BCBottomNavState extends State<BCBottomNav> {
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 0, 14, 8),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
             final itemWidth = width / items.length;
-            final capsuleWidth = itemWidth - 6;
+            final capsuleWidth = itemWidth - 10;
             final targetCenterX =
                 _dragX ?? (widget.currentIndex * itemWidth + itemWidth / 2);
             final capsuleLeft = (targetCenterX - capsuleWidth / 2)
-                .clamp(3.0, width - capsuleWidth - 3.0)
+                .clamp(5.0, width - capsuleWidth - 5.0)
                 .toDouble();
             final isDragging = _dragX != null;
 
@@ -183,29 +183,29 @@ class _BCBottomNavState extends State<BCBottomNav> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(34),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                   child: Container(
                     key: _navKey,
-                    height: 66,
+                    height: 72,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          Colors.black.withValues(alpha: 0.84),
-                          Colors.black.withValues(alpha: 0.66),
+                          const Color(0xFF0D131C),
+                          const Color(0xFF121A25),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(34),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: Colors.white.withValues(alpha: 0.16),
                         width: 1.2,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.26),
-                          blurRadius: 18,
-                          offset: const Offset(0, 8),
+                          color: Colors.black.withValues(alpha: 0.24),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
                         ),
                       ],
                     ),
@@ -217,16 +217,23 @@ class _BCBottomNavState extends State<BCBottomNav> {
                               : const Duration(milliseconds: 220),
                           curve: Curves.easeOutCubic,
                           left: capsuleLeft,
-                          top: 5,
+                          top: 6,
                           width: capsuleWidth,
-                          height: 56,
+                          height: 60,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.14),
+                              color: Colors.white.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.34),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.44),
-                                width: 1,
+                                color: Colors.white.withValues(alpha: 0.32),
+                                width: 1.0,
                               ),
                             ),
                           ),
@@ -268,38 +275,38 @@ class _BCBottomNavState extends State<BCBottomNav> {
       case BCPortalRole.creator:
         return [
           _NavItem(
-              icon: Icons.home_rounded,
+              icon: Symbols.home_rounded,
               label: 'Home',
               route: routes[0]),
           _NavItem(
-              icon: Icons.explore_rounded,
+              icon: Symbols.explore_rounded,
               label: 'Campaigns',
               route: routes[1]),
           _NavItem(
-              icon: Icons.bookmark_rounded,
+              icon: Symbols.bookmark_rounded,
               label: 'My Bids',
               route: routes[2]),
           _NavItem(
-              icon: Icons.person_rounded,
+              icon: Symbols.person_rounded,
               label: 'Profile',
               route: routes[3]),
         ];
       case BCPortalRole.brand:
         return [
           _NavItem(
-              icon: Icons.home_rounded,
+              icon: Symbols.home_rounded,
               label: 'Home',
               route: routes[0]),
           _NavItem(
-              icon: Icons.campaign_rounded,
+              icon: Symbols.campaign_rounded,
               label: 'Campaigns',
               route: routes[1]),
           _NavItem(
-              icon: Icons.send_rounded,
+              icon: Symbols.inbox_rounded,
               label: 'Requests',
               route: routes[2]),
           _NavItem(
-              icon: Icons.person_rounded,
+              icon: Symbols.person_rounded,
               label: 'Profile',
               route: routes[3]),
         ];
@@ -332,22 +339,19 @@ class _NavIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        isSelected ? Colors.white : Colors.white.withValues(alpha: 0.82);
+    final color = isSelected
+        ? Colors.white
+        : Colors.white.withValues(alpha: 0.72);
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(icon, size: 22, color: color),
-        const SizedBox(height: 3),
-        Text(
-          label,
-          style: AppTypography.labelXS.copyWith(
-            color: color,
-            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-          ),
-        ),
-      ],
+    return Center(
+      child: Icon(
+        icon,
+        size: 30,
+        color: color,
+        fill: isSelected ? 1 : 0,
+        weight: isSelected ? 700 : 500,
+        opticalSize: 24,
+      ),
     );
   }
 }

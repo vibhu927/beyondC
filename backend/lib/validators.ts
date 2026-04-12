@@ -6,6 +6,8 @@ export const signupSchema = z.object({
   password: z.string().min(8),
   role: z.enum(['creator', 'brand']),
   display_name: z.string().min(1),
+  state: z.string().min(1).optional(),
+  city: z.string().min(1).optional(),
 })
 
 export const loginSchema = z.object({
@@ -26,6 +28,8 @@ export const updateCreatorProfileSchema = z.object({
   followers_count: z.number().int().min(0).optional(),
   engagement_rate: z.number().min(0).max(100).optional(),
   portfolio_links: z.array(z.string().url()).optional(),
+  state: z.string().optional(),
+  city: z.string().optional(),
   onboarded: z.boolean().optional(),
 })
 
@@ -37,9 +41,12 @@ export const updateBrandProfileSchema = z.object({
   brand_category: z.string().optional(),
   description: z.string().optional(),
   logo_url: z.string().url().optional().nullable(),
+  portfolio_links: z.array(z.string().url()).optional(),
   website: z.string().url().optional(),
   contact_email: z.string().email().optional(),
   size: z.enum(['micro', 'mid', 'big']).optional(),
+  state: z.string().optional(),
+  city: z.string().optional(),
   onboarded: z.boolean().optional(),
 })
 
@@ -56,6 +63,8 @@ export const createCampaignSchema = z.object({
   requirements: z.string().optional(),
   deadline: z.string().optional(), // ISO date string
   slots: z.number().int().min(1).optional(),
+  target_state: z.string().optional().nullable(),
+  target_city: z.string().optional().nullable(),
   status: z.enum(['draft', 'active', 'closed']).optional(),
 })
 
@@ -71,12 +80,17 @@ export const updateCampaignSchema = z.object({
   requirements: z.string().optional(),
   deadline: z.string().optional(),
   slots: z.number().int().min(1).optional(),
+  target_state: z.string().optional().nullable(),
+  target_city: z.string().optional().nullable(),
   status: z.enum(['draft', 'active', 'closed']).optional(),
 })
 
 // Bid schemas
 export const createBidSchema = z.object({
   campaign_id: z.string().uuid(),
+  bid_amount: z.number().int().min(0).optional(),
+  deliverables: z.string().optional(),
+  include_barter: z.boolean().optional(),
   message: z.string().optional(),
 })
 
@@ -95,6 +109,8 @@ export const createEventSchema = z.object({
   description: z.string().optional(),
   event_date: z.string(), // ISO date string
   location: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
   image_url: z.string().url().optional(),
 })
 

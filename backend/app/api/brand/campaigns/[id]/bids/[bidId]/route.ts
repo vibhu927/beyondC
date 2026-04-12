@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { actionSchema } from '@/lib/validators'
 import { sendPushNotification } from '@/lib/notifications/push'
 
@@ -9,6 +10,7 @@ export async function PUT(
 ) {
   try {
     const supabase = createClient()
+    const service = createServiceClient()
     const body = await request.json()
 
     // Get current user
@@ -21,14 +23,15 @@ export async function PUT(
     const { action } = actionSchema.parse(body)
 
     // Get bid with campaign details
-    const { data: bid, error: bidError } = await supabase
+    const { data: bid, error: bidError } = await service
       .from('bids')
       .select(`
         *,
         campaign:campaigns (
           brand_id,
           title,
-          budget,
+          budget_min,
+          budget_max,
           collab_type,
           deliverables
         )
@@ -51,7 +54,7 @@ export async function PUT(
     }
 
     if (action === 'accept') {
-      const { data: brandProfile, error: brandProfileError } = await supabase
+      const { data: brandProfile, error: brandProfileError } = await service
         .from('brand_profiles')
         .select('credit_balance')
         .eq('id', user.id)
@@ -73,7 +76,7 @@ export async function PUT(
       }
 
       const nextCredits = (brandProfile.credit_balance ?? 0) - 1
-      const { error: creditUpdateError } = await supabase
+      const { error: creditUpdateError } = await service
         .from('brand_profiles')
         .update({ credit_balance: nextCredits })
         .eq('id', user.id)
@@ -82,7 +85,7 @@ export async function PUT(
         return NextResponse.json({ error: creditUpdateError.message }, { status: 400 })
       }
 
-      await supabase.from('credit_transactions').insert({
+      await service.from('credit_transactions').insert({
         brand_id: user.id,
         type: 'deduct',
         amount: 1,
@@ -92,14 +95,21 @@ export async function PUT(
       })
 
       // Create collab from accepted bid
-      const { data: collab, error: collabError } = await supabase
+      const agreedAmount =
+        bid.bid_amount ??
+        bid.campaign.budget_min ??
+        bid.campaign.budget_max ??
+        0
+
+      const { data: collab, error: collabError } = await service
         .from('collabs')
         .insert({
           brand_id: user.id,
           creator_id: bid.creator_id,
-          source: 'campaign_bid',
+          source: 'bid',
           source_id: params.bidId,
-          agreed_amount: bid.campaign.budget,
+          campaign_id: params.id,
+          agreed_amount: agreedAmount,
           collab_type: bid.campaign.collab_type,
           deliverables: bid.campaign.deliverables,
         })
@@ -111,13 +121,13 @@ export async function PUT(
       }
 
       // Update bid status
-      await supabase
+      await service
         .from('bids')
         .update({ status: 'accepted' })
         .eq('id', params.bidId)
 
       // Notify creator
-      await supabase.from('notifications').insert({
+      await service.from('notifications').insert({
         user_id: bid.creator_id,
         type: 'bid_accepted',
         title: 'Bid Accepted!',
@@ -142,13 +152,13 @@ export async function PUT(
       })
     } else if (action === 'reject') {
       // Reject bid
-      await supabase
+      await service
         .from('bids')
         .update({ status: 'rejected' })
         .eq('id', params.bidId)
 
       // Notify creator
-      await supabase.from('notifications').insert({
+      await service.from('notifications').insert({
         user_id: bid.creator_id,
         type: 'bid_rejected',
         title: 'Bid Not Selected',

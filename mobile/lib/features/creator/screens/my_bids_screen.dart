@@ -10,6 +10,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_portal_top_bar.dart';
@@ -62,143 +63,144 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
           color: AppColors.neon,
           onRefresh: _refresh,
           child: bidsAsync.when(
-          loading: () => const _MyBidsLoadingView(),
-          error: (error, _) => BCErrorState(
-            message: error.toString(),
-            onRetry: _refresh,
-          ),
-          data: (bids) {
-            final filtered = _applyFilter(bids, _activeFilter);
-            final activeCount = bids.where(_isActiveBid).length;
-            final matchedCount = bids.where(_isMatchedBid).length;
-            final closedCount = bids.where(_isClosedBid).length;
+            loading: () => const _MyBidsLoadingView(),
+            error: (error, _) => BCErrorState(
+              message: error.toString(),
+              onRetry: _refresh,
+            ),
+            data: (bids) {
+              final filtered = _applyFilter(bids, _activeFilter);
+              final activeCount = bids.where(_isActiveBid).length;
+              final matchedCount = bids.where(_isMatchedBid).length;
+              final closedCount = bids.where(_isClosedBid).length;
 
-            return CustomScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    AppSpacing.lg,
-                    AppSpacing.md,
-                    AppSpacing.huge,
-                  ),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      const SizedBox(height: AppSpacing.sm),
-                      SizedBox(
-                        height: 86,
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _StatPill(
-                                label: 'All',
-                                value: bids.length.toString(),
-                                variant: BCBadgeVariant.dark,
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: _StatPill(
-                                label: 'Active',
-                                value: activeCount.toString(),
-                                variant: BCBadgeVariant.neon,
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: _StatPill(
-                                label: 'Matched',
-                                value: matchedCount.toString(),
-                                variant: BCBadgeVariant.success,
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: _StatPill(
-                                label: 'Closed',
-                                value: closedCount.toString(),
-                                variant: BCBadgeVariant.purple,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            _filterChip('All', _BidFilter.all),
-                            const SizedBox(width: AppSpacing.sm),
-                            _filterChip('Active', _BidFilter.active),
-                            const SizedBox(width: AppSpacing.sm),
-                            _filterChip('Matched', _BidFilter.matched),
-                            const SizedBox(width: AppSpacing.sm),
-                            _filterChip('Closed', _BidFilter.closed),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      if (filtered.isEmpty)
-                        const BCEmptyState(
-                          emoji: '🧾',
-                          message: 'No bids found for this filter.',
-                        )
-                      else
-                        Column(
-                          children: [
-                            for (final bid in filtered)
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  bottom: AppSpacing.lg,
+              return CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.huge,
+                    ),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        const SizedBox(height: AppSpacing.sm),
+                        SizedBox(
+                          height: 86,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _StatPill(
+                                  label: 'All',
+                                  value: bids.length.toString(),
+                                  variant: BCBadgeVariant.dark,
                                 ),
-                                child: _BidCard(
-                                  bid: bid,
-                                  isActionRunning: isActionRunning,
-                                  onViewCampaign: () {
-                                    context.push(
-                                      RouteNames.campaignDetail.replaceFirst(
-                                        ':id',
-                                        bid.campaignId,
-                                      ),
-                                    );
-                                  },
-                                  onWithdraw: _canWithdraw(bid)
-                                      ? () async {
-                                          try {
-                                            await ref
-                                                .read(creatorActionsProvider
-                                                    .notifier)
-                                                .withdrawBid(bid.id);
-                                            if (!context.mounted) return;
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content: Text('Bid withdrawn.'),
-                                              ),
-                                            );
-                                          } catch (e) {
-                                            if (!context.mounted) return;
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              SnackBar(
-                                                content: Text(e.toString()),
-                                              ),
-                                            );
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(
+                                child: _StatPill(
+                                  label: 'Active',
+                                  value: activeCount.toString(),
+                                  variant: BCBadgeVariant.neon,
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(
+                                child: _StatPill(
+                                  label: 'Matched',
+                                  value: matchedCount.toString(),
+                                  variant: BCBadgeVariant.success,
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(
+                                child: _StatPill(
+                                  label: 'Closed',
+                                  value: closedCount.toString(),
+                                  variant: BCBadgeVariant.purple,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: [
+                              _filterChip('All', _BidFilter.all),
+                              const SizedBox(width: AppSpacing.sm),
+                              _filterChip('Active', _BidFilter.active),
+                              const SizedBox(width: AppSpacing.sm),
+                              _filterChip('Matched', _BidFilter.matched),
+                              const SizedBox(width: AppSpacing.sm),
+                              _filterChip('Closed', _BidFilter.closed),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        if (filtered.isEmpty)
+                          const BCEmptyState(
+                            emoji: '🧾',
+                            message: 'No bids found for this filter.',
+                          )
+                        else
+                          Column(
+                            children: [
+                              for (final bid in filtered)
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.lg,
+                                  ),
+                                  child: _BidCard(
+                                    bid: bid,
+                                    isActionRunning: isActionRunning,
+                                    onViewCampaign: () {
+                                      context.push(
+                                        RouteNames.campaignDetail.replaceFirst(
+                                          ':id',
+                                          bid.campaignId,
+                                        ),
+                                      );
+                                    },
+                                    onWithdraw: _canWithdraw(bid)
+                                        ? () async {
+                                            try {
+                                              await ref
+                                                  .read(creatorActionsProvider
+                                                      .notifier)
+                                                  .withdrawBid(bid.id);
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content:
+                                                      Text('Bid withdrawn.'),
+                                                ),
+                                              );
+                                            } catch (e) {
+                                              if (!context.mounted) return;
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                  content: Text(e.toString()),
+                                                ),
+                                              );
+                                            }
                                           }
-                                        }
-                                      : null,
+                                        : null,
+                                  ),
                                 ),
-                              ),
-                          ],
-                        ),
-                    ]),
+                            ],
+                          ),
+                      ]),
+                    ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -472,8 +474,6 @@ class _MyBidsLoadingView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: CircularProgressIndicator(color: AppColors.neon),
-    );
+    return const Center(child: BCAppLoader());
   }
 }

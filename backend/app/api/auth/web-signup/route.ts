@@ -8,6 +8,8 @@ type SignupBody = {
   first_name?: string
   full_name?: string
   phone?: string
+  state?: string
+  city?: string
   niche?: string[]
   content_type?: string[]
   starting_price?: number | null
@@ -21,9 +23,9 @@ type SignupBody = {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as SignupBody
-    const { email, password, role, first_name, full_name, phone, ...roleData } = body
+    const { email, password, role, first_name, full_name, phone, state, city, ...roleData } = body
 
-    if (!email || !password || !role || !first_name || !full_name) {
+    if (!email || !password || !role || !first_name || !full_name || !state || !city) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -57,6 +59,8 @@ export async function POST(request: Request) {
         first_name,
         full_name,
         phone: phone ?? null,
+        state,
+        city,
       },
     })
 
@@ -78,6 +82,8 @@ export async function POST(request: Request) {
         full_name,
         email,
         phone: phone ?? null,
+        state,
+        city,
         is_onboarded: true,
       })
 

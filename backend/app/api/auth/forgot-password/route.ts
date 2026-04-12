@@ -20,10 +20,6 @@ export async function POST(request: NextRequest) {
       .eq('email', email)
       .maybeSingle()
 
-    if (!profile) {
-      return NextResponse.json({ success: true })
-    }
-
     const { data: linkData, error } = await service.auth.admin.generateLink({
       type: 'recovery',
       email,
@@ -33,17 +29,31 @@ export async function POST(request: NextRequest) {
     })
 
     if (error || !linkData?.properties?.action_link) {
+      const reason = (error?.message || '').toLowerCase()
+      // Keep non-enumeration behavior for unknown emails.
+      if (
+        reason.includes('user not found') ||
+        reason.includes('invalid email') ||
+        reason.includes('no user')
+      ) {
+        return NextResponse.json({ success: true })
+      }
+
       return NextResponse.json({ error: 'Could not generate reset link' }, { status: 500 })
     }
 
     await emailService.sendForgotPassword({
       to: email,
-      firstName: profile.first_name || 'there',
+      firstName: profile?.first_name || 'there',
       resetLink: linkData.properties.action_link,
     })
 
     return NextResponse.json({ success: true })
-  } catch {
-    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('[auth/forgot-password] delivery failed', error)
+    return NextResponse.json(
+      { error: 'Could not send reset email. Please try again shortly.' },
+      { status: 500 },
+    )
   }
 }

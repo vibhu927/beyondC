@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -7,6 +8,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/collab_provider.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
@@ -48,9 +50,7 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
         title: const Text('Rate your collab', style: AppTypography.displaySM),
       ),
       body: collabAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.ink),
-        ),
+        loading: () => const Center(child: BCAppLoader()),
         error: (error, _) => BCErrorState(
           message: error.toString(),
           onRetry: () =>
@@ -129,7 +129,7 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
                   return IconButton(
                     onPressed: () => setState(() => _score = value),
                     icon: Icon(
-                      isActive ? Icons.star_rounded : Icons.star_border_rounded,
+                      isActive ? Symbols.star_rounded : Symbols.star_border_rounded,
                       color: AppColors.neon,
                       size: 34,
                     ),

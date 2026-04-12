@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -120,7 +121,7 @@ class ChatListTile extends StatelessWidget {
                         )
                       else if (chat.isArchived)
                         const Icon(
-                          Icons.archive_rounded,
+                          Symbols.archive_rounded,
                           size: 16,
                           color: AppColors.muted,
                         ),

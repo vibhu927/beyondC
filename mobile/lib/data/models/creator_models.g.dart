@@ -25,6 +25,12 @@ _$CreatorProfileImpl _$$CreatorProfileImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const <String>[],
+      state: json['state'] as String?,
+      city: json['city'] as String?,
+      portfolioLinks: (json['portfolioLinks'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const <String>[],
       startingPricePaise: (json['startingPricePaise'] as num?)?.toInt() ?? 0,
       instagramUsername: json['instagramUsername'] as String?,
       instagramVerified: json['instagramVerified'] as bool? ?? false,
@@ -56,6 +62,9 @@ Map<String, dynamic> _$$CreatorProfileImplToJson(
       'bio': instance.bio,
       'niches': instance.niches,
       'contentTypes': instance.contentTypes,
+      'state': instance.state,
+      'city': instance.city,
+      'portfolioLinks': instance.portfolioLinks,
       'startingPricePaise': instance.startingPricePaise,
       'instagramUsername': instance.instagramUsername,
       'instagramVerified': instance.instagramVerified,
@@ -93,6 +102,8 @@ _$CampaignImpl _$$CampaignImplFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const <String>[],
       bidCount: (json['bidCount'] as num?)?.toInt() ?? 0,
+      targetState: json['targetState'] as String?,
+      targetCity: json['targetCity'] as String?,
       slotsTotal: (json['slotsTotal'] as num?)?.toInt() ?? 1,
       slotsFilled: (json['slotsFilled'] as num?)?.toInt() ?? 0,
       deadline: DateTime.parse(json['deadline'] as String),
@@ -118,6 +129,8 @@ Map<String, dynamic> _$$CampaignImplToJson(_$CampaignImpl instance) =>
       'collabType': _$CampaignCollabTypeEnumMap[instance.collabType]!,
       'deliverables': instance.deliverables,
       'bidCount': instance.bidCount,
+      'targetState': instance.targetState,
+      'targetCity': instance.targetCity,
       'slotsTotal': instance.slotsTotal,
       'slotsFilled': instance.slotsFilled,
       'deadline': instance.deadline.toIso8601String(),

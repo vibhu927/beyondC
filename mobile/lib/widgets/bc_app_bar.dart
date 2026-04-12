@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/theme/app_colors.dart';
@@ -39,7 +40,7 @@ class BCAppBar extends ConsumerWidget implements PreferredSizeWidget {
     final defaultActions = <Widget>[
       IconButton(
         icon: Icon(
-          isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+          isDark ? Symbols.light_mode_rounded : Symbols.dark_mode_rounded,
           color: isDark ? AppColors.neon : AppColors.lightText,
         ),
         onPressed: () => ref.read(themeProvider.notifier).toggle(),
@@ -49,7 +50,7 @@ class BCAppBar extends ConsumerWidget implements PreferredSizeWidget {
         children: [
           IconButton(
             icon: Icon(
-              Icons.chat_bubble_rounded,
+              Symbols.chat_bubble_rounded,
               color: isDark ? AppColors.neon : AppColors.ink,
             ),
             onPressed: () => _openChatModal(context),
@@ -67,7 +68,7 @@ class BCAppBar extends ConsumerWidget implements PreferredSizeWidget {
         children: [
           IconButton(
             icon: Icon(
-              Icons.notifications_none_rounded,
+              Symbols.notifications_none_rounded,
               color: isDark ? AppColors.darkText : AppColors.ink,
             ),
             onPressed: () => openNotificationsModal(context),

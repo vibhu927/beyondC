@@ -14,6 +14,7 @@ import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../../../widgets/buttons/bc_primary_button.dart';
 
 class BrandCampaignsScreen extends ConsumerStatefulWidget {
   const BrandCampaignsScreen({super.key});
@@ -62,124 +63,120 @@ class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
             AppSpacing.huge,
           ),
           children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _pill('All', _statusFilter == null, () {
-                  setState(() => _statusFilter = null);
-                }),
-                const SizedBox(width: AppSpacing.sm),
-                _pill('Active', _statusFilter == CampaignStatus.active, () {
-                  setState(() => _statusFilter = CampaignStatus.active);
-                }),
-                const SizedBox(width: AppSpacing.sm),
-                _pill('Paused', _statusFilter == CampaignStatus.paused, () {
-                  setState(() => _statusFilter = CampaignStatus.paused);
-                }),
-                const SizedBox(width: AppSpacing.sm),
-                _pill('Completed', _statusFilter == CampaignStatus.completed,
-                    () {
-                  setState(() => _statusFilter = CampaignStatus.completed);
-                }),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          if (state.isLoading)
-            const _CampaignShimmerList()
-          else if (campaigns.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.huge),
-              child: Text(
-                'No campaigns found for this brand account.\nSample campaigns are tied to the seeded sample brand login.',
-                textAlign: TextAlign.center,
-                style: AppTypography.bodyMD.copyWith(color: AppColors.muted),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _pill('All', _statusFilter == null, () {
+                    setState(() => _statusFilter = null);
+                  }),
+                  const SizedBox(width: AppSpacing.sm),
+                  _pill('Active', _statusFilter == CampaignStatus.active, () {
+                    setState(() => _statusFilter = CampaignStatus.active);
+                  }),
+                  const SizedBox(width: AppSpacing.sm),
+                  _pill('Paused', _statusFilter == CampaignStatus.paused, () {
+                    setState(() => _statusFilter = CampaignStatus.paused);
+                  }),
+                  const SizedBox(width: AppSpacing.sm),
+                  _pill('Completed', _statusFilter == CampaignStatus.completed,
+                      () {
+                    setState(() => _statusFilter = CampaignStatus.completed);
+                  }),
+                ],
               ),
-            )
-          else
-            Column(
-              children: campaigns
-                  .map(
-                    (campaign) => Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                      child: BCCard(
-                        shadow: AppShadows.pink,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    campaign.title,
-                                    style: AppTypography.labelLG,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            if (state.isLoading)
+              const _CampaignShimmerList()
+            else if (campaigns.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.huge),
+                child: Text(
+                  'No campaigns found for this brand account.\nSample campaigns are tied to the seeded sample brand login.',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.bodyMD.copyWith(color: AppColors.muted),
+                ),
+              )
+            else
+              Column(
+                children: campaigns
+                    .map(
+                      (campaign) => Padding(
+                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                        child: BCCard(
+                          shadow: AppShadows.pink,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      campaign.title,
+                                      style: AppTypography.labelLG,
+                                    ),
                                   ),
-                                ),
-                                BCBadge(
-                                  label: _statusLabel(campaign.status),
-                                  variant: _statusVariant(campaign.status),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              'Budget ${_inr(campaign.minBudget)}-${_inr(campaign.maxBudget)}  •  ${_collabType(campaign.collabType)}',
-                              style: AppTypography.bodySM
-                                  .copyWith(color: AppColors.muted),
-                            ),
-                            if (campaign.description.trim().isNotEmpty) ...[
-                              const SizedBox(height: AppSpacing.xs),
-                              Text(
-                                campaign.description,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTypography.bodySM,
+                                  BCBadge(
+                                    label: _statusLabel(campaign.status),
+                                    variant: _statusVariant(campaign.status),
+                                  ),
+                                ],
                               ),
-                            ],
-                            if (campaign.requirements.trim().isNotEmpty) ...[
                               const SizedBox(height: AppSpacing.xs),
                               Text(
-                                'Requirements: ${campaign.requirements}',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTypography.bodyXS
+                                'Budget ${_inr(campaign.minBudget)}-${_inr(campaign.maxBudget)}  •  ${_collabType(campaign.collabType)}',
+                                style: AppTypography.bodySM
                                     .copyWith(color: AppColors.muted),
                               ),
-                            ],
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              'Deadline ${DateFormat('d MMM yyyy').format(campaign.deadline ?? DateTime.now())}',
-                              style: AppTypography.bodyXS,
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              '${campaign.bidCount} bids  •  ${campaign.slotsFilled}/${campaign.slotsTotal} slots filled',
-                              style: AppTypography.bodyXS,
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: OutlinedButton(
-                                onPressed: () => context.push(
-                                  RouteNames.campaignBids
-                                      .replaceFirst(':id', campaign.id),
+                              if (campaign.description.trim().isNotEmpty) ...[
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  campaign.description,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTypography.bodySM,
                                 ),
-                                style: OutlinedButton.styleFrom(
-                                  side: const BorderSide(
-                                      color: AppColors.ink, width: 2),
-                                  foregroundColor: AppColors.ink,
+                              ],
+                              if (campaign.requirements.trim().isNotEmpty) ...[
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  'Requirements: ${campaign.requirements}',
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTypography.bodyXS
+                                      .copyWith(color: AppColors.muted),
                                 ),
-                                child: const Text('View Bids →'),
+                              ],
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                'Deadline ${DateFormat('d MMM yyyy').format(campaign.deadline ?? DateTime.now())}',
+                                style: AppTypography.bodyXS,
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                '${campaign.bidCount} bids  •  ${campaign.slotsFilled}/${campaign.slotsTotal} slots filled',
+                                style: AppTypography.bodyXS,
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: BCPrimaryButton.dark(
+                                  label: 'View Bids →',
+                                  isFullWidth: false,
+                                  onPressed: () => context.push(
+                                    RouteNames.campaignBids
+                                        .replaceFirst(':id', campaign.id),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  )
-                  .toList(),
-            ),
+                    )
+                    .toList(),
+              ),
           ],
         ),
       ),

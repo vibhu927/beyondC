@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -23,6 +24,7 @@ import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../../shared/widgets/home_carousel_strip.dart';
 import '../widgets/campaign_card.dart';
 
 class CreatorHomeScreen extends ConsumerStatefulWidget {
@@ -135,7 +137,14 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                     ),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
-                        const SizedBox(height: AppSpacing.huge),
+                        const SizedBox(height: AppSpacing.xl),
+                        if (home.carouselItems.isNotEmpty) ...[
+                          HomeCarouselStrip(
+                            items: home.carouselItems,
+                            height: 128,
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                        ],
                         if (!profile.instagramVerified) ...[
                           _InstagramConnectBanner(
                             isLoading: _isConnectingInstagram,
@@ -179,7 +188,8 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                 emoji: '📩',
                                 label: 'Requests',
                                 value: '${home.requests.length}',
-                                onTap: () => context.push(RouteNames.creatorRequests),
+                                onTap: () =>
+                                    context.push(RouteNames.creatorRequests),
                               ),
                             ),
                             const SizedBox(width: AppSpacing.sm),
@@ -188,7 +198,8 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                 emoji: '🤝',
                                 label: 'Collabs',
                                 value: '${home.activeCollabs.length}',
-                                onTap: () => context.push(RouteNames.creatorCollabs),
+                                onTap: () =>
+                                    context.push(RouteNames.creatorCollabs),
                               ),
                             ),
                           ],
@@ -496,11 +507,15 @@ class _InstagramConnectBanner extends StatelessWidget {
       shadow: AppShadows.pink,
       backgroundColor: AppColors.ink,
       borderColor: AppColors.ink,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [
@@ -513,17 +528,17 @@ class _InstagramConnectBanner extends StatelessWidget {
               ),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.camera_alt_rounded,
-                color: Colors.white, size: 20),
+            child: const Icon(Symbols.camera_alt_rounded,
+                color: Colors.white, size: 18),
           ),
-          const SizedBox(width: AppSpacing.md),
+          const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Connect Instagram',
-                  style: AppTypography.labelLG.copyWith(color: AppColors.white),
+                  style: AppTypography.labelMD.copyWith(color: AppColors.white),
                 ),
                 Text(
                   'Verify your account to appear in brand search',
@@ -533,7 +548,7 @@ class _InstagramConnectBanner extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.xs),
           BCPrimaryButton.neon(
             label: isLoading ? 'Connecting...' : 'Connect',
             isFullWidth: false,
@@ -604,49 +619,49 @@ class _StatOrb extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-            border: Border.all(color: AppColors.ink, width: 2),
-            boxShadow: AppShadows.neon,
-          ),
-          child: Row(
-            children: [
-              Text(emoji, style: const TextStyle(fontSize: 18)),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  value,
-                  style: AppTypography.labelLG.copyWith(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+              border: Border.all(color: AppColors.ink, width: 2),
+              boxShadow: AppShadows.neon,
+            ),
+            child: Row(
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 18)),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    value,
+                    style: AppTypography.labelLG.copyWith(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    textAlign: TextAlign.right,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  textAlign: TextAlign.right,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-          child: Text(
-            label,
-            style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          const SizedBox(height: AppSpacing.xs),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            child: Text(
+              label,
+              style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        ),
-      ],
+        ],
       ),
     );
   }

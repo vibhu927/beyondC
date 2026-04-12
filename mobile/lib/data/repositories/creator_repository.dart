@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../core/utils/api_error_handler.dart';
 import '../models/creator_models.dart';
+import '../models/home_carousel_item.dart';
 import '../models/paginated_result.dart';
 import '../services/api_service.dart';
 
@@ -50,9 +51,12 @@ class CreatorRepository {
         'bio': _string(profile['bio']) ?? '',
         'niches': _stringList(profile['niches'] ?? profile['niche']),
         'contentTypes': _stringList(profile['platforms']),
+        'state': _string(baseProfile['state']),
+        'city': _string(baseProfile['city']),
+        'portfolioLinks': _stringList(profile['portfolio_links']),
         'startingPricePaise': _int(profile['starting_price']) ?? 0,
-        'instagramUsername':
-            _string(profile['instagram_username']) ?? _string(profile['instagram_handle']),
+        'instagramUsername': _string(profile['instagram_username']) ??
+            _string(profile['instagram_handle']),
         'instagramVerified': _bool(profile['instagram_verified']) ?? false,
         'followingCount': _int(profile['following_count']),
         'postsCount': _int(profile['posts_count']),
@@ -72,11 +76,44 @@ class CreatorRepository {
     }
   }
 
+  Future<List<HomeCarouselItem>> fetchHomeCarouselItems() async {
+    try {
+      final response = await _dio.get(
+        '/home/carousel',
+        queryParameters: {'audience': 'creator'},
+      );
+
+      final root = _asMap(response.data);
+      final payload = _asMap(root['data']);
+      final items = _asMapList(
+        payload['items'] ?? root['items'],
+      );
+
+      return items
+          .map((item) {
+            return HomeCarouselItem(
+              id: _string(item['id']) ?? '',
+              audience: _string(item['audience']) ?? 'creator',
+              mediaUrl: _string(item['media_url']) ?? '',
+              caption: _string(item['caption']),
+              sortOrder: _int(item['sort_order']) ?? 0,
+            );
+          })
+          .where((item) => item.id.isNotEmpty && item.mediaUrl.isNotEmpty)
+          .toList();
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parse(e));
+    }
+  }
+
   Future<PaginatedResult<Campaign>> fetchCampaigns({
     String? niche,
     CampaignCollabType? collabType,
     int? minBudget,
     int? maxBudget,
+    String? state,
+    String? city,
+    bool includePanIndia = true,
     int page = 1,
     int limit = 20,
   }) async {
@@ -88,6 +125,9 @@ class CreatorRepository {
           if (collabType != null) 'collab_type': collabType.name,
           if (minBudget != null) 'budget_min': minBudget,
           if (maxBudget != null) 'budget_max': maxBudget,
+          if (state != null && state.isNotEmpty) 'state': state,
+          if (city != null && city.isNotEmpty) 'city': city,
+          'include_pan_india': includePanIndia,
           'page': page,
           'limit': limit,
         },
@@ -139,6 +179,9 @@ class CreatorRepository {
 
   Future<Bid> placeBid({
     required String campaignId,
+    int? bidAmount,
+    String? deliverables,
+    bool includeBarter = false,
     required String message,
   }) async {
     try {
@@ -146,6 +189,9 @@ class CreatorRepository {
         '/creator/bids',
         data: {
           'campaign_id': campaignId,
+          'bid_amount': bidAmount,
+          'deliverables': deliverables,
+          'include_barter': includeBarter,
           'message': message,
         },
       );
@@ -156,6 +202,9 @@ class CreatorRepository {
         'id': _string(bid['id']) ?? '',
         'campaignId': _string(bid['campaign_id']) ?? campaignId,
         'creatorId': _string(bid['creator_id']),
+        'bidAmount': _int(bid['bid_amount']) ?? 0,
+        'deliverables': _string(bid['deliverables']) ?? '',
+        'includeBarter': _bool(bid['include_barter']) ?? false,
         'status': _string(bid['status']) ?? 'pending',
         'message': _string(bid['message']) ?? message,
         'createdAt': _string(bid['created_at']),
@@ -474,6 +523,8 @@ class CreatorRepository {
       'collabType': _normalizeCollabType(_string(item['collab_type'])),
       'deliverables': _stringList(item['deliverables']),
       'bidCount': _extractBidCount(bidCountRaw),
+      'targetState': _string(item['target_state']),
+      'targetCity': _string(item['target_city']),
       'slotsTotal': _int(item['slots']) ?? 1,
       'slotsFilled': _int(item['slots_filled']) ?? 0,
       'deadline': _string(item['deadline']) ??

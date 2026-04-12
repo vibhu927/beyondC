@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +12,7 @@ import '../../../providers/brand_provider.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/bc_glass_header_bar.dart';
 import '../../../widgets/inputs/bc_dropdown.dart';
+import '../../../widgets/inputs/bc_location_picker.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 
 class CreateEventScreen extends ConsumerStatefulWidget {
@@ -25,7 +27,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   final _dateController = TextEditingController();
   final _venueNameController = TextEditingController();
   final _venueAddressController = TextEditingController();
-  final _cityController = TextEditingController();
   final _virtualLinkController = TextEditingController();
   final _slotsController = TextEditingController(text: '10');
   final _creatorBenefitsController = TextEditingController();
@@ -34,6 +35,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   DateTime? _eventDate;
   bool _isVirtual = false;
   bool _isSubmitting = false;
+  String? _selectedState;
+  String? _selectedCity;
 
   final Set<String> _targetNiches = <String>{};
   final Set<String> _targetTiers = <String>{};
@@ -44,7 +47,6 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     _dateController.dispose();
     _venueNameController.dispose();
     _venueAddressController.dispose();
-    _cityController.dispose();
     _virtualLinkController.dispose();
     _slotsController.dispose();
     _creatorBenefitsController.dispose();
@@ -101,7 +103,8 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           targetTiers: _targetTiers.toList(growable: false),
           venueName: _isVirtual ? null : _venueNameController.text.trim(),
           venueAddress: _isVirtual ? null : _venueAddressController.text.trim(),
-          city: _isVirtual ? null : _cityController.text.trim(),
+          city: _isVirtual ? null : _selectedCity,
+          locationState: _isVirtual ? null : _selectedState,
           virtualLink: _isVirtual ? _virtualLinkController.text.trim() : null,
           whatCreatorsGet: _creatorBenefitsController.text.trim(),
         );
@@ -135,8 +138,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
     } else {
       if (_venueNameController.text.trim().isEmpty ||
           _venueAddressController.text.trim().isEmpty ||
-          _cityController.text.trim().isEmpty) {
-        return 'Venue name, address, and city are required.';
+          (_selectedState ?? '').trim().isEmpty ||
+          (_selectedCity ?? '').trim().isEmpty) {
+        return 'Venue name, address, state, and city are required.';
       }
     }
 
@@ -196,7 +200,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           label: 'Event Date',
                           hint: 'Select date and time',
                           controller: _dateController,
-                          suffixIcon: const Icon(Icons.calendar_today_rounded),
+                          suffixIcon: const Icon(Symbols.calendar_today_rounded),
                         ),
                       ),
                     ),
@@ -230,10 +234,16 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         controller: _venueAddressController,
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      BCTextField(
-                        label: 'City',
-                        hint: 'Mumbai',
-                        controller: _cityController,
+                      BCLocationPicker(
+                        required: true,
+                        initialState: _selectedState,
+                        initialCity: _selectedCity,
+                        onChanged: (state, city) {
+                          setState(() {
+                            _selectedState = state;
+                            _selectedCity = city;
+                          });
+                        },
                       ),
                     ] else ...[
                       BCTextField(

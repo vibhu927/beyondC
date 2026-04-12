@@ -77,6 +77,8 @@ class AuthNotifier extends Notifier<AuthState> {
     required String firstName,
     required String fullName,
     required String phone,
+    required String locationState,
+    required String locationCity,
     Map<String, dynamic>? extraData,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -89,6 +91,8 @@ class AuthNotifier extends Notifier<AuthState> {
         firstName: firstName,
         fullName: fullName,
         phone: phone,
+        state: locationState,
+        city: locationCity,
         extraData: extraData,
       );
 
@@ -111,6 +115,8 @@ class AuthNotifier extends Notifier<AuthState> {
     required String firstName,
     required String fullName,
     required String phone,
+    required String locationState,
+    required String locationCity,
     Map<String, dynamic>? extraData,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
@@ -123,6 +129,8 @@ class AuthNotifier extends Notifier<AuthState> {
         firstName: firstName,
         fullName: fullName,
         phone: phone,
+        state: locationState,
+        city: locationCity,
         extraData: extraData,
       );
 

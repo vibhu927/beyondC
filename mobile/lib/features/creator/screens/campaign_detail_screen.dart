@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,8 +10,10 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
+import '../../../widgets/buttons/bc_back_button.dart';
 import '../../../widgets/cards/bc_card.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../widgets/bid_bottom_sheet.dart';
@@ -51,7 +54,7 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
 
     if (campaignAsync.isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: AppColors.ink)),
+        body: Center(child: BCAppLoader()),
       );
     }
 
@@ -97,9 +100,14 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
             backgroundColor: Theme.of(context).colorScheme.surface,
             surfaceTintColor: Colors.transparent,
             elevation: 0,
-            leading: IconButton(
-              onPressed: () => context.pop(),
-              icon: const Icon(Icons.arrow_back_rounded, color: AppColors.ink),
+            leading: Center(
+              child: BCBackButton(
+                onPressed: () => context.pop(),
+                iconColor: AppColors.ink,
+                backgroundColor: AppColors.surface,
+                borderColor: AppColors.lightBorder,
+                buttonSize: 36,
+              ),
             ),
             title: const Text(
               'Campaign Detail',
@@ -112,7 +120,7 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                     const SnackBar(content: Text('Share link copied.')),
                   );
                 },
-                icon: const Icon(Icons.share_rounded, color: AppColors.ink),
+                icon: const Icon(Symbols.share_rounded, color: AppColors.ink),
               ),
             ],
             bottom: const PreferredSize(
@@ -207,6 +215,30 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                     label: _collabLabel(campaign.collabType),
                     variant: _collabVariant(campaign.collabType),
                   ),
+                  const SizedBox(height: AppSpacing.md),
+                  BCCard(
+                    shadow: AppShadows.blue,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Target Location', style: AppTypography.labelLG),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          campaign.targetCity != null
+                              ? '📍 ${campaign.targetCity}, ${campaign.targetState ?? ''}'
+                              : campaign.targetState != null
+                                  ? '📍 ${campaign.targetState}'
+                                  : '📍 Pan India',
+                          style: AppTypography.bodySM,
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(
+                          'This brand prefers creators from this location.',
+                          style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                        ),
+                      ],
+                    ),
+                  ),
                   if (campaign.description.trim().isNotEmpty) ...[
                     const SizedBox(height: AppSpacing.md),
                     Text(
@@ -262,8 +294,8 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       campaign.requirements,
-                      style: AppTypography.bodySM
-                          .copyWith(color: AppColors.muted),
+                      style:
+                          AppTypography.bodySM.copyWith(color: AppColors.muted),
                     ),
                   ],
                   const SizedBox(height: AppSpacing.xl),

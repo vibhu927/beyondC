@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,8 +28,18 @@ class BeyondCApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    ref.listen<AuthState>(authProvider, (_, next) {
-      if (!next.isAuthenticated) return;
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      if (!next.isAuthenticated) {
+        _seenNotificationIds.clear();
+        _notificationFeedHydrated = false;
+        return;
+      }
+
+      final justLoggedIn = previous?.isAuthenticated != true;
+      if (justLoggedIn) {
+        _seenNotificationIds.clear();
+        _notificationFeedHydrated = false;
+      }
 
       final pending = ref.read(pendingNavigationProvider);
       if (pending == null) return;
@@ -93,15 +104,26 @@ class BeyondCApp extends ConsumerWidget {
       themeMode: themeMode,
       routerConfig: router,
       builder: (context, child) {
-        return _BackPressExitScope(
-          child: SafeArea(
-            top: true,
-            bottom: false,
-            child: Stack(
-              children: [
-                child ?? const SizedBox.shrink(),
-                const InAppNotificationOverlay(),
-              ],
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: const SystemUiOverlayStyle(
+            statusBarColor: AppColors.ink,
+            statusBarIconBrightness: Brightness.light,
+            statusBarBrightness: Brightness.dark,
+            systemNavigationBarColor: Color(0xE6121A25),
+            systemNavigationBarIconBrightness: Brightness.light,
+            systemNavigationBarDividerColor: Color(0x00000000),
+            systemNavigationBarContrastEnforced: false,
+          ),
+          child: _BackPressExitScope(
+            child: SafeArea(
+              top: true,
+              bottom: false,
+              child: Stack(
+                children: [
+                  child ?? const SizedBox.shrink(),
+                  const InAppNotificationOverlay(),
+                ],
+              ),
             ),
           ),
         );
@@ -170,13 +192,11 @@ void _showInAppNotificationToast({
   required String title,
   required String description,
 }) {
-  final context =
-      RouterHolder.rootNavigatorKey?.currentContext ??
+  final context = RouterHolder.rootNavigatorKey?.currentContext ??
       appScaffoldMessengerKey.currentContext;
   if (context == null) return;
 
-  final overlay =
-      RouterHolder.rootNavigatorKey?.currentState?.overlay ??
+  final overlay = RouterHolder.rootNavigatorKey?.currentState?.overlay ??
       Overlay.maybeOf(context, rootOverlay: true) ??
       Overlay.maybeOf(context);
 
@@ -231,7 +251,8 @@ class _InAppNotificationToast extends StatefulWidget {
   final VoidCallback onDismissed;
 
   @override
-  State<_InAppNotificationToast> createState() => _InAppNotificationToastState();
+  State<_InAppNotificationToast> createState() =>
+      _InAppNotificationToastState();
 }
 
 class _InAppNotificationToastState extends State<_InAppNotificationToast> {
@@ -303,7 +324,7 @@ class _InAppNotificationToastState extends State<_InAppNotificationToast> {
                           const Padding(
                             padding: EdgeInsets.only(top: 2),
                             child: Icon(
-                              Icons.notifications_active_rounded,
+                              Symbols.notifications_active_rounded,
                               color: AppColors.neon,
                               size: 20,
                             ),
@@ -330,7 +351,8 @@ class _InAppNotificationToastState extends State<_InAppNotificationToast> {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                     style: AppTypography.bodySM.copyWith(
-                                      color: AppColors.white.withValues(alpha: 0.92),
+                                      color: AppColors.white
+                                          .withValues(alpha: 0.92),
                                     ),
                                   ),
                                 ],

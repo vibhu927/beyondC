@@ -17,9 +17,20 @@ export async function GET(request: NextRequest) {
     const min_followers = searchParams.get('min_followers')
     const max_followers = searchParams.get('max_followers')
     const tier = searchParams.get('tier')
+    const state = searchParams.get('state')
+    const city = searchParams.get('city')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 50)
     const offset = (page - 1) * limit
+
+    const { data: brandProfile } = await supabase
+      .from('profiles')
+      .select('state, city')
+      .eq('id', user.id)
+      .single()
+
+    const filterState = state ?? brandProfile?.state ?? null
+    const filterCity = city ?? brandProfile?.city ?? null
 
     const runViewQuery = async (followersColumn: 'followers_count' | 'follower_count') => {
       let query = supabase
@@ -41,12 +52,25 @@ export async function GET(request: NextRequest) {
       if (max_followers) {
         query = query.lte(followersColumn, parseInt(max_followers))
       }
+      if (state) {
+        query = query.eq('state', state)
+      }
+      if (city) {
+        query = query.eq('city', city)
+      }
 
       query = query
         .order(followersColumn, { ascending: false })
         .range(offset, offset + limit - 1)
 
       return query
+    }
+
+    const locationScore = (creator: any) => {
+      let score = 0
+      if (filterCity && creator?.city === filterCity) score += 2
+      if (filterState && creator?.state === filterState) score += 1
+      return score
     }
 
     let creators: any[] | null = null
@@ -91,7 +115,9 @@ export async function GET(request: NextRequest) {
             profile:profiles!inner (
               first_name,
               avatar_url,
-              is_onboarded
+              is_onboarded,
+              state,
+              city
             )
           `,
           { count: 'exact' },
@@ -112,6 +138,12 @@ export async function GET(request: NextRequest) {
       }
       if (max_followers) {
         fallbackQuery = fallbackQuery.lte('follower_count', parseInt(max_followers))
+      }
+      if (state) {
+        fallbackQuery = fallbackQuery.eq('profile.state', state)
+      }
+      if (city) {
+        fallbackQuery = fallbackQuery.eq('profile.city', city)
       }
 
       fallbackQuery = fallbackQuery
@@ -145,6 +177,8 @@ export async function GET(request: NextRequest) {
           id: item.id,
           first_name: profile.first_name ?? 'Creator',
           avatar_url: profile.avatar_url ?? null,
+          state: profile.state ?? null,
+          city: profile.city ?? null,
           niche: item.niche ?? [],
           content_type: item.content_type ?? [],
           platforms: item.platforms ?? [],
@@ -164,7 +198,7 @@ export async function GET(request: NextRequest) {
       })
 
       return NextResponse.json({
-        creators: normalized,
+        creators: normalized.sort((a, b) => locationScore(b) - locationScore(a)),
         pagination: {
           page,
           limit,
@@ -175,7 +209,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      creators,
+      creators: (creators ?? []).sort((a, b) => locationScore(b) - locationScore(a)),
       pagination: {
         page,
         limit,

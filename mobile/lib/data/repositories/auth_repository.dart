@@ -23,6 +23,8 @@ class AuthRepository {
     required String firstName,
     required String fullName,
     required String phone,
+    required String state,
+    required String city,
     Map<String, dynamic>? extraData,
   }) async {
     try {
@@ -36,6 +38,8 @@ class AuthRepository {
           'first_name': firstName,
           'full_name': fullName,
           'phone': phone,
+          'state': state,
+          'city': city,
           ...?extraData,
         },
       );
@@ -67,18 +71,26 @@ class AuthRepository {
     required String email,
     required String password,
   }) async {
+    final normalizedEmail = email.trim().toLowerCase();
+
     try {
       final response = await _supabase.auth.signInWithPassword(
-        email: email,
+        email: normalizedEmail,
         password: password,
       );
       return response;
     } on SocketException {
       // Physical devices can fail DNS lookup for *.supabase.co on some networks.
       // Fallback to backend login and hydrate local Supabase session from tokens.
-      return await _signInViaBackend(email: email, password: password);
+      return await _signInViaBackend(
+        email: normalizedEmail,
+        password: password,
+      );
     } on AuthRetryableFetchException {
-      return await _signInViaBackend(email: email, password: password);
+      return await _signInViaBackend(
+        email: normalizedEmail,
+        password: password,
+      );
     } catch (e) {
       rethrow;
     }

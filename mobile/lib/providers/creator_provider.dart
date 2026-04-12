@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../data/models/creator_models.dart';
+import '../data/models/home_carousel_item.dart';
 import '../data/models/paginated_result.dart';
 import '../data/repositories/creator_repository.dart';
 import '../data/services/api_service.dart';
@@ -20,18 +21,27 @@ class CreatorCampaignFilters {
     this.collabType,
     this.minBudget,
     this.maxBudget,
+    this.state,
+    this.city,
+    this.includePanIndia = true,
   });
 
   final String? niche;
   final CampaignCollabType? collabType;
   final int? minBudget;
   final int? maxBudget;
+  final String? state;
+  final String? city;
+  final bool includePanIndia;
 
   CreatorCampaignFilters copyWith({
     Object? niche = _sentinel,
     Object? collabType = _sentinel,
     Object? minBudget = _sentinel,
     Object? maxBudget = _sentinel,
+    Object? state = _sentinel,
+    Object? city = _sentinel,
+    Object? includePanIndia = _sentinel,
   }) {
     return CreatorCampaignFilters(
       niche: identical(niche, _sentinel) ? this.niche : niche as String?,
@@ -42,6 +52,11 @@ class CreatorCampaignFilters {
           identical(minBudget, _sentinel) ? this.minBudget : minBudget as int?,
       maxBudget:
           identical(maxBudget, _sentinel) ? this.maxBudget : maxBudget as int?,
+      state: identical(state, _sentinel) ? this.state : state as String?,
+      city: identical(city, _sentinel) ? this.city : city as String?,
+      includePanIndia: identical(includePanIndia, _sentinel)
+          ? this.includePanIndia
+          : includePanIndia as bool,
     );
   }
 }
@@ -86,6 +101,7 @@ class CreatorHomeData {
     required this.requests,
     required this.activeCollabs,
     required this.campaigns,
+    required this.carouselItems,
   });
 
   final CreatorProfile profile;
@@ -94,6 +110,7 @@ class CreatorHomeData {
   final List<CollabRequest> requests;
   final List<Collab> activeCollabs;
   final List<Campaign> campaigns;
+  final List<HomeCarouselItem> carouselItems;
 
   int get activeBidsCount => bids
       .where((bid) => bid.status != 'withdrawn' && bid.status != 'rejected')
@@ -148,7 +165,8 @@ class CreatorProfileNotifier extends AsyncNotifier<CreatorProfile> {
         .stream(primaryKey: const ['id'])
         .eq('id', userId)
         .listen((rows) {
-          final firstRow = rows.isNotEmpty ? rows.first : const <String, dynamic>{};
+          final firstRow =
+              rows.isNotEmpty ? rows.first : const <String, dynamic>{};
           final signature = _stableSnapshotSignature(firstRow);
 
           // The stream emits an initial snapshot right after subscription.
@@ -179,7 +197,8 @@ class CreatorProfileNotifier extends AsyncNotifier<CreatorProfile> {
         final entries = value.entries.toList()
           ..sort((a, b) => a.key.toString().compareTo(b.key.toString()));
         return {
-          for (final entry in entries) entry.key.toString(): normalize(entry.value),
+          for (final entry in entries)
+            entry.key.toString(): normalize(entry.value),
         };
       }
 
@@ -344,6 +363,9 @@ class CreatorCampaignsNotifier extends AsyncNotifier<CreatorCampaignsState> {
           collabType: filters.collabType,
           minBudget: filters.minBudget,
           maxBudget: filters.maxBudget,
+          state: filters.state,
+          city: filters.city,
+          includePanIndia: filters.includePanIndia,
         );
   }
 }
@@ -378,6 +400,7 @@ class CreatorHomeNotifier extends AsyncNotifier<CreatorHomeData> {
     final requestsFuture = repository.fetchRequests();
     final collabsFuture = repository.fetchCreatorCollabs();
     final campaignsFuture = repository.fetchCampaigns(limit: 10);
+    final carouselFuture = repository.fetchHomeCarouselItems();
 
     final profile = await profileFuture;
     final wallet = await walletFuture;
@@ -385,6 +408,7 @@ class CreatorHomeNotifier extends AsyncNotifier<CreatorHomeData> {
     final requests = await requestsFuture;
     final collabs = await collabsFuture;
     final campaigns = await campaignsFuture;
+    final carouselItems = await carouselFuture;
 
     return CreatorHomeData(
       profile: profile,
@@ -393,6 +417,7 @@ class CreatorHomeNotifier extends AsyncNotifier<CreatorHomeData> {
       requests: requests,
       activeCollabs: collabs,
       campaigns: campaigns.items,
+      carouselItems: carouselItems,
     );
   }
 }
@@ -403,13 +428,20 @@ class CreatorActionsNotifier extends AsyncNotifier<void> {
 
   Future<void> submitBid({
     required String campaignId,
+    int? bidAmount,
+    String? deliverables,
+    bool includeBarter = false,
     required String message,
   }) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
-      await ref
-          .read(creatorRepositoryProvider)
-          .placeBid(campaignId: campaignId, message: message);
+      await ref.read(creatorRepositoryProvider).placeBid(
+            campaignId: campaignId,
+            bidAmount: bidAmount,
+            deliverables: deliverables,
+            includeBarter: includeBarter,
+            message: message,
+          );
       _invalidateBidRelated();
     });
   }

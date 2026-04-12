@@ -9,9 +9,10 @@ import { createServiceClient } from '@/lib/supabase/service'
 const PAGE_SIZE = 20
 export const dynamic = 'force-dynamic'
 
-export default async function AdminCampaignsPage({ searchParams }: { searchParams: { q?: string; page?: string; status?: string } }) {
+export default async function AdminCampaignsPage({ searchParams }: { searchParams: { q?: string; page?: string; status?: string; target_state?: string } }) {
   const q = searchParams.q ?? ''
   const status = searchParams.status ?? ''
+  const targetState = searchParams.target_state ?? ''
   const page = Number(searchParams.page ?? '1') || 1
   const from = (page - 1) * PAGE_SIZE
   const to = from + PAGE_SIZE - 1
@@ -19,12 +20,13 @@ export default async function AdminCampaignsPage({ searchParams }: { searchParam
   const service = createServiceClient()
   let query = service
     .from('campaigns')
-    .select('id,title,brand_id,niche,collab_type,budget_min,budget_max,status,created_at,bids(count)', { count: 'exact' })
+    .select('id,title,brand_id,niche,collab_type,budget_min,budget_max,target_state,target_city,status,created_at,bids(count)', { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(from, to)
 
   if (q) query = query.ilike('title', `%${q}%`)
   if (status) query = query.eq('status', status)
+  if (targetState) query = query.eq('target_state', targetState)
 
   const { data, count, error } = await query
 
@@ -36,6 +38,7 @@ export default async function AdminCampaignsPage({ searchParams }: { searchParam
           <form className="mt-3 flex flex-wrap gap-2">
             <Input name="q" defaultValue={q} placeholder="Search title" className="max-w-xs" />
             <Input name="status" defaultValue={status} placeholder="Status: active/paused/cancelled" className="max-w-xs" />
+            <Input name="target_state" defaultValue={targetState} placeholder="Filter by target state" className="max-w-xs" />
             <Button variant="outline" type="submit">Apply</Button>
           </form>
         </CardHeader>
@@ -47,7 +50,7 @@ export default async function AdminCampaignsPage({ searchParams }: { searchParam
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead><TableHead>Brand</TableHead><TableHead>Niche</TableHead><TableHead>Type</TableHead><TableHead>Budget</TableHead><TableHead>Bids</TableHead><TableHead>Status</TableHead><TableHead>Created</TableHead><TableHead>Actions</TableHead>
+                <TableHead>Title</TableHead><TableHead>Brand</TableHead><TableHead>Niche</TableHead><TableHead>Type</TableHead><TableHead>Budget</TableHead><TableHead>Location</TableHead><TableHead>Bids</TableHead><TableHead>Status</TableHead><TableHead>Created</TableHead><TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -58,6 +61,7 @@ export default async function AdminCampaignsPage({ searchParams }: { searchParam
                   <TableCell>{Array.isArray(row.niche) ? row.niche.join(', ') : '-'}</TableCell>
                   <TableCell>{row.collab_type}</TableCell>
                   <TableCell>{row.budget_min || 0} - {row.budget_max || 0}</TableCell>
+                  <TableCell>{row.target_city ? `${row.target_city}, ${row.target_state ?? ''}` : row.target_state || 'Pan India'}</TableCell>
                   <TableCell>{row.bids?.[0]?.count || 0}</TableCell>
                   <TableCell>{row.status}</TableCell>
                   <TableCell>{new Date(row.created_at).toLocaleDateString()}</TableCell>
@@ -76,8 +80,8 @@ export default async function AdminCampaignsPage({ searchParams }: { searchParam
           <div className="mt-4 flex items-center justify-between text-sm text-zinc-600 dark:text-zinc-400">
             <p>Total: {count ?? 0}</p>
             <div className="flex gap-2">
-              {page > 1 && <Link href={`/admin/campaigns?page=${page - 1}&q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}`}><Button variant="outline" size="sm">Previous</Button></Link>}
-              <Link href={`/admin/campaigns?page=${page + 1}&q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}`}><Button variant="outline" size="sm">Next</Button></Link>
+              {page > 1 && <Link href={`/admin/campaigns?page=${page - 1}&q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}&target_state=${encodeURIComponent(targetState)}`}><Button variant="outline" size="sm">Previous</Button></Link>}
+              <Link href={`/admin/campaigns?page=${page + 1}&q=${encodeURIComponent(q)}&status=${encodeURIComponent(status)}&target_state=${encodeURIComponent(targetState)}`}><Button variant="outline" size="sm">Next</Button></Link>
             </div>
           </div>
         </CardContent>

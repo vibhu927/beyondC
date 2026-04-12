@@ -69,10 +69,15 @@ class _BidBottomSheetState extends ConsumerState<BidBottomSheet> {
     });
 
     try {
+      final bidAmount =
+          _showPriceField ? int.tryParse(_priceController.text.trim()) : null;
+
       await ref.read(creatorActionsProvider.notifier).submitBid(
             campaignId: widget.campaign.id,
-            message:
-                '${_deliverablesController.text.trim()}\n${_pitchController.text.trim()}'.trim(),
+            bidAmount: bidAmount,
+            deliverables: _deliverablesController.text.trim(),
+            includeBarter: _includeBarter,
+            message: _pitchController.text.trim(),
           );
     } catch (_) {
       if (!mounted) return;
@@ -135,7 +140,8 @@ class _BidBottomSheetState extends ConsumerState<BidBottomSheet> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    const Text('Place Your Bid', style: AppTypography.displaySM),
+                    const Text('Place Your Bid',
+                        style: AppTypography.displaySM),
                     const SizedBox(height: 24),
                     if (_showPriceField)
                       BCTextField(

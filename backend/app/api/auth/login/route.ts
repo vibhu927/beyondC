@@ -8,7 +8,8 @@ export async function POST(request: NextRequest) {
     
     // Validate request body
     const validatedData = loginSchema.parse(body)
-    const { email, password } = validatedData
+    const email = validatedData.email.trim().toLowerCase()
+    const { password } = validatedData
 
     const supabase = createClient()
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
@@ -26,6 +27,7 @@ class EventInvitesScreen extends ConsumerStatefulWidget {
 
 class _EventInvitesScreenState extends ConsumerState<EventInvitesScreen> {
   int _tabIndex = 0;
+  bool _locationFilter = true;
 
   @override
   void initState() {
@@ -69,12 +71,34 @@ class _EventInvitesScreenState extends ConsumerState<EventInvitesScreen> {
     final invites = ref.read(brandProvider.notifier).invitesForEvent(widget.id);
     final invitedCreatorIds = invites.map((e) => e.creatorId).toSet();
 
-    final eligibleCreators = state.creators.where((creator) {
+    var eligibleCreators = state.creators.where((creator) {
       final nicheMatch =
           creator.niches.any((niche) => event.targetNiches.contains(niche));
       final tierMatch = event.targetTiers.contains(creator.tier);
       return nicheMatch && tierMatch && !invitedCreatorIds.contains(creator.id);
     }).toList();
+
+    if (_locationFilter && (event.city ?? '').trim().isNotEmpty) {
+      eligibleCreators.sort((a, b) {
+        final aScore = ((a.city ?? '').toLowerCase() ==
+                    (event.city ?? '').toLowerCase()
+                ? 2
+                : 0) +
+            ((a.state ?? '').toLowerCase() ==
+                    (event.state ?? '').toLowerCase()
+                ? 1
+                : 0);
+        final bScore = ((b.city ?? '').toLowerCase() ==
+                    (event.city ?? '').toLowerCase()
+                ? 2
+                : 0) +
+            ((b.state ?? '').toLowerCase() ==
+                    (event.state ?? '').toLowerCase()
+                ? 1
+                : 0);
+        return bScore.compareTo(aScore);
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -132,6 +156,37 @@ class _EventInvitesScreenState extends ConsumerState<EventInvitesScreen> {
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
+          if (_tabIndex == 0 && (event.city ?? '').trim().isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.md),
+              child: BCCard(
+                shadow: AppShadows.purple,
+                child: Row(
+                  children: [
+                    const Icon(Symbols.location_on_rounded,
+                        color: AppColors.purple),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _locationFilter
+                            ? 'Showing creators from ${event.city} first'
+                            : 'Showing all creators',
+                        style: AppTypography.bodySM,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() => _locationFilter = !_locationFilter);
+                      },
+                      child: Text(
+                        _locationFilter ? 'Show All' : 'Prioritize City',
+                        style: const TextStyle(color: AppColors.pink),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           Row(
             children: [
               Expanded(

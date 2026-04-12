@@ -12,10 +12,12 @@ import Pricing from '@/components/landing/Pricing'
 import FAQ from '@/components/landing/FAQ'
 import Waitlist from '@/components/landing/Waitlist'
 import Footer from '@/components/landing/Footer'
+import RecoveryHashRedirect from '@/components/auth/RecoveryHashRedirect'
 
 export default function Home() {
   return (
     <main className="min-h-screen">
+      <RecoveryHashRedirect />
       <Navbar />
       <Hero />
       <Marquee />

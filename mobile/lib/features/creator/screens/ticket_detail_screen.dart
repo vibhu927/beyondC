@@ -10,6 +10,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/creator_provider.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 
@@ -36,9 +37,7 @@ class TicketDetailScreen extends ConsumerWidget {
         iconTheme: const IconThemeData(color: AppColors.white),
       ),
       body: ticketsAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(color: AppColors.neon),
-        ),
+        loading: () => const Center(child: BCAppLoader()),
         error: (error, _) => BCErrorState(message: error.toString()),
         data: (tickets) {
           final ticket =

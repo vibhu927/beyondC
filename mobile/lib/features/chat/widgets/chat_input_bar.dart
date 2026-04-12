@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
@@ -132,7 +133,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                 boxShadow: buttonShadow,
               ),
               child: Icon(
-                Icons.send_rounded,
+                Symbols.send_rounded,
                 size: 20,
                 color: AppColors.ink.withValues(alpha: canSend ? 1 : 0.62),
               ),

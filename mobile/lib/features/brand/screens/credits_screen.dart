@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -203,8 +204,8 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                     children: [
                       Icon(
                         isPositive
-                            ? Icons.arrow_upward_rounded
-                            : Icons.arrow_downward_rounded,
+                            ? Symbols.arrow_upward_rounded
+                            : Symbols.arrow_downward_rounded,
                         color: isPositive ? AppColors.success : AppColors.error,
                       ),
                       const SizedBox(width: AppSpacing.sm),

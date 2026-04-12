@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -7,8 +8,10 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
+import '../../widgets/bc_app_loader.dart';
 import '../../widgets/bc_empty_state.dart';
 import '../../widgets/bc_error_state.dart';
+import '../../widgets/buttons/bc_back_button.dart';
 import 'chat_screen.dart';
 import 'widgets/archive_tile.dart';
 import 'widgets/chat_list_tile.dart';
@@ -179,17 +182,13 @@ class _ChatModalHeader extends StatelessWidget {
                   child: Text('Messages', style: AppTypography.displaySM),
                 ),
               ),
-              GestureDetector(
-                onTap: onClose,
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.darkBorder, width: 2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.close, size: 16),
-                ),
+              BCBackButton(
+                onPressed: onClose,
+                icon: Symbols.close_rounded,
+                iconColor: AppColors.ink,
+                backgroundColor: AppColors.surface,
+                borderColor: AppColors.darkBorder,
+                tooltip: 'Close',
               ),
             ],
           ),
@@ -213,7 +212,7 @@ class _ChatModalHeader extends StatelessWidget {
                     color: AppColors.muted,
                   ),
                   prefixIcon: const Icon(
-                    Icons.search_rounded,
+                    Symbols.search_rounded,
                     color: AppColors.ink,
                   ),
                   isDense: true,
@@ -221,15 +220,18 @@ class _ChatModalHeader extends StatelessWidget {
                   fillColor: AppColors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                    borderSide: const BorderSide(color: AppColors.ink, width: 1.8),
+                    borderSide:
+                        const BorderSide(color: AppColors.ink, width: 1.8),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                    borderSide: const BorderSide(color: AppColors.ink, width: 1.8),
+                    borderSide:
+                        const BorderSide(color: AppColors.ink, width: 1.8),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                    borderSide: const BorderSide(color: AppColors.ink, width: 2),
+                    borderSide:
+                        const BorderSide(color: AppColors.ink, width: 2),
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.md,
@@ -319,15 +321,14 @@ class _ChatList extends ConsumerWidget {
     final role = ref.watch(authProvider.select((a) => a.role)) ?? 'creator';
 
     return ref.watch(chatListProvider).when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.neon),
-          ),
+          loading: () => const Center(child: BCAppLoader()),
           error: (error, _) => BCErrorState(
             message: error.toString(),
             onRetry: () => ref.invalidate(chatListProvider),
           ),
           data: (result) {
-            final source = filter == 'archived' ? result.archived : result.active;
+            final source =
+                filter == 'archived' ? result.archived : result.active;
             final query = searchQuery.trim().toLowerCase();
             final chats = query.isEmpty
                 ? source
@@ -346,9 +347,12 @@ class _ChatList extends ConsumerWidget {
 
             return ListView.builder(
               controller: scrollController,
-              itemCount: chats.length + (filter == 'all' && result.archived.isNotEmpty ? 1 : 0),
+              itemCount: chats.length +
+                  (filter == 'all' && result.archived.isNotEmpty ? 1 : 0),
               itemBuilder: (context, index) {
-                if (filter == 'all' && result.archived.isNotEmpty && index == chats.length) {
+                if (filter == 'all' &&
+                    result.archived.isNotEmpty &&
+                    index == chats.length) {
                   return ArchiveTile(
                     count: result.archived.length,
                     onTap: onOpenArchived,

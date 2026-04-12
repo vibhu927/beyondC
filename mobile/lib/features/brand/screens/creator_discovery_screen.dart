@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/constants/india_locations.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/bc_glass_header_bar.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
+import '../../../widgets/inputs/bc_dropdown.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 import '../widgets/creator_card.dart';
 import '../widgets/creator_detail_bottom_sheet.dart';
@@ -24,6 +27,8 @@ class _CreatorDiscoveryScreenState
     extends ConsumerState<CreatorDiscoveryScreen> {
   final _searchController = TextEditingController();
   String _activeNiche = 'All';
+  String? _filterState;
+  String? _filterCity;
 
   final Set<String> _selectedTiers = <String>{};
   int? _maxBudget;
@@ -35,8 +40,13 @@ class _CreatorDiscoveryScreenState
     super.initState();
     Future<void>.microtask(() async {
       await ref.read(brandProvider.notifier).fetchBrandHome();
+      final brand = ref.read(brandProvider).brandProfile;
+      _filterState = brand?.state;
+      _filterCity = brand?.city;
       if (!mounted) return;
-      await ref.read(brandProvider.notifier).fetchDiscovery();
+      await ref
+          .read(brandProvider.notifier)
+          .fetchDiscovery(stateFilter: _filterState, cityFilter: _filterCity);
     });
   }
 
@@ -54,7 +64,7 @@ class _CreatorDiscoveryScreenState
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
         child: FloatingActionButton(
           heroTag: 'creatorDiscoveryFiltersFab',
           onPressed: _openFilterBottomSheet,
@@ -65,7 +75,7 @@ class _CreatorDiscoveryScreenState
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
             side: const BorderSide(color: AppColors.neon, width: 2),
           ),
-          child: const Icon(Icons.tune_rounded),
+          child: const Icon(Symbols.tune_rounded),
         ),
       ),
       body: SafeArea(
@@ -92,7 +102,7 @@ class _CreatorDiscoveryScreenState
                     label: 'Search',
                     hint: 'Search by niche, name...',
                     controller: _searchController,
-                    prefixIcon: const Icon(Icons.search_rounded),
+                    prefixIcon: const Icon(Symbols.search_rounded),
                     onChanged: (_) => setState(() {}),
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -113,6 +123,52 @@ class _CreatorDiscoveryScreenState
                         );
                       },
                     ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: BCDropdown(
+                          label: 'State',
+                          value: _filterState,
+                          hint: 'All India',
+                          items: const ['All India', ...IndiaLocations.states],
+                          onChanged: (value) async {
+                            final normalized = value == 'All India' ? null : value;
+                            setState(() {
+                              _filterState = normalized;
+                              _filterCity = null;
+                            });
+                            await ref.read(brandProvider.notifier).fetchDiscovery(
+                                  stateFilter: _filterState,
+                                  cityFilter: _filterCity,
+                                );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: BCDropdown(
+                          label: 'City',
+                          value: _filterCity,
+                          hint: _filterState == null ? 'All Cities' : 'Select city',
+                          items: _filterState == null
+                              ? const ['All Cities']
+                              : ['All Cities', ...IndiaLocations.getCities(_filterState!)],
+                          onChanged: _filterState == null
+                              ? null
+                              : (value) async {
+                                  setState(() {
+                                    _filterCity = value == 'All Cities' ? null : value;
+                                  });
+                                  await ref.read(brandProvider.notifier).fetchDiscovery(
+                                        stateFilter: _filterState,
+                                        cityFilter: _filterCity,
+                                      );
+                                },
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   if (brandState.isDiscoveryLoading || brandState.isLoading)

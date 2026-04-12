@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -32,7 +33,7 @@ class ArchiveTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.archive_rounded, color: AppColors.ink),
+            const Icon(Symbols.archive_rounded, color: AppColors.ink),
             const SizedBox(width: AppSpacing.sm),
             const Expanded(
               child: Text(
@@ -45,7 +46,7 @@ class ArchiveTile extends StatelessWidget {
               style: AppTypography.labelMD.copyWith(color: AppColors.muted),
             ),
             const SizedBox(width: AppSpacing.xs),
-            const Icon(Icons.chevron_right_rounded, color: AppColors.muted),
+            const Icon(Symbols.chevron_right_rounded, color: AppColors.muted),
           ],
         ),
       ),

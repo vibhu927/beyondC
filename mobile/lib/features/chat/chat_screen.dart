@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -8,6 +9,8 @@ import '../../data/models/collab_chat.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/in_app_notification_provider.dart';
+import '../../widgets/bc_app_loader.dart';
+import '../../widgets/buttons/bc_back_button.dart';
 import '../../widgets/bc_empty_state.dart';
 import '../../widgets/bc_error_state.dart';
 import 'profile_view_sheet.dart';
@@ -67,7 +70,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       final role = ref.read(authProvider).role;
       if (role == null) return;
 
-      ref.read(chatRepositoryProvider).markAsRead(widget.collabId, role).then((_) {
+      ref
+          .read(chatRepositoryProvider)
+          .markAsRead(widget.collabId, role)
+          .then((_) {
         if (!mounted) return;
         ref.invalidate(chatListProvider);
       });
@@ -116,12 +122,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ),
               Expanded(
                 child: ref.watch(chatProvider(widget.collabId)).when(
-                      loading: () => const Center(
-                        child: CircularProgressIndicator(color: AppColors.neon),
-                      ),
+                      loading: () => const Center(child: BCAppLoader()),
                       error: (error, _) => BCErrorState(
                         message: error.toString(),
-                        onRetry: () => ref.invalidate(chatProvider(widget.collabId)),
+                        onRetry: () =>
+                            ref.invalidate(chatProvider(widget.collabId)),
                       ),
                       data: (messages) {
                         if (messages.isEmpty) {
@@ -143,9 +148,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                           itemCount: messages.length,
                           itemBuilder: (context, index) {
                             final current = messages[index];
-                            final previous = index + 1 < messages.length ? messages[index + 1] : null;
+                            final previous = index + 1 < messages.length
+                                ? messages[index + 1]
+                                : null;
                             final showDateSeparator = previous == null ||
-                                !_isSameDay(current.createdAt, previous.createdAt);
+                                !_isSameDay(
+                                    current.createdAt, previous.createdAt);
 
                             final mine = current.senderRole == role;
 
@@ -156,24 +164,30 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                   message: current,
                                   isMine: mine,
                                   onRetry: () {
-                                    ref.read(chatProvider(widget.collabId).notifier).retryMessage(current);
+                                    ref
+                                        .read(chatProvider(widget.collabId)
+                                            .notifier)
+                                        .retryMessage(current);
                                   },
                                 ),
                                 if (showDateSeparator)
                                   Center(
                                     child: Container(
-                                      margin: const EdgeInsets.symmetric(vertical: 8),
+                                      margin: const EdgeInsets.symmetric(
+                                          vertical: 8),
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 10,
                                         vertical: 4,
                                       ),
                                       decoration: BoxDecoration(
                                         color: AppColors.lightDivider,
-                                        borderRadius: BorderRadius.circular(999),
+                                        borderRadius:
+                                            BorderRadius.circular(999),
                                       ),
                                       child: Text(
                                         _dayLabel(current.createdAt),
-                                        style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                                        style: AppTypography.bodyXS
+                                            .copyWith(color: AppColors.muted),
                                       ),
                                     ),
                                   ),
@@ -187,7 +201,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ChatInputBar(
                 role: role,
                 onSend: (text) {
-                  ref.read(chatProvider(widget.collabId).notifier).sendMessage(text);
+                  ref
+                      .read(chatProvider(widget.collabId).notifier)
+                      .sendMessage(text);
                 },
               ),
             ],
@@ -249,21 +265,11 @@ class _TopBar extends StatelessWidget {
       ),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: onClose,
-            child: Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.white, width: 2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.close,
-                size: 16,
-                color: AppColors.white,
-              ),
-            ),
+          BCBackButton(
+            onPressed: onClose,
+            icon: Symbols.close_rounded,
+            iconColor: AppColors.white,
+            tooltip: 'Close',
           ),
           const SizedBox(width: 12),
           Container(
@@ -304,7 +310,7 @@ class _TopBar extends StatelessWidget {
           IconButton(
             onPressed: onInfo,
             icon: const Icon(
-              Icons.info_outline_rounded,
+              Symbols.info_rounded,
               color: AppColors.white,
             ),
           ),

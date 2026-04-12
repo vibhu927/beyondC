@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     
     // Validate request body
     const validatedData = signupSchema.parse(body)
-    const { email, password, role, display_name } = validatedData
+    const { email, password, role, display_name, state, city } = validatedData
 
     const supabase = createAdminClient()
 
@@ -21,6 +21,8 @@ export async function POST(request: NextRequest) {
       user_metadata: {
         role,
         display_name,
+        state: state ?? null,
+        city: city ?? null,
       },
     })
 
@@ -28,7 +30,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    // The trigger will automatically create the profile and role-specific profile
+    if (data.user?.id && (state || city)) {
+      await supabase
+        .from('profiles')
+        .update({
+          state: state ?? null,
+          city: city ?? null,
+        })
+        .eq('id', data.user.id)
+    }
+
+    // The trigger will automatically create the role-specific profile.
 
     return NextResponse.json(
       {

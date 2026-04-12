@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -10,8 +11,10 @@ import '../../../core/theme/app_typography.dart';
 import '../../../data/repositories/notification_repository.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/notification_provider.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
+import '../../../widgets/buttons/bc_back_button.dart';
 import '../../chat/chat_screen.dart';
 
 Future<void> openNotificationsModal(BuildContext context) {
@@ -41,7 +44,8 @@ class _NotificationsSheetBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final notificationsAsync = ref.watch(notificationProvider);
-    final role = ref.watch(authProvider.select((state) => state.role)) ?? 'creator';
+    final role =
+        ref.watch(authProvider.select((state) => state.role)) ?? 'creator';
     final unreadCount = ref.watch(unreadCountProvider);
 
     return Container(
@@ -70,7 +74,8 @@ class _NotificationsSheetBody extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Notifications', style: AppTypography.displaySM),
+                      const Text('Notifications',
+                          style: AppTypography.displaySM),
                       const SizedBox(height: AppSpacing.xs),
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -79,7 +84,8 @@ class _NotificationsSheetBody extends ConsumerWidget {
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.pink,
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusFull),
                           border: Border.all(color: AppColors.ink, width: 1.2),
                         ),
                         child: Text(
@@ -95,27 +101,22 @@ class _NotificationsSheetBody extends ConsumerWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.ink, width: 2),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.close,
-                          size: 16,
-                          color: AppColors.ink,
-                        ),
-                      ),
+                    BCBackButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: Symbols.close_rounded,
+                      iconColor: AppColors.ink,
+                      backgroundColor: AppColors.surface,
+                      borderColor: AppColors.ink,
+                      tooltip: 'Close',
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     InkWell(
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusFull),
                       onTap: unreadCount > 0
-                          ? () => ref.read(notificationProvider.notifier).markAllRead()
+                          ? () => ref
+                              .read(notificationProvider.notifier)
+                              .markAllRead()
                           : null,
                       child: Opacity(
                         opacity: unreadCount > 0 ? 1 : 0.5,
@@ -126,8 +127,10 @@ class _NotificationsSheetBody extends ConsumerWidget {
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.neon,
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                            border: Border.all(color: AppColors.ink, width: 1.5),
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusFull),
+                            border:
+                                Border.all(color: AppColors.ink, width: 1.5),
                           ),
                           child: Text(
                             'Mark all as read',
@@ -145,12 +148,12 @@ class _NotificationsSheetBody extends ConsumerWidget {
           ),
           Expanded(
             child: notificationsAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.ink),
-              ),
+              loading: () => const Center(child: BCAppLoader()),
               error: (error, _) => BCErrorState(
                 message: error.toString(),
-                onRetry: () => ref.read(notificationProvider.notifier).refreshNotifications(),
+                onRetry: () => ref
+                    .read(notificationProvider.notifier)
+                    .refreshNotifications(),
               ),
               data: (notifications) {
                 if (notifications.isEmpty) {
@@ -165,7 +168,9 @@ class _NotificationsSheetBody extends ConsumerWidget {
                   onNotification: (notification) {
                     if (notification.metrics.pixels >=
                         notification.metrics.maxScrollExtent - 220) {
-                      ref.read(notificationProvider.notifier).loadMoreNotifications();
+                      ref
+                          .read(notificationProvider.notifier)
+                          .loadMoreNotifications();
                     }
                     return false;
                   },
@@ -180,7 +185,9 @@ class _NotificationsSheetBody extends ConsumerWidget {
 
                       return InkWell(
                         onTap: () async {
-                          await ref.read(notificationProvider.notifier).markRead(notification.id);
+                          await ref
+                              .read(notificationProvider.notifier)
+                              .markRead(notification.id);
 
                           if (!context.mounted) return;
                           Navigator.of(context).pop();
@@ -192,7 +199,8 @@ class _NotificationsSheetBody extends ConsumerWidget {
                             return;
                           }
 
-                          final route = _routeForNotification(notification, role);
+                          final route =
+                              _routeForNotification(notification, role);
                           if (route != null) {
                             context.push(route);
                           }
@@ -210,9 +218,10 @@ class _NotificationsSheetBody extends ConsumerWidget {
                                 height: 34,
                                 decoration: BoxDecoration(
                                   color: _typeColor(notification.type),
-                                  borderRadius:
-                                      BorderRadius.circular(AppSpacing.radiusFull),
-                                  border: Border.all(color: AppColors.ink, width: 1.5),
+                                  borderRadius: BorderRadius.circular(
+                                      AppSpacing.radiusFull),
+                                  border: Border.all(
+                                      color: AppColors.ink, width: 1.5),
                                 ),
                                 child: Icon(
                                   _typeIcon(notification.type),
@@ -226,7 +235,8 @@ class _NotificationsSheetBody extends ConsumerWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Expanded(
                                           child: Text(
@@ -241,7 +251,8 @@ class _NotificationsSheetBody extends ConsumerWidget {
                                         ),
                                         const SizedBox(width: AppSpacing.sm),
                                         Text(
-                                          timeago.format(notification.createdAt),
+                                          timeago
+                                              .format(notification.createdAt),
                                           style: AppTypography.bodyXS
                                               .copyWith(color: AppColors.muted),
                                         ),
@@ -269,8 +280,8 @@ class _NotificationsSheetBody extends ConsumerWidget {
                                   height: 8,
                                   decoration: BoxDecoration(
                                     color: AppColors.neon,
-                                    borderRadius:
-                                        BorderRadius.circular(AppSpacing.radiusFull),
+                                    borderRadius: BorderRadius.circular(
+                                        AppSpacing.radiusFull),
                                   ),
                                 ),
                             ],
@@ -335,16 +346,16 @@ Color _typeColor(String type) {
 IconData _typeIcon(String type) {
   switch (type) {
     case 'bid_received':
-      return Icons.assignment_rounded;
+      return Symbols.assignment_rounded;
     case 'bid_accepted':
-      return Icons.check_circle_rounded;
+      return Symbols.check_circle_rounded;
     case 'event_invite':
-      return Icons.confirmation_num_rounded;
+      return Symbols.confirmation_number_rounded;
     case 'collab_matched':
-      return Icons.handshake_rounded;
+      return Symbols.handshake_rounded;
     case 'request_received':
-      return Icons.mail_rounded;
+      return Symbols.mail_rounded;
     default:
-      return Icons.notifications_rounded;
+      return Symbols.notifications_rounded;
   }
 }

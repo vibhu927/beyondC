@@ -57,6 +57,8 @@ export async function PUT(request: NextRequest) {
       full_name: normalizedDisplayName,
       first_name: derivedFirstName,
       avatar_url: validatedData.avatar_url,
+      state: validatedData.state,
+      city: validatedData.city,
       is_onboarded: validatedData.onboarded,
     }
 

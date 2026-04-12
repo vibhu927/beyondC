@@ -10,6 +10,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
@@ -40,9 +41,7 @@ class CreatorEventsScreen extends ConsumerWidget {
         color: AppColors.neon,
         onRefresh: () => ref.read(eventInvitesProvider.notifier).refresh(),
         child: invitesAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.ink),
-          ),
+          loading: () => const Center(child: BCAppLoader()),
           error: (error, _) => BCErrorState(
             message: error.toString(),
             onRetry: () => ref.read(eventInvitesProvider.notifier).refresh(),

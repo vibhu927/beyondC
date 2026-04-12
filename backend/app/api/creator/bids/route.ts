@@ -62,6 +62,9 @@ export async function POST(request: NextRequest) {
       .insert({
         campaign_id: validatedData.campaign_id,
         creator_id: user.id,
+        bid_amount: validatedData.bid_amount ?? null,
+        deliverables: validatedData.deliverables ?? null,
+        include_barter: validatedData.include_barter ?? false,
         message: validatedData.message,
       })
       .select()

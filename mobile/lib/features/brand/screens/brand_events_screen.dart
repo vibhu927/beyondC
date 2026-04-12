@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -46,7 +47,7 @@ class _BrandEventsScreenState extends ConsumerState<BrandEventsScreen> {
         actions: [
           IconButton(
             onPressed: () => context.push(RouteNames.createEvent),
-            icon: const Icon(Icons.add_rounded, color: AppColors.ink),
+            icon: const Icon(Symbols.add_rounded, color: AppColors.ink),
           ),
         ],
       ),
@@ -58,7 +59,7 @@ class _BrandEventsScreenState extends ConsumerState<BrandEventsScreen> {
           borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
           side: const BorderSide(color: AppColors.ink, width: 2),
         ),
-        child: const Icon(Icons.add_rounded),
+        child: const Icon(Symbols.add_rounded),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(

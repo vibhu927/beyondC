@@ -26,10 +26,13 @@ mixin _$BrandProfile {
   String get description => throw _privateConstructorUsedError;
   String get website => throw _privateConstructorUsedError;
   String? get contactEmail => throw _privateConstructorUsedError;
+  String? get state => throw _privateConstructorUsedError;
+  String? get city => throw _privateConstructorUsedError;
   String? get size => throw _privateConstructorUsedError;
   String? get logoUrl => throw _privateConstructorUsedError;
   String? get displayName => throw _privateConstructorUsedError;
   String? get avatarUrl => throw _privateConstructorUsedError;
+  List<String> get portfolioLinks => throw _privateConstructorUsedError;
   bool get onboarded => throw _privateConstructorUsedError;
   int get creditsBalance => throw _privateConstructorUsedError;
   bool get verified => throw _privateConstructorUsedError;
@@ -61,10 +64,13 @@ abstract class $BrandProfileCopyWith<$Res> {
       String description,
       String website,
       String? contactEmail,
+      String? state,
+      String? city,
       String? size,
       String? logoUrl,
       String? displayName,
       String? avatarUrl,
+      List<String> portfolioLinks,
       bool onboarded,
       int creditsBalance,
       bool verified,
@@ -95,10 +101,13 @@ class _$BrandProfileCopyWithImpl<$Res, $Val extends BrandProfile>
     Object? description = null,
     Object? website = null,
     Object? contactEmail = freezed,
+    Object? state = freezed,
+    Object? city = freezed,
     Object? size = freezed,
     Object? logoUrl = freezed,
     Object? displayName = freezed,
     Object? avatarUrl = freezed,
+    Object? portfolioLinks = null,
     Object? onboarded = null,
     Object? creditsBalance = null,
     Object? verified = null,
@@ -132,6 +141,14 @@ class _$BrandProfileCopyWithImpl<$Res, $Val extends BrandProfile>
           ? _value.contactEmail
           : contactEmail // ignore: cast_nullable_to_non_nullable
               as String?,
+      state: freezed == state
+          ? _value.state
+          : state // ignore: cast_nullable_to_non_nullable
+              as String?,
+      city: freezed == city
+          ? _value.city
+          : city // ignore: cast_nullable_to_non_nullable
+              as String?,
       size: freezed == size
           ? _value.size
           : size // ignore: cast_nullable_to_non_nullable
@@ -148,6 +165,10 @@ class _$BrandProfileCopyWithImpl<$Res, $Val extends BrandProfile>
           ? _value.avatarUrl
           : avatarUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      portfolioLinks: null == portfolioLinks
+          ? _value.portfolioLinks
+          : portfolioLinks // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       onboarded: null == onboarded
           ? _value.onboarded
           : onboarded // ignore: cast_nullable_to_non_nullable
@@ -195,10 +216,13 @@ abstract class _$$BrandProfileImplCopyWith<$Res>
       String description,
       String website,
       String? contactEmail,
+      String? state,
+      String? city,
       String? size,
       String? logoUrl,
       String? displayName,
       String? avatarUrl,
+      List<String> portfolioLinks,
       bool onboarded,
       int creditsBalance,
       bool verified,
@@ -227,10 +251,13 @@ class __$$BrandProfileImplCopyWithImpl<$Res>
     Object? description = null,
     Object? website = null,
     Object? contactEmail = freezed,
+    Object? state = freezed,
+    Object? city = freezed,
     Object? size = freezed,
     Object? logoUrl = freezed,
     Object? displayName = freezed,
     Object? avatarUrl = freezed,
+    Object? portfolioLinks = null,
     Object? onboarded = null,
     Object? creditsBalance = null,
     Object? verified = null,
@@ -264,6 +291,14 @@ class __$$BrandProfileImplCopyWithImpl<$Res>
           ? _value.contactEmail
           : contactEmail // ignore: cast_nullable_to_non_nullable
               as String?,
+      state: freezed == state
+          ? _value.state
+          : state // ignore: cast_nullable_to_non_nullable
+              as String?,
+      city: freezed == city
+          ? _value.city
+          : city // ignore: cast_nullable_to_non_nullable
+              as String?,
       size: freezed == size
           ? _value.size
           : size // ignore: cast_nullable_to_non_nullable
@@ -280,6 +315,10 @@ class __$$BrandProfileImplCopyWithImpl<$Res>
           ? _value.avatarUrl
           : avatarUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      portfolioLinks: null == portfolioLinks
+          ? _value._portfolioLinks
+          : portfolioLinks // ignore: cast_nullable_to_non_nullable
+              as List<String>,
       onboarded: null == onboarded
           ? _value.onboarded
           : onboarded // ignore: cast_nullable_to_non_nullable
@@ -322,10 +361,13 @@ class _$BrandProfileImpl extends _BrandProfile {
       this.description = '',
       this.website = '',
       this.contactEmail,
+      this.state,
+      this.city,
       this.size,
       this.logoUrl,
       this.displayName,
       this.avatarUrl,
+      final List<String> portfolioLinks = const <String>[],
       this.onboarded = false,
       this.creditsBalance = 0,
       this.verified = false,
@@ -333,7 +375,8 @@ class _$BrandProfileImpl extends _BrandProfile {
       this.avgRating = 0,
       this.createdAt,
       this.updatedAt})
-      : super._();
+      : _portfolioLinks = portfolioLinks,
+        super._();
 
   factory _$BrandProfileImpl.fromJson(Map<String, dynamic> json) =>
       _$$BrandProfileImplFromJson(json);
@@ -355,6 +398,10 @@ class _$BrandProfileImpl extends _BrandProfile {
   @override
   final String? contactEmail;
   @override
+  final String? state;
+  @override
+  final String? city;
+  @override
   final String? size;
   @override
   final String? logoUrl;
@@ -362,6 +409,15 @@ class _$BrandProfileImpl extends _BrandProfile {
   final String? displayName;
   @override
   final String? avatarUrl;
+  final List<String> _portfolioLinks;
+  @override
+  @JsonKey()
+  List<String> get portfolioLinks {
+    if (_portfolioLinks is EqualUnmodifiableListView) return _portfolioLinks;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_portfolioLinks);
+  }
+
   @override
   @JsonKey()
   final bool onboarded;
@@ -384,7 +440,7 @@ class _$BrandProfileImpl extends _BrandProfile {
 
   @override
   String toString() {
-    return 'BrandProfile(id: $id, brandName: $brandName, brandCategory: $brandCategory, description: $description, website: $website, contactEmail: $contactEmail, size: $size, logoUrl: $logoUrl, displayName: $displayName, avatarUrl: $avatarUrl, onboarded: $onboarded, creditsBalance: $creditsBalance, verified: $verified, totalCollabs: $totalCollabs, avgRating: $avgRating, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'BrandProfile(id: $id, brandName: $brandName, brandCategory: $brandCategory, description: $description, website: $website, contactEmail: $contactEmail, state: $state, city: $city, size: $size, logoUrl: $logoUrl, displayName: $displayName, avatarUrl: $avatarUrl, portfolioLinks: $portfolioLinks, onboarded: $onboarded, creditsBalance: $creditsBalance, verified: $verified, totalCollabs: $totalCollabs, avgRating: $avgRating, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -402,12 +458,16 @@ class _$BrandProfileImpl extends _BrandProfile {
             (identical(other.website, website) || other.website == website) &&
             (identical(other.contactEmail, contactEmail) ||
                 other.contactEmail == contactEmail) &&
+            (identical(other.state, state) || other.state == state) &&
+            (identical(other.city, city) || other.city == city) &&
             (identical(other.size, size) || other.size == size) &&
             (identical(other.logoUrl, logoUrl) || other.logoUrl == logoUrl) &&
             (identical(other.displayName, displayName) ||
                 other.displayName == displayName) &&
             (identical(other.avatarUrl, avatarUrl) ||
                 other.avatarUrl == avatarUrl) &&
+            const DeepCollectionEquality()
+                .equals(other._portfolioLinks, _portfolioLinks) &&
             (identical(other.onboarded, onboarded) ||
                 other.onboarded == onboarded) &&
             (identical(other.creditsBalance, creditsBalance) ||
@@ -426,25 +486,29 @@ class _$BrandProfileImpl extends _BrandProfile {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      brandName,
-      brandCategory,
-      description,
-      website,
-      contactEmail,
-      size,
-      logoUrl,
-      displayName,
-      avatarUrl,
-      onboarded,
-      creditsBalance,
-      verified,
-      totalCollabs,
-      avgRating,
-      createdAt,
-      updatedAt);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        brandName,
+        brandCategory,
+        description,
+        website,
+        contactEmail,
+        state,
+        city,
+        size,
+        logoUrl,
+        displayName,
+        avatarUrl,
+        const DeepCollectionEquality().hash(_portfolioLinks),
+        onboarded,
+        creditsBalance,
+        verified,
+        totalCollabs,
+        avgRating,
+        createdAt,
+        updatedAt
+      ]);
 
   /// Create a copy of BrandProfile
   /// with the given fields replaced by the non-null parameter values.
@@ -470,10 +534,13 @@ abstract class _BrandProfile extends BrandProfile {
       final String description,
       final String website,
       final String? contactEmail,
+      final String? state,
+      final String? city,
       final String? size,
       final String? logoUrl,
       final String? displayName,
       final String? avatarUrl,
+      final List<String> portfolioLinks,
       final bool onboarded,
       final int creditsBalance,
       final bool verified,
@@ -499,6 +566,10 @@ abstract class _BrandProfile extends BrandProfile {
   @override
   String? get contactEmail;
   @override
+  String? get state;
+  @override
+  String? get city;
+  @override
   String? get size;
   @override
   String? get logoUrl;
@@ -506,6 +577,8 @@ abstract class _BrandProfile extends BrandProfile {
   String? get displayName;
   @override
   String? get avatarUrl;
+  @override
+  List<String> get portfolioLinks;
   @override
   bool get onboarded;
   @override
@@ -538,6 +611,8 @@ mixin _$CreatorDiscovery {
   String get id => throw _privateConstructorUsedError;
   String get firstName => throw _privateConstructorUsedError;
   String? get avatarUrl => throw _privateConstructorUsedError;
+  String? get state => throw _privateConstructorUsedError;
+  String? get city => throw _privateConstructorUsedError;
   List<String> get niches => throw _privateConstructorUsedError;
   List<String> get contentTypes => throw _privateConstructorUsedError;
   String get tier => throw _privateConstructorUsedError;
@@ -571,6 +646,8 @@ abstract class $CreatorDiscoveryCopyWith<$Res> {
       {String id,
       String firstName,
       String? avatarUrl,
+      String? state,
+      String? city,
       List<String> niches,
       List<String> contentTypes,
       String tier,
@@ -603,6 +680,8 @@ class _$CreatorDiscoveryCopyWithImpl<$Res, $Val extends CreatorDiscovery>
     Object? id = null,
     Object? firstName = null,
     Object? avatarUrl = freezed,
+    Object? state = freezed,
+    Object? city = freezed,
     Object? niches = null,
     Object? contentTypes = null,
     Object? tier = null,
@@ -628,6 +707,14 @@ class _$CreatorDiscoveryCopyWithImpl<$Res, $Val extends CreatorDiscovery>
       avatarUrl: freezed == avatarUrl
           ? _value.avatarUrl
           : avatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      state: freezed == state
+          ? _value.state
+          : state // ignore: cast_nullable_to_non_nullable
+              as String?,
+      city: freezed == city
+          ? _value.city
+          : city // ignore: cast_nullable_to_non_nullable
               as String?,
       niches: null == niches
           ? _value.niches
@@ -693,6 +780,8 @@ abstract class _$$CreatorDiscoveryImplCopyWith<$Res>
       {String id,
       String firstName,
       String? avatarUrl,
+      String? state,
+      String? city,
       List<String> niches,
       List<String> contentTypes,
       String tier,
@@ -723,6 +812,8 @@ class __$$CreatorDiscoveryImplCopyWithImpl<$Res>
     Object? id = null,
     Object? firstName = null,
     Object? avatarUrl = freezed,
+    Object? state = freezed,
+    Object? city = freezed,
     Object? niches = null,
     Object? contentTypes = null,
     Object? tier = null,
@@ -748,6 +839,14 @@ class __$$CreatorDiscoveryImplCopyWithImpl<$Res>
       avatarUrl: freezed == avatarUrl
           ? _value.avatarUrl
           : avatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      state: freezed == state
+          ? _value.state
+          : state // ignore: cast_nullable_to_non_nullable
+              as String?,
+      city: freezed == city
+          ? _value.city
+          : city // ignore: cast_nullable_to_non_nullable
               as String?,
       niches: null == niches
           ? _value._niches
@@ -808,6 +907,8 @@ class _$CreatorDiscoveryImpl extends _CreatorDiscovery {
       {required this.id,
       this.firstName = 'Creator',
       this.avatarUrl,
+      this.state,
+      this.city,
       final List<String> niches = const <String>[],
       final List<String> contentTypes = const <String>[],
       this.tier = 'micro',
@@ -835,6 +936,10 @@ class _$CreatorDiscoveryImpl extends _CreatorDiscovery {
   final String firstName;
   @override
   final String? avatarUrl;
+  @override
+  final String? state;
+  @override
+  final String? city;
   final List<String> _niches;
   @override
   @JsonKey()
@@ -892,7 +997,7 @@ class _$CreatorDiscoveryImpl extends _CreatorDiscovery {
 
   @override
   String toString() {
-    return 'CreatorDiscovery(id: $id, firstName: $firstName, avatarUrl: $avatarUrl, niches: $niches, contentTypes: $contentTypes, tier: $tier, startingPrice: $startingPrice, avgRating: $avgRating, totalCollabs: $totalCollabs, engagementRate: $engagementRate, bio: $bio, portfolioLinks: $portfolioLinks, followerRange: $followerRange, followersCount: $followersCount, instagramVerified: $instagramVerified)';
+    return 'CreatorDiscovery(id: $id, firstName: $firstName, avatarUrl: $avatarUrl, state: $state, city: $city, niches: $niches, contentTypes: $contentTypes, tier: $tier, startingPrice: $startingPrice, avgRating: $avgRating, totalCollabs: $totalCollabs, engagementRate: $engagementRate, bio: $bio, portfolioLinks: $portfolioLinks, followerRange: $followerRange, followersCount: $followersCount, instagramVerified: $instagramVerified)';
   }
 
   @override
@@ -905,6 +1010,8 @@ class _$CreatorDiscoveryImpl extends _CreatorDiscovery {
                 other.firstName == firstName) &&
             (identical(other.avatarUrl, avatarUrl) ||
                 other.avatarUrl == avatarUrl) &&
+            (identical(other.state, state) || other.state == state) &&
+            (identical(other.city, city) || other.city == city) &&
             const DeepCollectionEquality().equals(other._niches, _niches) &&
             const DeepCollectionEquality()
                 .equals(other._contentTypes, _contentTypes) &&
@@ -935,6 +1042,8 @@ class _$CreatorDiscoveryImpl extends _CreatorDiscovery {
       id,
       firstName,
       avatarUrl,
+      state,
+      city,
       const DeepCollectionEquality().hash(_niches),
       const DeepCollectionEquality().hash(_contentTypes),
       tier,
@@ -970,6 +1079,8 @@ abstract class _CreatorDiscovery extends CreatorDiscovery {
       {required final String id,
       final String firstName,
       final String? avatarUrl,
+      final String? state,
+      final String? city,
       final List<String> niches,
       final List<String> contentTypes,
       final String tier,
@@ -993,6 +1104,10 @@ abstract class _CreatorDiscovery extends CreatorDiscovery {
   String get firstName;
   @override
   String? get avatarUrl;
+  @override
+  String? get state;
+  @override
+  String? get city;
   @override
   List<String> get niches;
   @override
@@ -1537,6 +1652,8 @@ mixin _$Campaign {
   CampaignStatus get status => throw _privateConstructorUsedError;
   int get slots => throw _privateConstructorUsedError;
   int get slotsFilled => throw _privateConstructorUsedError;
+  String? get targetState => throw _privateConstructorUsedError;
+  String? get targetCity => throw _privateConstructorUsedError;
   int get bidCount => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
@@ -1571,6 +1688,8 @@ abstract class $CampaignCopyWith<$Res> {
       CampaignStatus status,
       int slots,
       int slotsFilled,
+      String? targetState,
+      String? targetCity,
       int bidCount,
       DateTime? createdAt,
       DateTime? updatedAt});
@@ -1605,6 +1724,8 @@ class _$CampaignCopyWithImpl<$Res, $Val extends Campaign>
     Object? status = null,
     Object? slots = null,
     Object? slotsFilled = null,
+    Object? targetState = freezed,
+    Object? targetCity = freezed,
     Object? bidCount = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
@@ -1666,6 +1787,14 @@ class _$CampaignCopyWithImpl<$Res, $Val extends Campaign>
           ? _value.slotsFilled
           : slotsFilled // ignore: cast_nullable_to_non_nullable
               as int,
+      targetState: freezed == targetState
+          ? _value.targetState
+          : targetState // ignore: cast_nullable_to_non_nullable
+              as String?,
+      targetCity: freezed == targetCity
+          ? _value.targetCity
+          : targetCity // ignore: cast_nullable_to_non_nullable
+              as String?,
       bidCount: null == bidCount
           ? _value.bidCount
           : bidCount // ignore: cast_nullable_to_non_nullable
@@ -1705,6 +1834,8 @@ abstract class _$$CampaignImplCopyWith<$Res>
       CampaignStatus status,
       int slots,
       int slotsFilled,
+      String? targetState,
+      String? targetCity,
       int bidCount,
       DateTime? createdAt,
       DateTime? updatedAt});
@@ -1737,6 +1868,8 @@ class __$$CampaignImplCopyWithImpl<$Res>
     Object? status = null,
     Object? slots = null,
     Object? slotsFilled = null,
+    Object? targetState = freezed,
+    Object? targetCity = freezed,
     Object? bidCount = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
@@ -1798,6 +1931,14 @@ class __$$CampaignImplCopyWithImpl<$Res>
           ? _value.slotsFilled
           : slotsFilled // ignore: cast_nullable_to_non_nullable
               as int,
+      targetState: freezed == targetState
+          ? _value.targetState
+          : targetState // ignore: cast_nullable_to_non_nullable
+              as String?,
+      targetCity: freezed == targetCity
+          ? _value.targetCity
+          : targetCity // ignore: cast_nullable_to_non_nullable
+              as String?,
       bidCount: null == bidCount
           ? _value.bidCount
           : bidCount // ignore: cast_nullable_to_non_nullable
@@ -1832,6 +1973,8 @@ class _$CampaignImpl extends _Campaign {
       this.status = CampaignStatus.active,
       this.slots = 1,
       this.slotsFilled = 0,
+      this.targetState,
+      this.targetCity,
       this.bidCount = 0,
       this.createdAt,
       this.updatedAt})
@@ -1892,6 +2035,10 @@ class _$CampaignImpl extends _Campaign {
   @JsonKey()
   final int slotsFilled;
   @override
+  final String? targetState;
+  @override
+  final String? targetCity;
+  @override
   @JsonKey()
   final int bidCount;
   @override
@@ -1901,7 +2048,7 @@ class _$CampaignImpl extends _Campaign {
 
   @override
   String toString() {
-    return 'Campaign(id: $id, title: $title, description: $description, niche: $niche, collabType: $collabType, budget: $budget, budgetMin: $budgetMin, budgetMax: $budgetMax, deliverables: $deliverables, requirements: $requirements, deadline: $deadline, status: $status, slots: $slots, slotsFilled: $slotsFilled, bidCount: $bidCount, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Campaign(id: $id, title: $title, description: $description, niche: $niche, collabType: $collabType, budget: $budget, budgetMin: $budgetMin, budgetMax: $budgetMax, deliverables: $deliverables, requirements: $requirements, deadline: $deadline, status: $status, slots: $slots, slotsFilled: $slotsFilled, targetState: $targetState, targetCity: $targetCity, bidCount: $bidCount, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -1931,6 +2078,10 @@ class _$CampaignImpl extends _Campaign {
             (identical(other.slots, slots) || other.slots == slots) &&
             (identical(other.slotsFilled, slotsFilled) ||
                 other.slotsFilled == slotsFilled) &&
+            (identical(other.targetState, targetState) ||
+                other.targetState == targetState) &&
+            (identical(other.targetCity, targetCity) ||
+                other.targetCity == targetCity) &&
             (identical(other.bidCount, bidCount) ||
                 other.bidCount == bidCount) &&
             (identical(other.createdAt, createdAt) ||
@@ -1941,25 +2092,28 @@ class _$CampaignImpl extends _Campaign {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      title,
-      description,
-      const DeepCollectionEquality().hash(_niche),
-      collabType,
-      budget,
-      budgetMin,
-      budgetMax,
-      const DeepCollectionEquality().hash(_deliverables),
-      requirements,
-      deadline,
-      status,
-      slots,
-      slotsFilled,
-      bidCount,
-      createdAt,
-      updatedAt);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        title,
+        description,
+        const DeepCollectionEquality().hash(_niche),
+        collabType,
+        budget,
+        budgetMin,
+        budgetMax,
+        const DeepCollectionEquality().hash(_deliverables),
+        requirements,
+        deadline,
+        status,
+        slots,
+        slotsFilled,
+        targetState,
+        targetCity,
+        bidCount,
+        createdAt,
+        updatedAt
+      ]);
 
   /// Create a copy of Campaign
   /// with the given fields replaced by the non-null parameter values.
@@ -1993,6 +2147,8 @@ abstract class _Campaign extends Campaign {
       final CampaignStatus status,
       final int slots,
       final int slotsFilled,
+      final String? targetState,
+      final String? targetCity,
       final int bidCount,
       final DateTime? createdAt,
       final DateTime? updatedAt}) = _$CampaignImpl;
@@ -2030,6 +2186,10 @@ abstract class _Campaign extends Campaign {
   @override
   int get slotsFilled;
   @override
+  String? get targetState;
+  @override
+  String? get targetCity;
+  @override
   int get bidCount;
   @override
   DateTime? get createdAt;
@@ -2062,6 +2222,7 @@ mixin _$Bid {
   DateTime? get updatedAt => throw _privateConstructorUsedError;
   String get creatorFirstName => throw _privateConstructorUsedError;
   String get creatorFullName => throw _privateConstructorUsedError;
+  String? get creatorAvatarUrl => throw _privateConstructorUsedError;
   String get creatorHandle => throw _privateConstructorUsedError;
   String get tier => throw _privateConstructorUsedError;
   int get followersCount => throw _privateConstructorUsedError;
@@ -2098,6 +2259,7 @@ abstract class $BidCopyWith<$Res> {
       DateTime? updatedAt,
       String creatorFirstName,
       String creatorFullName,
+      String? creatorAvatarUrl,
       String creatorHandle,
       String tier,
       int followersCount,
@@ -2134,6 +2296,7 @@ class _$BidCopyWithImpl<$Res, $Val extends Bid> implements $BidCopyWith<$Res> {
     Object? updatedAt = freezed,
     Object? creatorFirstName = null,
     Object? creatorFullName = null,
+    Object? creatorAvatarUrl = freezed,
     Object? creatorHandle = null,
     Object? tier = null,
     Object? followersCount = null,
@@ -2192,6 +2355,10 @@ class _$BidCopyWithImpl<$Res, $Val extends Bid> implements $BidCopyWith<$Res> {
           ? _value.creatorFullName
           : creatorFullName // ignore: cast_nullable_to_non_nullable
               as String,
+      creatorAvatarUrl: freezed == creatorAvatarUrl
+          ? _value.creatorAvatarUrl
+          : creatorAvatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       creatorHandle: null == creatorHandle
           ? _value.creatorHandle
           : creatorHandle // ignore: cast_nullable_to_non_nullable
@@ -2247,6 +2414,7 @@ abstract class _$$BidImplCopyWith<$Res> implements $BidCopyWith<$Res> {
       DateTime? updatedAt,
       String creatorFirstName,
       String creatorFullName,
+      String? creatorAvatarUrl,
       String creatorHandle,
       String tier,
       int followersCount,
@@ -2280,6 +2448,7 @@ class __$$BidImplCopyWithImpl<$Res> extends _$BidCopyWithImpl<$Res, _$BidImpl>
     Object? updatedAt = freezed,
     Object? creatorFirstName = null,
     Object? creatorFullName = null,
+    Object? creatorAvatarUrl = freezed,
     Object? creatorHandle = null,
     Object? tier = null,
     Object? followersCount = null,
@@ -2338,6 +2507,10 @@ class __$$BidImplCopyWithImpl<$Res> extends _$BidCopyWithImpl<$Res, _$BidImpl>
           ? _value.creatorFullName
           : creatorFullName // ignore: cast_nullable_to_non_nullable
               as String,
+      creatorAvatarUrl: freezed == creatorAvatarUrl
+          ? _value.creatorAvatarUrl
+          : creatorAvatarUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
       creatorHandle: null == creatorHandle
           ? _value.creatorHandle
           : creatorHandle // ignore: cast_nullable_to_non_nullable
@@ -2390,6 +2563,7 @@ class _$BidImpl extends _Bid {
       this.updatedAt,
       this.creatorFirstName = 'Creator',
       this.creatorFullName = 'Creator',
+      this.creatorAvatarUrl,
       this.creatorHandle = '',
       this.tier = 'micro',
       this.followersCount = 0,
@@ -2435,6 +2609,8 @@ class _$BidImpl extends _Bid {
   @JsonKey()
   final String creatorFullName;
   @override
+  final String? creatorAvatarUrl;
+  @override
   @JsonKey()
   final String creatorHandle;
   @override
@@ -2467,7 +2643,7 @@ class _$BidImpl extends _Bid {
 
   @override
   String toString() {
-    return 'Bid(id: $id, campaignId: $campaignId, creatorId: $creatorId, bidAmount: $bidAmount, deliverables: $deliverables, message: $message, status: $status, includeBarter: $includeBarter, createdAt: $createdAt, updatedAt: $updatedAt, creatorFirstName: $creatorFirstName, creatorFullName: $creatorFullName, creatorHandle: $creatorHandle, tier: $tier, followersCount: $followersCount, engagementRate: $engagementRate, niches: $niches, collabType: $collabType, isUnlocked: $isUnlocked, isAccepted: $isAccepted)';
+    return 'Bid(id: $id, campaignId: $campaignId, creatorId: $creatorId, bidAmount: $bidAmount, deliverables: $deliverables, message: $message, status: $status, includeBarter: $includeBarter, createdAt: $createdAt, updatedAt: $updatedAt, creatorFirstName: $creatorFirstName, creatorFullName: $creatorFullName, creatorAvatarUrl: $creatorAvatarUrl, creatorHandle: $creatorHandle, tier: $tier, followersCount: $followersCount, engagementRate: $engagementRate, niches: $niches, collabType: $collabType, isUnlocked: $isUnlocked, isAccepted: $isAccepted)';
   }
 
   @override
@@ -2496,6 +2672,8 @@ class _$BidImpl extends _Bid {
                 other.creatorFirstName == creatorFirstName) &&
             (identical(other.creatorFullName, creatorFullName) ||
                 other.creatorFullName == creatorFullName) &&
+            (identical(other.creatorAvatarUrl, creatorAvatarUrl) ||
+                other.creatorAvatarUrl == creatorAvatarUrl) &&
             (identical(other.creatorHandle, creatorHandle) ||
                 other.creatorHandle == creatorHandle) &&
             (identical(other.tier, tier) || other.tier == tier) &&
@@ -2528,6 +2706,7 @@ class _$BidImpl extends _Bid {
         updatedAt,
         creatorFirstName,
         creatorFullName,
+        creatorAvatarUrl,
         creatorHandle,
         tier,
         followersCount,
@@ -2568,6 +2747,7 @@ abstract class _Bid extends Bid {
       final DateTime? updatedAt,
       final String creatorFirstName,
       final String creatorFullName,
+      final String? creatorAvatarUrl,
       final String creatorHandle,
       final String tier,
       final int followersCount,
@@ -2604,6 +2784,8 @@ abstract class _Bid extends Bid {
   String get creatorFirstName;
   @override
   String get creatorFullName;
+  @override
+  String? get creatorAvatarUrl;
   @override
   String get creatorHandle;
   @override
@@ -3109,6 +3291,7 @@ mixin _$BrandEvent {
   String? get venueName => throw _privateConstructorUsedError;
   String? get venueAddress => throw _privateConstructorUsedError;
   String? get city => throw _privateConstructorUsedError;
+  String? get state => throw _privateConstructorUsedError;
   bool get isVirtual => throw _privateConstructorUsedError;
   String? get virtualLink => throw _privateConstructorUsedError;
   int get totalSlots => throw _privateConstructorUsedError;
@@ -3149,6 +3332,7 @@ abstract class $BrandEventCopyWith<$Res> {
       String? venueName,
       String? venueAddress,
       String? city,
+      String? state,
       bool isVirtual,
       String? virtualLink,
       int totalSlots,
@@ -3188,6 +3372,7 @@ class _$BrandEventCopyWithImpl<$Res, $Val extends BrandEvent>
     Object? venueName = freezed,
     Object? venueAddress = freezed,
     Object? city = freezed,
+    Object? state = freezed,
     Object? isVirtual = null,
     Object? virtualLink = freezed,
     Object? totalSlots = null,
@@ -3241,6 +3426,10 @@ class _$BrandEventCopyWithImpl<$Res, $Val extends BrandEvent>
       city: freezed == city
           ? _value.city
           : city // ignore: cast_nullable_to_non_nullable
+              as String?,
+      state: freezed == state
+          ? _value.state
+          : state // ignore: cast_nullable_to_non_nullable
               as String?,
       isVirtual: null == isVirtual
           ? _value.isVirtual
@@ -3313,6 +3502,7 @@ abstract class _$$BrandEventImplCopyWith<$Res>
       String? venueName,
       String? venueAddress,
       String? city,
+      String? state,
       bool isVirtual,
       String? virtualLink,
       int totalSlots,
@@ -3350,6 +3540,7 @@ class __$$BrandEventImplCopyWithImpl<$Res>
     Object? venueName = freezed,
     Object? venueAddress = freezed,
     Object? city = freezed,
+    Object? state = freezed,
     Object? isVirtual = null,
     Object? virtualLink = freezed,
     Object? totalSlots = null,
@@ -3403,6 +3594,10 @@ class __$$BrandEventImplCopyWithImpl<$Res>
       city: freezed == city
           ? _value.city
           : city // ignore: cast_nullable_to_non_nullable
+              as String?,
+      state: freezed == state
+          ? _value.state
+          : state // ignore: cast_nullable_to_non_nullable
               as String?,
       isVirtual: null == isVirtual
           ? _value.isVirtual
@@ -3470,6 +3665,7 @@ class _$BrandEventImpl extends _BrandEvent {
       this.venueName,
       this.venueAddress,
       this.city,
+      this.state,
       this.isVirtual = false,
       this.virtualLink,
       this.totalSlots = 10,
@@ -3512,6 +3708,8 @@ class _$BrandEventImpl extends _BrandEvent {
   final String? venueAddress;
   @override
   final String? city;
+  @override
+  final String? state;
   @override
   @JsonKey()
   final bool isVirtual;
@@ -3560,7 +3758,7 @@ class _$BrandEventImpl extends _BrandEvent {
 
   @override
   String toString() {
-    return 'BrandEvent(id: $id, title: $title, description: $description, eventType: $eventType, eventDate: $eventDate, location: $location, imageUrl: $imageUrl, venueName: $venueName, venueAddress: $venueAddress, city: $city, isVirtual: $isVirtual, virtualLink: $virtualLink, totalSlots: $totalSlots, slotsFilled: $slotsFilled, whatCreatorsGet: $whatCreatorsGet, targetNiche: $targetNiche, targetTier: $targetTier, status: $status, invitesSent: $invitesSent, invitesAccepted: $invitesAccepted, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'BrandEvent(id: $id, title: $title, description: $description, eventType: $eventType, eventDate: $eventDate, location: $location, imageUrl: $imageUrl, venueName: $venueName, venueAddress: $venueAddress, city: $city, state: $state, isVirtual: $isVirtual, virtualLink: $virtualLink, totalSlots: $totalSlots, slotsFilled: $slotsFilled, whatCreatorsGet: $whatCreatorsGet, targetNiche: $targetNiche, targetTier: $targetTier, status: $status, invitesSent: $invitesSent, invitesAccepted: $invitesAccepted, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -3585,6 +3783,7 @@ class _$BrandEventImpl extends _BrandEvent {
             (identical(other.venueAddress, venueAddress) ||
                 other.venueAddress == venueAddress) &&
             (identical(other.city, city) || other.city == city) &&
+            (identical(other.state, state) || other.state == state) &&
             (identical(other.isVirtual, isVirtual) ||
                 other.isVirtual == isVirtual) &&
             (identical(other.virtualLink, virtualLink) ||
@@ -3624,6 +3823,7 @@ class _$BrandEventImpl extends _BrandEvent {
         venueName,
         venueAddress,
         city,
+        state,
         isVirtual,
         virtualLink,
         totalSlots,
@@ -3666,6 +3866,7 @@ abstract class _BrandEvent extends BrandEvent {
       final String? venueName,
       final String? venueAddress,
       final String? city,
+      final String? state,
       final bool isVirtual,
       final String? virtualLink,
       final int totalSlots,
@@ -3703,6 +3904,8 @@ abstract class _BrandEvent extends BrandEvent {
   String? get venueAddress;
   @override
   String? get city;
+  @override
+  String? get state;
   @override
   bool get isVirtual;
   @override

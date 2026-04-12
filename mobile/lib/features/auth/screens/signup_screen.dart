@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -8,10 +9,12 @@ import '../../../core/router/route_names.dart';
 import '../../../core/utils/validators.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../widgets/bc_logo.dart';
+import '../../../widgets/buttons/bc_back_button.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 import '../../../widgets/inputs/bc_dropdown.dart';
+import '../../../widgets/inputs/bc_location_picker.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   final String? role;
@@ -37,6 +40,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   String? _selectedNiche;
   String? _selectedCategory;
+  String? _selectedState;
+  String? _selectedCity;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _showValidationErrors = false;
@@ -93,8 +98,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final formValid = _formKey.currentState!.validate();
     final roleSpecificValid = (_role == 'creator' && _selectedNiche != null) ||
         (_role == 'brand' && _selectedCategory != null);
+    final locationValid =
+      (_selectedState ?? '').trim().isNotEmpty &&
+        (_selectedCity ?? '').trim().isNotEmpty;
 
-    if (!formValid || !roleSpecificValid) {
+    if (!formValid || !roleSpecificValid || !locationValid) {
       setState(() {
         _showValidationErrors = true;
       });
@@ -107,6 +115,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ? 'Please select your primary niche'
                   : 'Please select your brand category',
               style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: AppColors.ink,
+          ),
+        );
+      }
+
+      if (!locationValid) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Please select state and city',
+              style: TextStyle(color: Colors.white),
             ),
             backgroundColor: AppColors.ink,
           ),
@@ -137,6 +157,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             firstName: _firstNameController.text.trim(),
             fullName: _fullNameController.text.trim(),
             phone: _phoneController.text.trim(),
+        locationState: _selectedState!.trim(),
+        locationCity: _selectedCity!.trim(),
             extraData: extraData,
           );
 
@@ -194,7 +216,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 // Top row: Back arrow + Logo
                 Row(
                   children: [
-                    IconButton(
+                    BCBackButton(
                       onPressed: () {
                         if (context.canPop()) {
                           context.pop();
@@ -202,10 +224,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           context.go(RouteNames.roleSelect);
                         }
                       },
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: AppColors.ink,
-                      ),
+                      iconColor: AppColors.ink,
+                      backgroundColor: AppColors.surface,
+                      borderColor: AppColors.lightBorder,
+                      buttonSize: 36,
                     ),
                     const Spacer(),
                     const BCLogo(isDark: false, fontSize: 18),
@@ -274,6 +296,16 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   enabled: !isLoading,
                 ),
                 const SizedBox(height: AppSpacing.lg),
+                BCLocationPicker(
+                  required: true,
+                  onChanged: (state, city) {
+                    setState(() {
+                      _selectedState = state;
+                      _selectedCity = city;
+                    });
+                  },
+                ),
+                const SizedBox(height: AppSpacing.lg),
                 BCTextField(
                   label: 'Password',
                   controller: _passwordController,
@@ -283,8 +315,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
+                          ? Symbols.visibility_off
+                          : Symbols.visibility,
                       color: AppColors.ink,
                     ),
                     onPressed: () {
@@ -307,8 +339,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirmPassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
+                          ? Symbols.visibility_off
+                          : Symbols.visibility,
                       color: AppColors.ink,
                     ),
                     onPressed: () {

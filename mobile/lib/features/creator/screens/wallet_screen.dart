@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -9,6 +10,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_bar.dart';
+import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/cards/bc_card.dart';
@@ -88,9 +90,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
         color: AppColors.neon,
         onRefresh: _refresh,
         child: walletAsync.when(
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.ink),
-          ),
+          loading: () => const Center(child: BCAppLoader()),
           error: (error, _) => BCErrorState(
             message: error.toString(),
             onRetry: _refresh,
@@ -203,8 +203,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                           children: [
                             Icon(
                               isTopUp
-                                  ? Icons.arrow_upward_rounded
-                                  : Icons.arrow_downward_rounded,
+                                  ? Symbols.arrow_upward_rounded
+                                  : Symbols.arrow_downward_rounded,
                               color:
                                   isTopUp ? AppColors.success : AppColors.error,
                             ),

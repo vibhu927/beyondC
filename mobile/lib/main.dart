@@ -18,12 +18,16 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // Status bar style
+  // System bars style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Colors.white,
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
+      statusBarColor: Color(0xFF0E141D),
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: Color(0xE6121A25),
+      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarDividerColor: Color(0x00000000),
+      systemNavigationBarContrastEnforced: false,
     ),
   );
 
