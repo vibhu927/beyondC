@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getCachedStats, setCachedStats } from '@/lib/scraping/rate-limiter'
 import { withRetry } from '@/lib/scraping/retry'
-import { scrapeInstagramProfile, type InstagramStats } from '@/lib/scraping/instagram-scraper'
+import type { InstagramStats } from '@/lib/scraping/instagram-scraper'
 
 export const runtime = 'nodejs'
 
@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
     let stats = getCachedStats<InstagramStats>(username)
 
     if (!stats) {
+      const { scrapeInstagramProfile } = await import('@/lib/scraping/instagram-scraper')
       stats = await withRetry(() => scrapeInstagramProfile(username), 3, 2000)
       setCachedStats(username, stats)
     }
