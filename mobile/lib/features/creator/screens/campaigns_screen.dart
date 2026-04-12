@@ -405,7 +405,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
             side: const BorderSide(color: AppColors.neon, width: 2),
           ),
-          child: const Icon(Symbols.tune_rounded),
+          child: const Icon(Icons.tune_rounded),
         ),
       ),
       body: BCPageSwipeArea(

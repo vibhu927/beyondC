@@ -306,7 +306,7 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
             side: const BorderSide(color: AppColors.neon, width: 2),
           ),
-          child: const Icon(Symbols.tune_rounded),
+          child: const Icon(Icons.tune_rounded),
         ),
       ),
       body: BCPageSwipeArea(

@@ -184,7 +184,7 @@ class _ChatModalHeader extends StatelessWidget {
               ),
               BCBackButton(
                 onPressed: onClose,
-                icon: Symbols.close_rounded,
+                icon: Icons.close_rounded,
                 iconColor: AppColors.ink,
                 backgroundColor: AppColors.surface,
                 borderColor: AppColors.darkBorder,

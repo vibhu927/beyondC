@@ -269,7 +269,7 @@ class _TopBar extends StatelessWidget {
         children: [
           BCBackButton(
             onPressed: onClose,
-            icon: Symbols.close_rounded,
+            icon: Icons.close_rounded,
             iconColor: AppColors.white,
             tooltip: 'Close',
           ),
@@ -328,7 +328,7 @@ class _TopBar extends StatelessWidget {
           IconButton(
             onPressed: onInfo,
             icon: const Icon(
-              Symbols.info_rounded,
+              Icons.info_rounded,
               color: AppColors.white,
             ),
           ),

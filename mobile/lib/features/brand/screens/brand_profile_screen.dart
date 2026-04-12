@@ -714,7 +714,7 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                         top: 0,
                         child: BCBackButton(
                           onPressed: () => _openEditSheet(profile),
-                          icon: Symbols.edit_rounded,
+                          icon: Icons.edit_rounded,
                           iconColor: AppColors.white,
                           backgroundColor: AppColors.darkSurface,
                           borderColor: AppColors.darkBorder,
@@ -1114,34 +1114,34 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                             ),
                           const SizedBox(height: AppSpacing.xl),
                           BCCard(
-                            child: Column(
+                            child: Row(
                               children: [
-                                ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  onTap: () =>
-                                      context.push(RouteNames.settings),
-                                  leading: const Text('⚙️'),
-                                  title: const Text(
-                                    'Settings',
-                                    style: AppTypography.labelMD,
+                                Expanded(
+                                  child: BCPrimaryButton(
+                                    label: 'Settings',
+                                    onPressed: () =>
+                                        context.push(RouteNames.settings),
+                                    backgroundColor: AppColors.ink,
+                                    textColor: AppColors.white,
+                                    prefixIcon: const Icon(
+                                      Icons.settings_rounded,
+                                      color: AppColors.white,
+                                      size: 18,
+                                    ),
                                   ),
-                                  trailing:
-                                      const Icon(Symbols.chevron_right_rounded),
                                 ),
-                                const Divider(
-                                    color: AppColors.divider, height: 1),
-                                ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  onTap: _logout,
-                                  leading: const Text('🚪'),
-                                  title: Text(
-                                    'Logout',
-                                    style: AppTypography.labelMD
-                                        .copyWith(color: AppColors.error),
-                                  ),
-                                  trailing: const Icon(
-                                    Symbols.chevron_right_rounded,
-                                    color: AppColors.error,
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: BCPrimaryButton(
+                                    label: 'Logout',
+                                    onPressed: _logout,
+                                    backgroundColor: AppColors.error,
+                                    textColor: AppColors.white,
+                                    prefixIcon: const Icon(
+                                      Icons.logout_rounded,
+                                      color: AppColors.white,
+                                      size: 18,
+                                    ),
                                   ),
                                 ),
                               ],

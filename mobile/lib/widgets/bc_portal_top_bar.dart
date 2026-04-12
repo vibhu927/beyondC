@@ -90,7 +90,7 @@ class BCPortalTopBar extends ConsumerWidget implements PreferredSizeWidget {
           children: [
             BCBackButton(
               onPressed: () => openNotificationsModal(context),
-              icon: Symbols.notifications_rounded,
+              icon: Icons.notifications_rounded,
               iconColor: AppColors.white,
               backgroundColor: AppColors.darkSurface,
               borderColor: AppColors.darkBorder,

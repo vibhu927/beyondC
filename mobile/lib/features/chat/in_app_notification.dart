@@ -116,7 +116,7 @@ class _NotificationToast extends StatelessWidget {
               ),
               BCBackButton(
                 onPressed: onDismiss,
-                icon: Symbols.close_rounded,
+                icon: Icons.close_rounded,
                 iconSize: 14,
                 buttonSize: 24,
                 iconColor: AppColors.darkMuted,

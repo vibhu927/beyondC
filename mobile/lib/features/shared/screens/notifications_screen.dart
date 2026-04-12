@@ -265,7 +265,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case 'request_received':
         return Symbols.mail_rounded;
       default:
-        return Symbols.notifications_rounded;
+        return Icons.notifications_rounded;
     }
   }
 }

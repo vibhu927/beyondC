@@ -103,7 +103,7 @@ class _NotificationsSheetBody extends ConsumerWidget {
                   children: [
                     BCBackButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: Symbols.close_rounded,
+                        icon: Icons.close_rounded,
                       iconColor: AppColors.ink,
                       backgroundColor: AppColors.surface,
                       borderColor: AppColors.ink,
@@ -356,6 +356,6 @@ IconData _typeIcon(String type) {
     case 'request_received':
       return Symbols.mail_rounded;
     default:
-      return Symbols.notifications_rounded;
+      return Icons.notifications_rounded;
   }
 }

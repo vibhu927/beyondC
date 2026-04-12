@@ -336,7 +336,7 @@ class _MediaViewerPageState extends State<_MediaViewerPage> {
             right: AppSpacing.lg,
             child: BCBackButton(
               onPressed: () => Navigator.of(context).pop(),
-              icon: Symbols.close_rounded,
+              icon: Icons.close_rounded,
               tooltip: 'Close',
             ),
           ),

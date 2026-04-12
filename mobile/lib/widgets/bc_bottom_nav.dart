@@ -1,7 +1,6 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/router/route_names.dart';
@@ -275,38 +274,38 @@ class _BCBottomNavState extends State<BCBottomNav> {
       case BCPortalRole.creator:
         return [
           _NavItem(
-              icon: Symbols.home_rounded,
+              icon: Icons.home_rounded,
               label: 'Home',
               route: routes[0]),
           _NavItem(
-              icon: Symbols.explore_rounded,
+              icon: Icons.explore_rounded,
               label: 'Campaigns',
               route: routes[1]),
           _NavItem(
-              icon: Symbols.bookmark_rounded,
+              icon: Icons.bookmark_rounded,
               label: 'My Bids',
               route: routes[2]),
           _NavItem(
-              icon: Symbols.person_rounded,
+              icon: Icons.person_rounded,
               label: 'Profile',
               route: routes[3]),
         ];
       case BCPortalRole.brand:
         return [
           _NavItem(
-              icon: Symbols.home_rounded,
+              icon: Icons.home_rounded,
               label: 'Home',
               route: routes[0]),
           _NavItem(
-              icon: Symbols.campaign_rounded,
+              icon: Icons.campaign_rounded,
               label: 'Campaigns',
               route: routes[1]),
           _NavItem(
-              icon: Symbols.inbox_rounded,
+              icon: Icons.inbox_rounded,
               label: 'Requests',
               route: routes[2]),
           _NavItem(
-              icon: Symbols.person_rounded,
+              icon: Icons.person_rounded,
               label: 'Profile',
               route: routes[3]),
         ];
@@ -348,9 +347,6 @@ class _NavIcon extends StatelessWidget {
         icon,
         size: 30,
         color: color,
-        fill: isSelected ? 1 : 0,
-        weight: isSelected ? 700 : 500,
-        opticalSize: 24,
       ),
     );
   }
