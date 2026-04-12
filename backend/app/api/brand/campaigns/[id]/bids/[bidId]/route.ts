@@ -76,7 +76,7 @@ export async function PUT(
 
       const { data: brandProfile, error: brandProfileError } = await service
         .from('brand_profiles')
-        .select('credit_balance')
+        .select('credit_balance, size')
         .eq('id', user.id)
         .single()
 
@@ -239,10 +239,17 @@ export async function PUT(
         return NextResponse.json({ error: 'Creator wallet profile not found' }, { status: 404 })
       }
 
-      const followerCount = Number(
-        creatorProfile.follower_count ?? 0
-      )
-      const refundAmount = getCollabFee(followerCount)
+      const { data: brandForRefund } = await service
+        .from('brand_profiles')
+        .select('size')
+        .eq('id', user.id)
+        .maybeSingle()
+
+      const brandSize =
+        brandForRefund && ['micro', 'mid', 'big'].includes(String(brandForRefund.size))
+          ? (brandForRefund.size as 'micro' | 'mid' | 'big')
+          : 'micro'
+      const refundAmount = getCollabFee(brandSize)
       const currentWalletBalance = Number(creatorProfile.wallet_balance ?? 0)
       const nextWalletBalance = currentWalletBalance + refundAmount
 

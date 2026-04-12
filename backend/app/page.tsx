@@ -14,6 +14,8 @@ import Waitlist from '@/components/landing/Waitlist'
 import Footer from '@/components/landing/Footer'
 import RecoveryHashRedirect from '@/components/auth/RecoveryHashRedirect'
 
+export const dynamic = 'force-dynamic'
+
 export default function Home() {
   return (
     <main className="min-h-screen">
