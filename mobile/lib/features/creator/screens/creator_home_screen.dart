@@ -131,20 +131,30 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
               return CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
+                  if (home.carouselItems.isNotEmpty)
+                    SliverToBoxAdapter(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(32),
+                          bottomRight: Radius.circular(32),
+                        ),
+                        child: Container(
+                          color: const Color(0xFF0D0D0D),
+                          padding: const EdgeInsets.only(top: AppSpacing.md),
+                          child: HomeCarouselStrip(
+                            items: home.carouselItems,
+                            height: 176,
+                          ),
+                        ),
+                      ),
+                    ),
                   SliverPadding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.screenPadding,
                     ),
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
-                        const SizedBox(height: AppSpacing.xl),
-                        if (home.carouselItems.isNotEmpty) ...[
-                          HomeCarouselStrip(
-                            items: home.carouselItems,
-                            height: 128,
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                        ],
+                        const SizedBox(height: AppSpacing.lg),
                         if (!profile.instagramVerified) ...[
                           _InstagramConnectBanner(
                             isLoading: _isConnectingInstagram,

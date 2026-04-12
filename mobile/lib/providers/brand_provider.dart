@@ -840,9 +840,20 @@ class BrandNotifier extends Notifier<BrandState> {
           state = state.copyWith(
             bidsByCampaign: bidsByCampaign,
             campaigns: state.campaigns
-                .map((campaign) => campaign.id == campaignId
-                    ? campaign.copyWith(bidCount: campaign.bidCount)
-                    : campaign)
+                .map((campaign) {
+                  if (campaign.id != campaignId) return campaign;
+                  final nextFilled = campaign.slotsFilled + 1;
+                  final cappedFilled =
+                      nextFilled > campaign.slots ? campaign.slots : nextFilled;
+                  final nextStatus = cappedFilled >= campaign.slots
+                      ? CampaignStatus.completed
+                      : campaign.status;
+                  return campaign.copyWith(
+                    bidCount: campaign.bidCount,
+                    slotsFilled: cappedFilled,
+                    status: nextStatus,
+                  );
+                })
                 .toList(),
           );
         },
@@ -852,6 +863,50 @@ class BrandNotifier extends Notifier<BrandState> {
       return true;
     } on InsufficientCreditsException {
       return false;
+    } catch (e) {
+      state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  Future<bool> cancelAcceptedBid({
+    required String campaignId,
+    required String bidId,
+  }) async {
+    try {
+      await _repo.respondToBid(campaignId, bidId, 'cancel_collab');
+
+      final existing = state.bidsByCampaign[campaignId] ?? const <CampaignBid>[];
+      final nextBids = existing.map((bid) {
+        if (bid.id != bidId) return bid;
+        return bid.copyWith(
+          status: 'rejected',
+          isAccepted: false,
+          isUnlocked: false,
+        );
+      }).toList();
+
+      final bidsByCampaign = Map<String, List<CampaignBid>>.from(state.bidsByCampaign)
+        ..[campaignId] = nextBids;
+
+      state = state.copyWith(
+        bidsByCampaign: bidsByCampaign,
+        campaigns: state.campaigns.map((campaign) {
+          if (campaign.id != campaignId) return campaign;
+          final nextFilled = campaign.slotsFilled > 0 ? campaign.slotsFilled - 1 : 0;
+          final nextStatus = campaign.status == CampaignStatus.completed
+              ? CampaignStatus.active
+              : campaign.status;
+          return campaign.copyWith(
+            slotsFilled: nextFilled,
+            status: nextStatus,
+          );
+        }).toList(),
+      );
+
+      ref.invalidate(brandCampaignsProvider);
+      ref.invalidate(chatListProvider);
+      return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
       return false;

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { actionSchema } from '@/lib/validators'
 import { sendPushNotification } from '@/lib/notifications/push'
+import { getCollabFee } from '@/lib/collabFee'
 
 export async function PUT(
   request: NextRequest,
@@ -19,8 +20,15 @@ export async function PUT(
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    // Validate action
-    const { action } = actionSchema.parse(body)
+    // Validate action (manual fallback keeps this route resilient if shared schema is stale)
+    const parsedAction = typeof body?.action === 'string' ? body.action.trim() : ''
+    if (!['accept', 'reject', 'cancel_collab'].includes(parsedAction)) {
+      const parsed = actionSchema.safeParse(body)
+      if (!parsed.success) {
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+      }
+    }
+    const action = parsedAction as 'accept' | 'reject' | 'cancel_collab'
 
     // Get bid with campaign details
     const { data: bid, error: bidError } = await service
@@ -33,7 +41,10 @@ export async function PUT(
           budget_min,
           budget_max,
           collab_type,
-          deliverables
+          deliverables,
+          slots,
+          slots_filled,
+          status
         )
       `)
       .eq('id', params.bidId)
@@ -49,11 +60,20 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    if (bid.status !== 'pending') {
+    if (action === 'accept' && bid.status !== 'pending') {
       return NextResponse.json({ error: 'Bid already processed' }, { status: 400 })
     }
 
     if (action === 'accept') {
+      const totalSlots = Number(bid.campaign.slots ?? 1)
+      const filledSlots = Number(bid.campaign.slots_filled ?? 0)
+      if (filledSlots >= totalSlots) {
+        return NextResponse.json(
+          { error: 'All campaign slots are already filled' },
+          { status: 400 }
+        )
+      }
+
       const { data: brandProfile, error: brandProfileError } = await service
         .from('brand_profiles')
         .select('credit_balance')
@@ -126,6 +146,18 @@ export async function PUT(
         .update({ status: 'accepted' })
         .eq('id', params.bidId)
 
+      const nextSlotsFilled = Math.min(totalSlots, filledSlots + 1)
+      const nextCampaignStatus =
+        nextSlotsFilled >= totalSlots ? 'completed' : bid.campaign.status
+
+      await service
+        .from('campaigns')
+        .update({
+          slots_filled: nextSlotsFilled,
+          status: nextCampaignStatus,
+        })
+        .eq('id', params.id)
+
       // Notify creator
       await service.from('notifications').insert({
         user_id: bid.creator_id,
@@ -168,6 +200,138 @@ export async function PUT(
       })
 
       return NextResponse.json({ message: 'Bid rejected' })
+    } else if (action === 'cancel_collab') {
+      const { data: directCollab, error: collabLookupError } = await service
+        .from('collabs')
+        .select('id, creator_id, status')
+        .eq('campaign_id', params.id)
+        .eq('source', 'bid')
+        .eq('source_id', params.bidId)
+        .eq('brand_id', user.id)
+        .maybeSingle()
+
+      let collab = directCollab
+      if (!collab) {
+        const { data: fallbackCollab } = await service
+          .from('collabs')
+          .select('id, creator_id, status')
+          .eq('campaign_id', params.id)
+          .eq('creator_id', bid.creator_id)
+          .eq('brand_id', user.id)
+          .in('status', ['active', 'in_progress', 'completed'])
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        collab = fallbackCollab
+      }
+
+      if (collabLookupError || !collab) {
+        return NextResponse.json({ error: 'Active collab not found for this bid' }, { status: 404 })
+      }
+
+      const { data: creatorProfile, error: creatorProfileError } = await service
+        .from('creator_profiles')
+        .select('wallet_balance, follower_count')
+        .eq('id', collab.creator_id)
+        .single()
+
+      if (creatorProfileError || !creatorProfile) {
+        return NextResponse.json({ error: 'Creator wallet profile not found' }, { status: 404 })
+      }
+
+      const followerCount = Number(
+        creatorProfile.follower_count ?? 0
+      )
+      const refundAmount = getCollabFee(followerCount)
+      const currentWalletBalance = Number(creatorProfile.wallet_balance ?? 0)
+      const nextWalletBalance = currentWalletBalance + refundAmount
+
+      const { error: walletUpdateError } = await service
+        .from('creator_profiles')
+        .update({ wallet_balance: nextWalletBalance })
+        .eq('id', collab.creator_id)
+
+      if (walletUpdateError) {
+        return NextResponse.json({ error: walletUpdateError.message }, { status: 400 })
+      }
+
+      const { error: walletTxnError } = await service.from('wallet_transactions').insert({
+        creator_id: collab.creator_id,
+        type: 'topup',
+        amount: refundAmount,
+        reason: 'refund',
+        reference_id: collab.id,
+        balance_after: nextWalletBalance,
+      })
+
+      if (walletTxnError) {
+        // Legacy fallback: some environments may not allow `refund` reason.
+        const { error: walletTxnFallbackError } = await service
+          .from('wallet_transactions')
+          .insert({
+            creator_id: collab.creator_id,
+            type: 'topup',
+            amount: refundAmount,
+            reason: 'wallet_topup',
+            reference_id: collab.id,
+            balance_after: nextWalletBalance,
+          })
+
+        if (walletTxnFallbackError) {
+          return NextResponse.json({ error: walletTxnFallbackError.message }, { status: 400 })
+        }
+      }
+
+      await service
+        .from('collabs')
+        .update({ status: 'cancelled', completed_at: new Date().toISOString() })
+        .eq('id', collab.id)
+
+      await service
+        .from('bids')
+        .update({ status: 'rejected' })
+        .eq('id', params.bidId)
+
+      const totalSlots = Number(bid.campaign.slots ?? 1)
+      const filledSlots = Number(bid.campaign.slots_filled ?? 0)
+      const nextSlotsFilled = Math.max(0, Math.min(totalSlots, filledSlots - 1))
+      const priorCampaignStatus = String(bid.campaign.status ?? '').toLowerCase()
+      const nextCampaignStatus =
+        (priorCampaignStatus === 'completed' || priorCampaignStatus === 'closed') &&
+        nextSlotsFilled < totalSlots
+          ? 'active'
+          : bid.campaign.status
+
+      const { error: campaignUpdateError } = await service
+        .from('campaigns')
+        .update({
+          slots_filled: nextSlotsFilled,
+          status: nextCampaignStatus,
+        })
+        .eq('id', params.id)
+
+      if (campaignUpdateError) {
+        // Fallback for schema variants with different status enums/columns.
+        await service
+          .from('campaigns')
+          .update({
+            slots_filled: nextSlotsFilled,
+          })
+          .eq('id', params.id)
+      }
+
+      await service.from('notifications').insert({
+        user_id: collab.creator_id,
+        type: 'collab_cancelled',
+        title: 'Collab Cancelled',
+        body: `Your collaboration on "${bid.campaign.title}" was cancelled. Wallet fee refunded.`,
+        reference_id: collab.id,
+        reference_type: 'collab',
+      })
+
+      return NextResponse.json({
+        message: 'Collab cancelled and creator wallet refunded',
+      })
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 })

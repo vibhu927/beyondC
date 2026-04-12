@@ -16,6 +16,8 @@ import '../features/shared/widgets/notifications_modal.dart';
 class BCPortalTopBar extends ConsumerWidget implements PreferredSizeWidget {
   const BCPortalTopBar({super.key});
 
+  static const Color _topBarColor = Color(0xFF0D0D0D);
+
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
@@ -34,10 +36,16 @@ class BCPortalTopBar extends ConsumerWidget implements PreferredSizeWidget {
 
     return AppBar(
       elevation: 0,
-      backgroundColor: const Color(0xFF121A25),
+      scrolledUnderElevation: 0,
+      shadowColor: Colors.transparent,
+      backgroundColor: _topBarColor,
       surfaceTintColor: Colors.transparent,
+      shape: const Border(
+        bottom: BorderSide(color: Colors.transparent, width: 0),
+      ),
+      flexibleSpace: const ColoredBox(color: _topBarColor),
       systemOverlayStyle: SystemUiOverlayStyle(
-        statusBarColor: const Color(0xFF121A25),
+        statusBarColor: _topBarColor,
         statusBarIconBrightness: Brightness.light,
         statusBarBrightness: Brightness.dark,
       ),

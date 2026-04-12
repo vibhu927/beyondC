@@ -15,7 +15,7 @@ class ChatRepository {
       collabRows = await _supabase
           .from('collabs')
           .select(
-            'id, status, last_message, last_message_at, last_message_by, unread_count_creator, unread_count_brand, is_archived, archived_at, created_at, agreed_amount, collab_type, brand_id, creator_id',
+            'id, status, last_message, last_message_at, last_message_by, unread_count_creator, unread_count_brand, is_archived, archived_at, created_at, agreed_amount, collab_type, brand_id, creator_id, campaign:campaigns!collabs_campaign_id_fkey(title)',
           )
           .or('brand_id.eq.$userId,creator_id.eq.$userId')
           .order('last_message_at', ascending: false, nullsFirst: false)
@@ -76,6 +76,23 @@ class ChatRepository {
       }
     }
 
+    final creatorDiscoveryProfiles = <String, Map<String, dynamic>>{};
+    if (creatorIds.isNotEmpty) {
+      try {
+        final rows = await _supabase
+            .from('creator_discovery_view')
+            .select('id, first_name, avatar_url')
+            .inFilter('id', creatorIds);
+        for (final raw in rows as List) {
+          final item = _asMap(raw);
+          final id = item['id']?.toString() ?? '';
+          if (id.isNotEmpty) creatorDiscoveryProfiles[id] = item;
+        }
+      } on PostgrestException {
+        // View may be unavailable in some environments; continue with other fallbacks.
+      }
+    }
+
     final baseProfiles = <String, Map<String, dynamic>>{};
     if (allProfileIds.isNotEmpty) {
       final rows = await _supabase
@@ -105,7 +122,11 @@ class ChatRepository {
             'creator': {
               ...(creatorProfiles[creatorId] ?? const <String, dynamic>{}),
               'id': creatorId,
-              'profile': baseProfiles[creatorId] ?? const <String, dynamic>{},
+              'profile': {
+                ...(creatorDiscoveryProfiles[creatorId] ??
+                    const <String, dynamic>{}),
+                ...(baseProfiles[creatorId] ?? const <String, dynamic>{}),
+              },
             },
           };
 

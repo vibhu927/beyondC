@@ -144,7 +144,7 @@ export const createRatingSchema = z.object({
 
 // Generic action schema
 export const actionSchema = z.object({
-  action: z.enum(['accept', 'reject']),
+  action: z.enum(['accept', 'reject', 'cancel_collab']),
 })
 
 // Client-side form validators for onboarding/auth pages.

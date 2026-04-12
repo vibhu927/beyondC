@@ -109,6 +109,18 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
         .eq('id', id)
         .maybeSingle();
 
+    Map<String, dynamic> creatorDiscovery = const <String, dynamic>{};
+    try {
+      final discoveryResponse = await supabase
+          .from('creator_discovery_view')
+          .select('id, first_name, avatar_url')
+          .eq('id', id)
+          .maybeSingle();
+      creatorDiscovery = _asMap(discoveryResponse);
+    } on PostgrestException {
+      // View may not exist in older environments; continue with available fields.
+    }
+
     var canViewInstagram = true;
     if (viewerRole == 'brand') {
       canViewInstagram = await _isCreatorInstagramUnlockedForBrand(
@@ -124,13 +136,16 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
             _readString(widget.data['full_name']),
             _readString(widget.data['name']),
             _readString(widget.data['first_name']),
+            _readString(creatorDiscovery['first_name']),
             _readString(baseProfile['full_name']),
             _readString(baseProfile['first_name']),
           ]) ??
           'Creator',
       avatarUrl: _readString(widget.data['avatar_url']) ??
           _readString(widget.data['avatarUrl']) ??
-          _readString(baseProfile['avatar_url']),
+          _readString(creatorDiscovery['avatar_url']) ??
+          _readString(baseProfile['avatar_url']) ??
+          _readString(creator['avatar_url']),
       tier: _readString(creator['tier']) ??
           _readString(widget.data['tier']) ??
           'Rising Creator',

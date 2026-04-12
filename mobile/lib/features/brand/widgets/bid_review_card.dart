@@ -20,6 +20,7 @@ class BidReviewCard extends StatelessWidget {
     this.avatarUrl,
     this.onReadMore,
     this.onAvatarTap,
+    this.footer,
   });
 
   final CampaignBid bid;
@@ -30,6 +31,7 @@ class BidReviewCard extends StatelessWidget {
   final String? avatarUrl;
   final VoidCallback? onReadMore;
   final VoidCallback? onAvatarTap;
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -173,25 +175,28 @@ class BidReviewCard extends StatelessWidget {
               ),
           ],
           const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Expanded(
-                child: BCPrimaryButton.pink(
-                  label: 'Pass',
-                  onPressed: bid.isAccepted ? null : onPass,
-                  isFullWidth: false,
+          if (footer != null)
+            footer!
+          else
+            Row(
+              children: [
+                Expanded(
+                  child: BCPrimaryButton.pink(
+                    label: 'Pass',
+                    onPressed: bid.isAccepted ? null : onPass,
+                    isFullWidth: false,
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: BCPrimaryButton.neon(
-                  label: 'Accept',
-                  onPressed: bid.isAccepted ? null : onAccept,
-                  isFullWidth: false,
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: BCPrimaryButton.neon(
+                    label: 'Accept',
+                    onPressed: bid.isAccepted ? null : onAccept,
+                    isFullWidth: false,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );

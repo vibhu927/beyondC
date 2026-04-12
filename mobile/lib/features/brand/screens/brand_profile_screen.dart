@@ -20,6 +20,7 @@ import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/bc_error_state.dart';
+import '../../../widgets/buttons/bc_back_button.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
 import '../../../widgets/inputs/bc_dropdown.dart';
@@ -711,10 +712,15 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                       Positioned(
                         right: 0,
                         top: 0,
-                        child: IconButton(
+                        child: BCBackButton(
                           onPressed: () => _openEditSheet(profile),
-                          icon: const Icon(Symbols.edit_rounded,
-                              color: AppColors.white),
+                          icon: Symbols.edit_rounded,
+                          iconColor: AppColors.white,
+                          backgroundColor: AppColors.darkSurface,
+                          borderColor: AppColors.darkBorder,
+                          buttonSize: 36,
+                          iconSize: 20,
+                          tooltip: 'Edit profile',
                         ),
                       ),
                     ],
@@ -727,14 +733,32 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                   horizontal: AppSpacing.screenPadding,
                   vertical: AppSpacing.sm,
                 ),
-                child: TabBar(
-                  indicatorColor: AppColors.pink,
-                  labelColor: AppColors.ink,
-                  unselectedLabelColor: AppColors.muted,
-                  tabs: const [
-                    Tab(text: 'Details'),
-                    Tab(text: 'Posts'),
-                  ],
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceAlt,
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                    border: Border.all(color: AppColors.lightBorder),
+                  ),
+                  child: TabBar(
+                    dividerColor: Colors.transparent,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicatorPadding: const EdgeInsets.all(4),
+                    indicator: BoxDecoration(
+                      color: AppColors.ink,
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusFull),
+                    ),
+                    labelColor: AppColors.white,
+                    unselectedLabelColor: AppColors.ink,
+                    labelStyle: AppTypography.labelSM,
+                    unselectedLabelStyle: AppTypography.labelSM,
+                    overlayColor:
+                        WidgetStateProperty.all(Colors.transparent),
+                    tabs: const [
+                      Tab(text: 'Details'),
+                      Tab(text: 'Posts'),
+                    ],
+                  ),
                 ),
               ),
               Expanded(

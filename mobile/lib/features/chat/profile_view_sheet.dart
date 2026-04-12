@@ -104,7 +104,7 @@ class ProfileViewSheet extends ConsumerWidget {
     final partnerCity = preview?.city ?? chat?.otherPartyCity;
     final amountInr = preview?.amountInr ?? chat?.agreedAmount;
     final collabType = preview?.collabType ?? chat?.collabType;
-    final avatarUrl = preview?.avatarUrl;
+    final avatarUrl = preview?.avatarUrl ?? chat?.otherPartyAvatar;
     final partnerRole = preview?.partnerRole ?? (role == 'brand' ? 'creator' : 'brand');
     final profileTier = preview?.tier ?? partnerNiche;
     final profileBio = partnerNiche?.trim().isNotEmpty == true

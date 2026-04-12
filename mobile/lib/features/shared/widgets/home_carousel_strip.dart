@@ -3,11 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/home_carousel_item.dart';
-import '../../../widgets/cards/bc_card.dart';
 
 class HomeCarouselStrip extends StatefulWidget {
   const HomeCarouselStrip({
@@ -71,12 +69,12 @@ class _HomeCarouselStripState extends State<HomeCarouselStrip> {
   Widget build(BuildContext context) {
     if (widget.items.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          height: widget.height,
-          child: PageView.builder(
+    return SizedBox(
+      height: widget.height,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          PageView.builder(
             controller: _pageController,
             itemCount: widget.items.length,
             onPageChanged: (value) {
@@ -85,73 +83,74 @@ class _HomeCarouselStripState extends State<HomeCarouselStrip> {
             },
             itemBuilder: (context, index) {
               final item = widget.items[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                child: BCCard(
-                  shadow: AppShadows.blue,
-                  backgroundColor: AppColors.white,
-                  padding: EdgeInsets.zero,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.network(
-                          item.mediaUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Container(
-                            color: AppColors.white,
-                            alignment: Alignment.center,
-                            child: const Text('Image unavailable'),
-                          ),
-                        ),
-                        if ((item.caption ?? '').trim().isNotEmpty)
-                          Align(
-                            alignment: Alignment.bottomLeft,
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.sm,
-                                vertical: AppSpacing.xs,
-                              ),
-                              color: Colors.black.withValues(alpha: 0.55),
-                              child: Text(
-                                item.caption!.trim(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTypography.labelSM
-                                    .copyWith(color: AppColors.white),
-                              ),
-                            ),
-                          ),
-                      ],
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.network(
+                    item.mediaUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.black,
+                      alignment: Alignment.center,
+                      child: const Text(
+                        'Image unavailable',
+                        style: TextStyle(color: AppColors.white),
+                      ),
                     ),
                   ),
-                ),
+                  if ((item.caption ?? '').trim().isNotEmpty)
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.sm,
+                          AppSpacing.xs,
+                          AppSpacing.sm,
+                          AppSpacing.lg,
+                        ),
+                        color: Colors.black.withValues(alpha: 0.45),
+                        child: Text(
+                          item.caption!.trim(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              AppTypography.labelSM.copyWith(color: AppColors.white),
+                        ),
+                      ),
+                    ),
+                ],
               );
             },
           ),
-        ),
-        if (widget.items.length > 1) ...[
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(widget.items.length, (dotIndex) {
-              final active = dotIndex == _index;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                margin: const EdgeInsets.symmetric(horizontal: 3),
-                width: active ? 18 : 7,
-                height: 7,
-                decoration: BoxDecoration(
-                  color: active ? AppColors.ink : AppColors.divider,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          if (widget.items.length > 1)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(widget.items.length, (dotIndex) {
+                    final active = dotIndex == _index;
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: active ? 18 : 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        color: active
+                            ? AppColors.white
+                            : AppColors.white.withValues(alpha: 0.45),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusFull),
+                      ),
+                    );
+                  }),
                 ),
-              );
-            }),
-          ),
+              ),
+            ),
         ],
-      ],
+      ),
     );
   }
 }

@@ -82,22 +82,32 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
               controller: _scrollController,
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
+                if (brandState.carouselItems.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(32),
+                        bottomRight: Radius.circular(32),
+                      ),
+                      child: Container(
+                        color: const Color(0xFF0D0D0D),
+                        padding: const EdgeInsets.only(top: AppSpacing.md),
+                        child: HomeCarouselStrip(
+                          items: brandState.carouselItems,
+                          height: 176,
+                        ),
+                      ),
+                    ),
+                  ),
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.screenPadding,
-                    AppSpacing.xl,
+                    AppSpacing.lg,
                     AppSpacing.screenPadding,
                     AppSpacing.huge,
                   ),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      if (brandState.carouselItems.isNotEmpty) ...[
-                        HomeCarouselStrip(
-                          items: brandState.carouselItems,
-                          height: 136,
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                      ],
                       Wrap(
                         spacing: AppSpacing.md,
                         runSpacing: AppSpacing.md,

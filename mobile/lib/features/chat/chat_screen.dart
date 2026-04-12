@@ -248,6 +248,8 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final avatarUrl = (chat?.otherPartyAvatar ?? '').trim();
+
     final subtitle = (chat?.otherPartyNiche?.trim().isNotEmpty == true)
         ? chat!.otherPartyNiche!
         : (chat?.otherPartyCategory?.trim().isNotEmpty == true)
@@ -281,10 +283,26 @@ class _TopBar extends StatelessWidget {
               border: Border.all(color: AppColors.white, width: 1.6),
             ),
             alignment: Alignment.center,
-            child: Text(
-              (chat?.otherPartyName ?? 'U').substring(0, 1).toUpperCase(),
-              style: AppTypography.labelSM.copyWith(color: AppColors.white),
-            ),
+            child: avatarUrl.isNotEmpty
+                ? ClipOval(
+                    child: Image.network(
+                      avatarUrl,
+                      width: 36,
+                      height: 36,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Text(
+                        (chat?.otherPartyName ?? 'U')
+                            .substring(0, 1)
+                            .toUpperCase(),
+                        style:
+                            AppTypography.labelSM.copyWith(color: AppColors.white),
+                      ),
+                    ),
+                  )
+                : Text(
+                    (chat?.otherPartyName ?? 'U').substring(0, 1).toUpperCase(),
+                    style: AppTypography.labelSM.copyWith(color: AppColors.white),
+                  ),
           ),
           const SizedBox(width: 10),
           Expanded(

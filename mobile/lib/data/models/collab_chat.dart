@@ -12,6 +12,7 @@ class CollabChat {
     required this.createdAt,
     this.agreedAmount,
     this.collabType,
+    this.campaignTitle,
     required this.otherPartyId,
     required this.otherPartyName,
     this.otherPartyFullName,
@@ -37,6 +38,7 @@ class CollabChat {
   final DateTime createdAt;
   final int? agreedAmount;
   final String? collabType;
+  final String? campaignTitle;
   final String otherPartyId;
   final String otherPartyName;
   final String? otherPartyFullName;
@@ -67,6 +69,7 @@ class CollabChat {
     DateTime? createdAt,
     Object? agreedAmount = _unset,
     Object? collabType = _unset,
+    Object? campaignTitle = _unset,
     String? otherPartyId,
     String? otherPartyName,
     Object? otherPartyFullName = _unset,
@@ -92,6 +95,9 @@ class CollabChat {
       createdAt: createdAt ?? this.createdAt,
       agreedAmount: identical(agreedAmount, _unset) ? this.agreedAmount : agreedAmount as int?,
       collabType: identical(collabType, _unset) ? this.collabType : collabType as String?,
+        campaignTitle: identical(campaignTitle, _unset)
+          ? this.campaignTitle
+          : campaignTitle as String?,
       otherPartyId: otherPartyId ?? this.otherPartyId,
       otherPartyName: otherPartyName ?? this.otherPartyName,
       otherPartyFullName: identical(otherPartyFullName, _unset) ? this.otherPartyFullName : otherPartyFullName as String?,
@@ -115,6 +121,8 @@ class CollabChat {
   }
 
   factory CollabChat.fromJson(Map<String, dynamic> json) {
+      final campaign = _firstMap(json['campaign']);
+
     final brand = _asMap(json['brand']);
     final creator = _asMap(json['creator']);
     final brandProfile = _asMap(brand['profile']);
@@ -125,6 +133,7 @@ class CollabChat {
     final otherProfile = viewerRole == 'creator' ? brandProfile : creatorProfile;
 
     final name = _string(other['brand_name']) ??
+      _string(other['display_name']) ??
         _string(otherProfile['first_name']) ??
         _string(otherProfile['full_name']) ??
         (viewerRole == 'creator' ? 'Brand' : 'Creator');
@@ -142,10 +151,13 @@ class CollabChat {
       createdAt: _parseDate(json['created_at']) ?? DateTime.now(),
       agreedAmount: _int(json['agreed_amount']),
       collabType: _string(json['collab_type']),
+      campaignTitle: _string(campaign['title']),
       otherPartyId: _string(other['id']) ?? _string(otherProfile['id']) ?? '',
       otherPartyName: name,
       otherPartyFullName: _string(otherProfile['full_name']),
-      otherPartyAvatar: _string(otherProfile['avatar_url']) ?? _string(other['logo_url']),
+        otherPartyAvatar: _string(otherProfile['avatar_url']) ??
+          _string(other['avatar_url']) ??
+          _string(other['logo_url']),
       otherPartyNiche: _toNicheString(other['niche']),
       otherPartyBrandName: _string(other['brand_name']),
       otherPartyCategory: _string(other['brand_category']),
@@ -183,6 +195,13 @@ Map<String, dynamic> _asMap(dynamic value) {
     return value.map((key, val) => MapEntry(key.toString(), val));
   }
   return <String, dynamic>{};
+}
+
+Map<String, dynamic> _firstMap(dynamic value) {
+  if (value is List && value.isNotEmpty) {
+    return _asMap(value.first);
+  }
+  return _asMap(value);
 }
 
 String? _string(dynamic value) {

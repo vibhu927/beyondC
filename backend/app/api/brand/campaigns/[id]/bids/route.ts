@@ -35,7 +35,6 @@ export async function GET(
       .select(`
         *,
         campaign:campaigns!bids_campaign_id_fkey (
-          budget,
           budget_min,
           budget_max
         ),

@@ -37,7 +37,7 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
   void initState() {
     super.initState();
     Future<void>.microtask(() async {
-      await ref.read(brandProvider.notifier).fetchBrandHome();
+      await ref.read(brandProvider.notifier).fetchBrandHome(force: true);
       if (!mounted) return;
       await ref.read(brandProvider.notifier).fetchCampaignBids(widget.id);
     });
@@ -64,15 +64,30 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
     final creatorsById = {
       for (final creator in brandState.creators) creator.id: creator,
     };
-    final bids = _applySort(allBids)
+    final acceptedBids = _applySort(
+      allBids
+          .where((bid) =>
+              bid.isAccepted || bid.status.trim().toLowerCase() == 'accepted')
+          .toList(growable: false),
+    );
+    final pendingBids = _applySort(
+      allBids
+          .where((bid) => bid.status.trim().toLowerCase() == 'pending')
+          .toList(growable: false),
+    )
         .where((bid) => !_passedBidIds.contains(bid.id))
         .toList(growable: false);
+    final effectiveSlotsFilled = acceptedBids.length > campaign.slotsFilled
+      ? acceptedBids.length
+      : campaign.slotsFilled;
+    final hasSlotsLeft = effectiveSlotsFilled < campaign.slotsTotal;
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+        backgroundColor: Colors.black,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+        foregroundColor: AppColors.white,
         titleSpacing: AppSpacing.screenPadding,
         title: Row(
           children: [
@@ -86,7 +101,7 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
             ),
             const SizedBox(width: AppSpacing.sm),
             BCBadge(
-              label: '${bids.length} bids',
+              label: '${pendingBids.length} bids',
               variant: BCBadgeVariant.pink,
             ),
           ],
@@ -150,48 +165,101 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
                       alignment: Alignment.centerLeft,
                       widthFactor: campaign.slotsTotal == 0
                           ? 0
-                          : campaign.slotsFilled / campaign.slotsTotal,
+                          : effectiveSlotsFilled / campaign.slotsTotal,
                       child: const ColoredBox(color: AppColors.neon),
                     ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  '${campaign.slotsFilled} of ${campaign.slotsTotal} slots filled',
+                  '$effectiveSlotsFilled of ${campaign.slotsTotal} slots filled',
                   style: AppTypography.bodyXS,
                 ),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          const Text('Sort', style: AppTypography.labelMD),
-          const SizedBox(height: AppSpacing.sm),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
+          if (acceptedBids.isNotEmpty) ...[
+            const Text('Accepted Creators', style: AppTypography.labelMD),
+            const SizedBox(height: AppSpacing.sm),
+            Column(
               children: [
-                _sortPill('Newest', _activeSort == _BidSort.newest, () {
-                  setState(() => _activeSort = _BidSort.newest);
-                }),
-                const SizedBox(width: AppSpacing.sm),
-                _sortPill('Price ↑', _activeSort == _BidSort.priceAsc, () {
-                  setState(() => _activeSort = _BidSort.priceAsc);
-                }),
-                const SizedBox(width: AppSpacing.sm),
-                _sortPill('Price ↓', _activeSort == _BidSort.priceDesc, () {
-                  setState(() => _activeSort = _BidSort.priceDesc);
-                }),
-                const SizedBox(width: AppSpacing.sm),
-                _sortPill('Best Match', _activeSort == _BidSort.bestMatch, () {
-                  setState(() => _activeSort = _BidSort.bestMatch);
-                }),
+                for (var index = 0; index < acceptedBids.length; index++)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                    child: (() {
+                      final bid = acceptedBids[index];
+                      final creator = creatorsById[bid.creatorId];
+                      return BidReviewCard(
+                        bid: bid,
+                        shadow: AppShadows.neon,
+                        displayName: bid.creatorFullName,
+                        avatarUrl: (bid.creatorAvatarUrl ?? '').trim().isNotEmpty
+                            ? bid.creatorAvatarUrl
+                            : creator?.avatarUrl,
+                        onAccept: null,
+                        onPass: null,
+                        onAvatarTap: () => _openCreatorProfile(
+                          bid,
+                          displayName: bid.creatorFullName,
+                          avatarUrl: (bid.creatorAvatarUrl ?? '').trim().isNotEmpty
+                              ? bid.creatorAvatarUrl
+                              : creator?.avatarUrl,
+                        ),
+                        onReadMore: (bid.pitch ?? '').trim().isEmpty
+                            ? null
+                            : () => _showPitchDialog(bid),
+                        footer: BCPrimaryButton.pink(
+                          label: 'Cancel Collab',
+                          onPressed: () => _onCancelCollab(bid),
+                          isFullWidth: true,
+                        ),
+                      );
+                    })(),
+                  ),
               ],
             ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+          if (hasSlotsLeft) ...[
+            const Text('New Bids', style: AppTypography.labelMD),
+            const SizedBox(height: AppSpacing.sm),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _sortPill('Newest', _activeSort == _BidSort.newest, () {
+                    setState(() => _activeSort = _BidSort.newest);
+                  }),
+                  const SizedBox(width: AppSpacing.sm),
+                  _sortPill('Price ↑', _activeSort == _BidSort.priceAsc, () {
+                    setState(() => _activeSort = _BidSort.priceAsc);
+                  }),
+                  const SizedBox(width: AppSpacing.sm),
+                  _sortPill('Price ↓', _activeSort == _BidSort.priceDesc, () {
+                    setState(() => _activeSort = _BidSort.priceDesc);
+                  }),
+                  const SizedBox(width: AppSpacing.sm),
+                  _sortPill('Best Match', _activeSort == _BidSort.bestMatch, () {
+                    setState(() => _activeSort = _BidSort.bestMatch);
+                  }),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
           if (brandState.isBidsLoading)
             const _BidSkeletonList()
-          else if (bids.isEmpty)
+          else if (!hasSlotsLeft && acceptedBids.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+              child: Text(
+                'All campaign slots are filled. No new bids to review.',
+                textAlign: TextAlign.center,
+                style: AppTypography.bodyMD.copyWith(color: AppColors.muted),
+              ),
+            )
+          else if (pendingBids.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.huge),
               child: Text(
@@ -203,36 +271,36 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
           else
             Column(
               children: [
-                for (var index = 0; index < bids.length; index++)
+                for (var index = 0; index < pendingBids.length; index++)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
                     child: (() {
-                      final creator = creatorsById[bids[index].creatorId];
+                      final creator = creatorsById[pendingBids[index].creatorId];
                       return BidReviewCard(
-                        bid: bids[index],
+                        bid: pendingBids[index],
                         shadow:
                             index.isEven ? AppShadows.neon : AppShadows.pink,
-                        displayName: bids[index].creatorFullName,
-                        avatarUrl: (bids[index].creatorAvatarUrl ?? '')
+                        displayName: pendingBids[index].creatorFullName,
+                        avatarUrl: (pendingBids[index].creatorAvatarUrl ?? '')
                                 .trim()
                                 .isNotEmpty
-                            ? bids[index].creatorAvatarUrl
+                            ? pendingBids[index].creatorAvatarUrl
                             : creator?.avatarUrl,
-                        onAccept: () => _onAcceptBid(bids[index]),
+                        onAccept: () => _onAcceptBid(pendingBids[index]),
                         onPass: () =>
-                            setState(() => _passedBidIds.add(bids[index].id)),
+                            setState(() => _passedBidIds.add(pendingBids[index].id)),
                         onAvatarTap: () => _openCreatorProfile(
-                          bids[index],
-                          displayName: bids[index].creatorFullName,
-                          avatarUrl: (bids[index].creatorAvatarUrl ?? '')
+                          pendingBids[index],
+                          displayName: pendingBids[index].creatorFullName,
+                          avatarUrl: (pendingBids[index].creatorAvatarUrl ?? '')
                                   .trim()
                                   .isNotEmpty
-                              ? bids[index].creatorAvatarUrl
+                              ? pendingBids[index].creatorAvatarUrl
                               : creator?.avatarUrl,
                         ),
-                        onReadMore: (bids[index].pitch ?? '').trim().isEmpty
+                        onReadMore: (pendingBids[index].pitch ?? '').trim().isEmpty
                             ? null
-                            : () => _showPitchDialog(bids[index]),
+                            : () => _showPitchDialog(pendingBids[index]),
                       );
                     })(),
                   ),
@@ -269,6 +337,10 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('🎉 Matched! Full details now unlocked.')),
     );
+
+    await ref.read(brandProvider.notifier).fetchBrandHome(force: true);
+    if (!mounted) return;
+    await ref.read(brandProvider.notifier).fetchCampaignBids(widget.id);
   }
 
   Future<void> _showPitchDialog(CampaignBid bid) async {
@@ -303,6 +375,43 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
         );
       },
     );
+  }
+
+  Future<void> _onCancelCollab(CampaignBid bid) async {
+    final confirmed = await _showNeoConfirmDialog(
+      context,
+      title: 'Cancel this collaboration?',
+      subtitle:
+          'This will end the collaboration and refund the creator\'s wallet fee. Your spent brand credit will not be refunded.',
+      confirmLabel: 'Cancel',
+      cancelLabel: 'No',
+    );
+
+    if (!confirmed || !mounted) return;
+
+    final ok = await ref.read(brandProvider.notifier).cancelAcceptedBid(
+          campaignId: widget.id,
+          bidId: bid.id,
+        );
+
+    if (!mounted) return;
+    if (!ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to cancel this collaboration.')),
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+            'Collaboration cancelled. Creator wallet fee refunded. Brand credit remains used.'),
+      ),
+    );
+
+    await ref.read(brandProvider.notifier).fetchBrandHome(force: true);
+    if (!mounted) return;
+    await ref.read(brandProvider.notifier).fetchCampaignBids(widget.id);
   }
 
   Future<void> _openCreatorProfile(
@@ -423,6 +532,7 @@ Future<bool> _showNeoConfirmDialog(
   required String title,
   required String subtitle,
   required String confirmLabel,
+  String cancelLabel = 'Cancel',
 }) async {
   final result = await showDialog<bool>(
     context: context,
@@ -447,7 +557,7 @@ Future<bool> _showNeoConfirmDialog(
                 children: [
                   Expanded(
                     child: BCPrimaryButton.pink(
-                      label: 'Cancel',
+                      label: cancelLabel,
                       onPressed: () => Navigator.of(dialogContext).pop(false),
                     ),
                   ),

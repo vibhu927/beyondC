@@ -90,9 +90,9 @@ class ChatListTile extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          chat.lastMessage?.trim().isNotEmpty == true
-                              ? chat.lastMessage!
-                              : 'Say hello and start the conversation',
+                          chat.campaignTitle?.trim().isNotEmpty == true
+                              ? chat.campaignTitle!
+                              : 'Campaign conversation',
                           style: AppTypography.bodySM.copyWith(
                             color: unread > 0 ? AppColors.ink : AppColors.muted,
                             fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.w500,
