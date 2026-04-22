@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 export default function HowItWorks() {
-  const [activeTab, setActiveTab] = useState<'creators' | 'brands'>('creators')
+  const [activeTab, setActiveTab] = useState<'creators' | 'brands' | 'agencies'>('creators')
 
   const creatorSteps = [
     {
@@ -47,7 +47,33 @@ export default function HowItWorks() {
     },
   ]
 
-  const steps = activeTab === 'creators' ? creatorSteps : brandSteps
+  const agencySteps = [
+    {
+      number: '1',
+      title: 'Create Agency Profile',
+      description: 'Set agency name, niche, and portfolio to attract brands',
+      color: 'neon',
+    },
+    {
+      number: '2',
+      title: 'Add Creators',
+      description: 'Invite and manage creators in your roster, track pitches',
+      color: 'pink',
+    },
+    {
+      number: '3',
+      title: 'Pitch Brands',
+      description: 'Proactively pitch creators to brand campaigns and close deals',
+      color: 'blue',
+    },
+  ]
+
+  const steps =
+    activeTab === 'creators'
+      ? creatorSteps
+      : activeTab === 'brands'
+      ? brandSteps
+      : agencySteps
 
   return (
     <section id="how-it-works" className="bg-white py-20 sm:py-32">
@@ -84,6 +110,16 @@ export default function HowItWorks() {
           >
             For Brands 🏢
           </button>
+          <button
+            onClick={() => setActiveTab('agencies')}
+            className={`px-8 py-4 font-jakarta font-bold text-lg border-2 border-ink transition-all ${
+              activeTab === 'agencies'
+                ? 'bg-ink text-neon'
+                : 'bg-white text-ink hover:shadow-neo'
+            }`}
+          >
+            For Agencies 🏢
+          </button>
         </div>
 
         {/* Steps */}
@@ -97,7 +133,7 @@ export default function HowItWorks() {
                 'shadow-neo-blue neo-card-blue'
               }`}
             >
-              <div 
+              <div
                 className={`w-16 h-16 rounded-full flex items-center justify-center mb-6 ${
                   step.color === 'neon' ? 'bg-neon' :
                   step.color === 'pink' ? 'bg-pink' :

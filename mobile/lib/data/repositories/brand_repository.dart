@@ -657,11 +657,11 @@ class BrandRepository {
       final response = await _dio.get('/brand/collabs');
       final root = _asMap(response.data);
 
-      return _asMapList(root['collabs']).map((item) {
+      final collabs = _asMapList(root['collabs']).map((item) {
         return ActiveCollabSummary.fromJson({
           'id': _string(item['id']) ?? '',
           'creatorId': _string(item['creator_id']) ?? '',
-          'creatorName': _string(item['creator_name']) ?? 'Creator',
+          'creatorName': _resolveCreatorName(item),
           'campaignId': _string(item['campaign_id']),
           'campaignTitle': _string(item['campaign_title']) ?? 'Campaign',
           'status': _string(item['status']) ?? 'active',
@@ -670,6 +670,8 @@ class BrandRepository {
               _string(item['started_at']) ?? _string(item['created_at']),
         });
       }).toList();
+
+      return _hydrateCollabNamesFromProfiles(collabs);
     } on DioException catch (e) {
       throw Exception(ApiErrorHandler.parseError(e));
     }
@@ -683,11 +685,11 @@ class BrandRepository {
       );
       final root = _asMap(response.data);
 
-      return _asMapList(root['collabs']).map((item) {
+      final collabs = _asMapList(root['collabs']).map((item) {
         return ActiveCollabSummary.fromJson({
           'id': _string(item['id']) ?? '',
           'creatorId': _string(item['creator_id']) ?? '',
-          'creatorName': _string(item['creator_name']) ?? 'Creator',
+          'creatorName': _resolveCreatorName(item),
           'campaignId': _string(item['campaign_id']),
           'campaignTitle': _string(item['campaign_title']) ?? 'Campaign',
           'status': _string(item['status']) ?? 'completed',
@@ -696,8 +698,71 @@ class BrandRepository {
               _string(item['started_at']) ?? _string(item['created_at']),
         });
       }).toList();
+
+      return _hydrateCollabNamesFromProfiles(collabs);
     } on DioException catch (e) {
       throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
+  String _resolveCreatorName(Map<String, dynamic> item) {
+    return _normalizedName(_string(item['creator_name'])) ??
+        _normalizedName(_firstToken(_string(item['creator_full_name']))) ??
+        _normalizedName(_firstToken(_string(item['full_name']))) ??
+        _normalizedName(_string(item['creator_first_name'])) ??
+        _normalizedName(_string(item['first_name'])) ??
+        _normalizedName(
+            _firstToken(_string(item['creator_instagram_handle']))) ??
+        _normalizedName(_firstToken(_string(item['instagram_username']))) ??
+        'Creator';
+  }
+
+  Future<List<ActiveCollabSummary>> _hydrateCollabNamesFromProfiles(
+    List<ActiveCollabSummary> collabs,
+  ) async {
+    final unresolvedIds = collabs
+        .where((c) => _normalizedName(c.creatorName) == null)
+        .map((c) => c.creatorId)
+        .where((id) => id.trim().isNotEmpty)
+        .toSet()
+        .toList();
+
+    if (unresolvedIds.isEmpty) return collabs;
+
+    try {
+      final rows = await Supabase.instance.client
+          .from('profiles')
+          .select('id,first_name,full_name')
+          .inFilter('id', unresolvedIds);
+
+      final byId = <String, String>{};
+      for (final row in rows) {
+        final item = row;
+        final resolved = _normalizedName(_string(item['first_name'])) ??
+            _normalizedName(_firstToken(_string(item['full_name'])));
+        final id = _string(item['id']);
+        if (id != null && resolved != null) {
+          byId[id] = resolved;
+        }
+      }
+
+      return collabs.map((collab) {
+        final hydratedName = byId[collab.creatorId];
+        if (hydratedName == null) return collab;
+
+        return ActiveCollabSummary(
+          id: collab.id,
+          creatorId: collab.creatorId,
+          creatorName: hydratedName,
+          campaignId: collab.campaignId,
+          campaignTitle: collab.campaignTitle,
+          status: collab.status,
+          agreedAmount: collab.agreedAmount,
+          startedAt: collab.startedAt,
+        );
+      }).toList();
+    } catch (_) {
+      return collabs;
     }
   }
 
@@ -736,17 +801,17 @@ class BrandRepository {
         final creatorEngagement = _double(creator['engagement_rate']) ??
             _double(creator['avg_rating']) ??
             0;
-        final creatorFullName = _string(item['creator_full_name']) ??
-          _string(creator['full_name']);
+        final creatorFullName =
+            _string(item['creator_full_name']) ?? _string(creator['full_name']);
         final creatorFirstName = _string(item['creator_first_name']) ??
-          _string(creator['first_name']) ??
+            _string(creator['first_name']) ??
             (() {
               final name = (creatorFullName ?? '').trim();
               if (name.isEmpty) return null;
               return name.split(RegExp(r'\s+')).first;
             })();
         final creatorAvatarUrl = _string(item['creator_avatar_url']) ??
-          _string(creator['avatar_url']);
+            _string(creator['avatar_url']);
         final bidAmount = _int(item['bid_amount']) ??
             _int(campaign['budget_min']) ??
             _int(campaign['budget']) ??

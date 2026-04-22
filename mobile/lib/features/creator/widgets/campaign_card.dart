@@ -34,6 +34,8 @@ class CampaignCard extends StatelessWidget {
       child: BCCard(
         onTap: onTap,
         shadow: AppShadows.pink,
+        backgroundColor: AppColors.white,
+        borderColor: AppColors.ink,
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

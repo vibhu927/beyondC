@@ -17,8 +17,14 @@ import '../../features/brand/screens/brand_events_screen.dart';
 import '../../features/brand/screens/create_event_screen.dart';
 import '../../features/brand/screens/event_invites_screen.dart';
 import '../../features/brand/screens/brand_profile_screen.dart';
+import '../../features/agency/screens/agency_home_screen.dart';
+import '../../features/agency/screens/agency_creators_screen.dart';
+import '../../features/agency/screens/agency_discover_screen.dart';
+import '../../features/agency/screens/agency_profile_screen.dart';
+import '../../features/agency/screens/agency_roster_screen.dart';
 import '../../features/brand/screens/brand_requests_screen.dart';
 import '../../features/brand/screens/credits_screen.dart';
+import '../../features/brand/screens/brand_collabs_screen.dart';
 import '../../features/creator/screens/creator_home_screen.dart';
 import '../../features/creator/screens/creator_requests_screen.dart';
 import '../../features/creator/screens/creator_collabs_screen.dart';
@@ -96,7 +102,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         final role = authState.role;
         return role == 'creator'
             ? RouteNames.creatorHome
-            : RouteNames.brandHome;
+            : role == 'brand'
+                ? RouteNames.brandHome
+                : RouteNames.agencyHome;
       }
 
       // Role-based route protection
@@ -108,6 +116,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         }
         if (role == 'brand' && location.startsWith('/creator')) {
           return RouteNames.brandHome;
+        }
+        if (role == 'agency' && (location.startsWith('/creator') || location.startsWith('/brand'))) {
+          return RouteNames.agencyHome;
         }
       }
 
@@ -231,6 +242,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: RouteNames.brandCollabs,
+        builder: (c, s) => const BrandCollabsScreen(),
+      ),
+      GoRoute(
         path: RouteNames.brandProfile,
         pageBuilder: (c, s) => const NoTransitionPage(
           child: BrandProfileScreen(),
@@ -251,6 +266,46 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.eventInvites,
         builder: (c, s) => EventInvitesScreen(id: s.pathParameters['id']!),
+      ),
+
+      // Agency Portal (placeholder screens until real screens are implemented)
+      GoRoute(
+        path: RouteNames.agencyHome,
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: AgencyHomeScreen(),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.agencyCreators,
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: AgencyCreatorsScreen(),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.agencyDiscover,
+        builder: (c, s) => const AgencyDiscoverScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.agencyProfile,
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: AgencyProfileScreen(),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.agencyCredits,
+        builder: (c, s) => const PlaceholderScreen('Agency Credits'),
+      ),
+      GoRoute(
+        path: RouteNames.agencyRoster,
+        builder: (c, s) => const AgencyRosterScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.agencyPitches,
+        builder: (c, s) => const PlaceholderScreen('Agency Pitches'),
+      ),
+      GoRoute(
+        path: RouteNames.agencyBids,
+        builder: (c, s) => const PlaceholderScreen('Agency Bids'),
       ),
 
       // Shared

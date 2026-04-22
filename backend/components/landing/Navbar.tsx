@@ -44,6 +44,9 @@ export default function Navbar() {
             <a href="#for-brands" className="text-ink hover:text-neon transition-colors">
               For Brands
             </a>
+            <a href="#for-agencies" className="text-ink hover:text-neon transition-colors">
+              For Agencies
+            </a>
             <a href="#pricing" className="text-ink hover:text-neon transition-colors">
               Pricing
             </a>

@@ -29,6 +29,8 @@ class BrandHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
+  static const double _carouselHeight = 200;
+  static const double _contentTopInset = 168;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -62,6 +64,7 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final brandState = ref.watch(brandProvider);
+    final navClearance = MediaQuery.of(context).padding.bottom + 84;
 
     return Scaffold(
       extendBody: true,
@@ -78,18 +81,20 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
           child: RefreshIndicator(
             color: AppColors.neon,
             onRefresh: _refresh,
-            child: CustomScrollView(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
+            child: Stack(
+              children: [
                 if (brandState.carouselItems.isNotEmpty)
-                  SliverToBoxAdapter(
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
                     child: ClipRRect(
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(32),
                         bottomRight: Radius.circular(32),
                       ),
                       child: Container(
+                        height: _carouselHeight,
                         color: const Color(0xFF0D0D0D),
                         padding: const EdgeInsets.only(top: AppSpacing.md),
                         child: HomeCarouselStrip(
@@ -99,15 +104,26 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                       ),
                     ),
                   ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenPadding,
-                    AppSpacing.lg,
-                    AppSpacing.screenPadding,
-                    AppSpacing.huge,
-                  ),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
+                CustomScrollView(
+                  controller: _scrollController,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: SizedBox(
+                        height: brandState.carouselItems.isNotEmpty
+                            ? _contentTopInset
+                            : AppSpacing.lg,
+                      ),
+                    ),
+                    SliverPadding(
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.screenPadding,
+                        AppSpacing.lg,
+                        AppSpacing.screenPadding,
+                        AppSpacing.huge + navClearance,
+                      ),
+                      sliver: SliverList(
+                        delegate: SliverChildListDelegate([
                       Wrap(
                         spacing: AppSpacing.md,
                         runSpacing: AppSpacing.md,
@@ -157,20 +173,20 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                         ),
                       ),
                       const SizedBox(height: AppSpacing.md),
+
+                      // Quick action card: Host an Event
                       BCCard(
-                        shadow: AppShadows.purple,
-                        onTap: () => context.push(RouteNames.createEvent),
-                        child: const Row(
+                        onTap: () => context.push(RouteNames.brandEvents),
+                        child: Row(
                           children: [
-                            Text('🎟️', style: TextStyle(fontSize: 30)),
-                            SizedBox(width: AppSpacing.md),
+                            const Text('🎟️', style: TextStyle(fontSize: 30)),
+                            const SizedBox(width: AppSpacing.md),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Host an Event',
-                                      style: AppTypography.labelLG),
-                                  SizedBox(height: AppSpacing.xs),
+                                  Text('Host an Event', style: AppTypography.labelLG),
+                                  const SizedBox(height: AppSpacing.xs),
                                   Text(
                                     'Invite creators to your IRL event',
                                     style: AppTypography.bodyXS,
@@ -178,8 +194,7 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                                 ],
                               ),
                             ),
-                            Icon(Symbols.arrow_forward_rounded,
-                                color: AppColors.ink),
+                            Icon(Symbols.arrow_forward_rounded, color: AppColors.ink),
                           ],
                         ),
                       ),
@@ -198,8 +213,13 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                         )
                       else
                         SizedBox(
-                          height: 196,
+                          height: 212,
                           child: ListView.separated(
+                            clipBehavior: Clip.none,
+                            padding: const EdgeInsets.only(
+                              right: AppSpacing.sm,
+                              bottom: AppSpacing.sm,
+                            ),
                             scrollDirection: Axis.horizontal,
                             itemBuilder: (context, index) {
                               final collab = brandState.activeCollabs[index];
@@ -259,6 +279,8 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                     ]),
                   ),
                 ),
+              ],
+            ),
               ],
             ),
           ),

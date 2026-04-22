@@ -435,6 +435,211 @@
 
 ---
 
+## Agency Endpoints
+
+### GET `/api/agency/profile`
+**Description:** Get full agency profile  
+**Response:** Profile with agency_profiles joined data  
+**Notes:**
+- Creates agency_profiles entry if missing (for backward compatibility)
+- Returns agency stats: total_partnered_creators, total_pitches, total_bids
+
+---
+
+### PUT `/api/agency/profile`
+**Description:** Update agency profile (onboarding)  
+**Body:**
+```json
+{
+  "display_name": "Creator Hub Agency",
+  "bio": "Multi-creator management and brand partnerships",
+  "specializations": ["fashion", "lifestyle", "travel"],
+  "onboarded": true
+}
+```
+**Response:** Updated profile
+
+---
+
+### GET `/api/agency/creators`
+**Description:** Discover creators available to partner with (uses creator_discovery_view)  
+**Query Params:**
+- `niche`: Filter by niche
+- `platform`: Filter by platform
+- `min_followers`: Minimum followers count
+- `max_followers`: Maximum followers count
+- `tier`: nano, micro, mid, macro, mega
+- `page`: Page number (default: 1)
+- `limit`: Items per page (default: 20, max: 50)
+
+**Response:** Paginated creators (handles privacy & has_agency flag)  
+**Notes:** Uses creator_discovery_view filtered for creators without agencies
+
+---
+
+### POST `/api/agency/invites`
+**Description:** Send invite to creator to join agency roster  
+**Body:**
+```json
+{
+  "creator_id": "uuid",
+  "message": "We'd love to represent you..."
+}
+```
+**Response:** Created invite with status 'pending'  
+**Notes:**
+- Creates notification for creator
+- Stores in agency_creators with status='pending'
+
+---
+
+### GET `/api/agency/invites`
+**Description:** Get all pending invites sent to creators  
+**Response:** Array of invites with creator details and status (pending, accepted, rejected)
+
+---
+
+### PUT `/api/agency/invites/[id]`
+**Description:** Respond to agency invite (creator endpoint)  
+**Body:**
+```json
+{
+  "action": "accept" | "reject"
+}
+```
+**Response:** Updated invite  
+**Notes:**
+- On accept: Sets status='accepted', accepted_at timestamp, increments agency total_partnered_creators
+- On reject: Sets status='rejected'
+- Only creator who received invite can respond
+- Creates notification for agency
+
+---
+
+### GET `/api/agency/roster`
+**Description:** Get all accepted partner creators  
+**Response:** Array of creators with full details (status='accepted' only)  
+**Notes:** Paginated, creators managed by agency
+
+---
+
+### DELETE `/api/agency/roster`
+**Description:** Remove creator from roster  
+**Body:**
+```json
+{
+  "creator_id": "uuid"
+}
+```
+**Response:** Success message  
+**Notes:**
+- Sets status='removed'
+- Decrements total_partnered_creators
+- Creates notification for creator
+
+---
+
+### POST `/api/agency/pitches`
+**Description:** Create pitch to brand on behalf of roster creator  
+**Body:**
+```json
+{
+  "creator_id": "uuid",  // From agency roster
+  "brand_id": "uuid",
+  "campaign_id": "uuid",  // Optional: specific campaign
+  "message": "Our creator is perfect for this campaign...",
+  "proposed_rate": 50000  // Optional: proposed collaboration rate in paise
+}
+```
+**Response:** Created pitch  
+**Notes:**
+- Creator must be in agency roster (status='accepted')
+- Creates notification for brand
+- Stored in agency_pitches table
+
+---
+
+### GET `/api/agency/pitches`
+**Description:** Get all pitches sent by agency  
+**Query Params:**
+- `status`: pending, accepted, rejected (optional)
+
+**Response:** Array of pitches with creator and brand details
+
+---
+
+### POST `/api/agency/bids`
+**Description:** Place bid on campaign on behalf of roster creator  
+**Body:**
+```json
+{
+  "creator_id": "uuid",  // From agency roster
+  "campaign_id": "uuid",
+  "message": "Our creator is excited to collaborate..."
+}
+```
+**Response:** Created bid  
+**Notes:**
+- Stored in bids table with bidder_type='agency' and agency_id
+- Creator must be in agency roster
+- Creates notification for brand
+
+---
+
+### GET `/api/agency/bids`
+**Description:** Get all bids placed by agency  
+**Query Params:**
+- `status`: pending, accepted, rejected (optional)
+
+**Response:** Array of bids with creator and campaign details
+
+---
+
+### GET `/api/agency/credits`
+**Description:** Get agency credit balance and transaction history  
+**Response:**
+```json
+{
+  "balance": 15,
+  "transactions": [...]
+}
+```
+**Notes:** Credits track agency's spending on direct outreach to brands
+
+---
+
+### POST `/api/agency/credits`
+**Description:** Purchase credit pack  
+**Body:**
+```json
+{
+  "pack": "starter" | "growth" | "pro" | "enterprise"
+}
+```
+**Response:** Razorpay order details  
+**Notes:**
+- Starter: 20 credits for ₹1,499
+- Growth: 50 credits for ₹2,999
+- Pro: 100 credits for ₹4,999
+- Enterprise: 250 credits for ₹9,999
+
+---
+
+### POST `/api/agency/credits/verify`
+**Description:** Verify payment and credit account  
+**Body:**
+```json
+{
+  "razorpay_order_id": "order_...",
+  "razorpay_payment_id": "pay_...",
+  "razorpay_signature": "signature..."
+}
+```
+**Response:** Updated credits balance  
+**Notes:** Verifies Razorpay signature before crediting
+
+---
+
 ## Shared Endpoints
 
 ### GET `/api/collabs/[id]`
@@ -642,10 +847,34 @@ supabase
 curl -X POST http://localhost:3000/api/auth/signup \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "creator@test.com",
-    "password": "Test123!@#",
+    "email": "creator.sample@beyondc.in",
+    "password": "Creator@1234",
     "role": "creator",
-    "display_name": "Test Creator"
+    "display_name": "Aarav Creator"
+  }'
+```
+
+### Sign up as brand:
+```bash
+curl -X POST http://localhost:3000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "brand.sample@beyondc.in",
+    "password": "Brand@1234",
+    "role": "brand",
+    "display_name": "Riya Brand"
+  }'
+```
+
+### Sign up as agency:
+```bash
+curl -X POST http://localhost:3000/api/auth/signup \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "agency.sample@beyondc.in",
+    "password": "Agency@1234",
+    "role": "agency",
+    "display_name": "Priya Agency"
   }'
 ```
 
@@ -654,8 +883,8 @@ curl -X POST http://localhost:3000/api/auth/signup \
 curl -X POST http://localhost:3000/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "creator@test.com",
-    "password": "Test123!@#"
+    "email": "creator.sample@beyondc.in",
+    "password": "Creator@1234"
   }' \
   -c cookies.txt
 ```
@@ -663,6 +892,12 @@ curl -X POST http://localhost:3000/api/auth/login \
 ### Get profile (with auth):
 ```bash
 curl -X GET http://localhost:3000/api/creator/profile \
+  -b cookies.txt
+```
+
+### Agency get profile:
+```bash
+curl -X GET http://localhost:3000/api/agency/profile \
   -b cookies.txt
 ```
 

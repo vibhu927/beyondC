@@ -13,8 +13,9 @@ class ApiService {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.apiBaseUrl,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 15),
+        // Keep dev requests alive while Next.js compiles routes on first hit.
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 90),
         headers: const {
           'Content-Type': 'application/json',
         },
@@ -48,9 +49,17 @@ class ApiService {
         },
         onError: (error, handler) async {
           if (kDebugMode) {
+            final responseData = error.response?.data;
+            final responseBody = responseData == null
+                ? '<empty>'
+                : responseData is String
+                    ? responseData
+                    : responseData.toString();
+
             debugPrint(
-              '[API] ERROR ${error.requestOptions.method} ${error.requestOptions.uri} -> ${error.response?.statusCode}: ${error.message}',
+              '[API] ERROR ${error.requestOptions.method} ${error.requestOptions.uri} -> ${error.response?.statusCode}: ${error.message} | body=$responseBody',
             );
+            debugPrint('[API] ERROR BODY: $responseBody');
           }
 
           final isUnauthorized = error.response?.statusCode == 401;

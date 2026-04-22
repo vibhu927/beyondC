@@ -36,6 +36,16 @@ class RouteNames {
   static const String createEvent = '/brand/events/create';
   static const String eventInvites = '/brand/events/:id/invites';
 
+  // Agency Portal
+  static const String agencyHome = '/agency/home';
+  static const String agencyCreators = '/agency/creators';
+  static const String agencyDiscover = '/agency/discover';
+  static const String agencyProfile = '/agency/profile';
+  static const String agencyCredits = '/agency/credits';
+  static const String agencyRoster = '/agency/roster';
+  static const String agencyPitches = '/agency/pitches';
+  static const String agencyBids = '/agency/bids';
+
   // Shared
   static const String notifications = '/notifications';
   static const String collabDetail = '/collabs/:id';

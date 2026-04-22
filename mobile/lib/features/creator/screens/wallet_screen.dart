@@ -3,12 +3,15 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/constants/api_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../providers/creator_provider.dart';
+import '../../../services/razorpay_checkout_service.dart';
 import '../../../widgets/bc_app_bar.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_empty_state.dart';
@@ -23,25 +26,67 @@ class WalletScreen extends ConsumerStatefulWidget {
 }
 
 class _WalletScreenState extends ConsumerState<WalletScreen> {
+  bool _isTopupInProgress = false;
+
   Future<void> _refresh() {
     return ref.read(walletProvider.notifier).refresh();
   }
 
-  Future<void> _createTopupOrder(int amountInr) async {
+  Future<void> _startTopup(int amountInr) async {
+    if (_isTopupInProgress) return;
+
+    setState(() => _isTopupInProgress = true);
+
     try {
       final order = await ref
           .read(creatorActionsProvider.notifier)
           .topUpWallet(amountInr * 100);
+      final auth = ref.read(authProvider);
+      final user = auth.user;
+      final keyId = (order.keyId?.trim().isNotEmpty ?? false)
+          ? order.keyId!.trim()
+          : ApiConstants.razorpayKeyId;
+
+      if (keyId == 'YOUR_RAZORPAY_KEY_ID') {
+        throw Exception('Missing Razorpay key. Add RAZORPAY_KEY_ID in env.');
+      }
+
+      final result = await RazorpayCheckoutService().openCheckout(
+        keyId: keyId,
+        orderId: order.orderId,
+        amountPaise: order.amountPaise,
+        currency: order.currency,
+        name: 'BeyondC',
+        description: 'Wallet top-up (INR $amountInr)',
+        prefillEmail: user?.email,
+        prefillContact: user?.phone,
+      );
+
+      await ref.read(creatorActionsProvider.notifier).verifyWalletTopup(
+            orderId: result.orderId,
+            paymentId: result.paymentId,
+            signature: result.signature,
+          );
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Top-up order created: ${order.orderId}')),
+        const SnackBar(content: Text('Wallet top-up successful.')),
       );
       await _refresh();
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
+      final message = error.toString().replaceFirst('Exception: ', '').trim();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not create top-up order.')),
+        SnackBar(
+          content: Text(
+            message.isNotEmpty ? message : 'Could not complete wallet top-up.',
+          ),
+        ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isTopupInProgress = false);
+      }
     }
   }
 
@@ -77,7 +122,7 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
     controller.dispose();
 
     if (amount == null || amount <= 0) return;
-    await _createTopupOrder(amount);
+    await _startTopup(amount);
   }
 
   @override
@@ -135,7 +180,9 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                                       right: AppSpacing.sm),
                                   child: _QuickTopUpButton(
                                     amount: amount,
-                                    onTap: () => _createTopupOrder(amount),
+                                    onTap: _isTopupInProgress
+                                        ? null
+                                        : () => _startTopup(amount),
                                   ),
                                 ),
                               ),
@@ -145,7 +192,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: _topUpCustomAmount,
+                          onPressed:
+                              _isTopupInProgress ? null : _topUpCustomAmount,
                           style: TextButton.styleFrom(
                             foregroundColor: AppColors.white,
                           ),
@@ -265,7 +313,7 @@ class _QuickTopUpButton extends StatelessWidget {
   });
 
   final int amount;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

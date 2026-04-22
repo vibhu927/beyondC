@@ -8,6 +8,7 @@ import EventInvite from '@/components/landing/EventInvite'
 // import Stats from '@/components/landing/Stats'
 import ForCreators from '@/components/landing/ForCreators'
 import ForBrands from '@/components/landing/ForBrands'
+import ForAgencies from '@/components/landing/ForAgencies'
 import Pricing from '@/components/landing/Pricing'
 import FAQ from '@/components/landing/FAQ'
 import Waitlist from '@/components/landing/Waitlist'
@@ -30,6 +31,8 @@ export default function Home() {
       {/* <Stats /> */}
       <ForCreators />
       <ForBrands />
+      <ForAgencies />
+      <Marquee />
       <Pricing />
       <FAQ />
       <Waitlist />

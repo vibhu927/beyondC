@@ -38,12 +38,40 @@ export default function Pricing() {
       fee: '₹50–₹70',
       shadow: 'neo-purple',
       hoverClass: 'neo-card-purple',
+      popular: true,
     },
     {
       brandSize: 'Big Brand',
       fee: '₹100–₹150',
-      shadow: 'shadow-[4px_4px_0_#FF6B00]',
-      hoverClass: 'hover:shadow-[6px_6px_0_#FF6B00]',
+      shadow: 'neo-pink',
+      hoverClass: 'neo-card-pink',
+    },
+  ]
+
+  const agencyPacks = [
+    {
+      name: 'Starter',
+      credits: '5 credits',
+      price: '₹199',
+      shadow: 'neo-neon',
+      hoverClass: 'neo-card-neon',
+      popular: false,
+    },
+    {
+      name: 'Growth',
+      credits: '12 credits',
+      price: '₹399',
+      shadow: 'neo-pink',
+      hoverClass: 'neo-card-pink',
+      popular: true,
+    },
+    {
+      name: 'Pro',
+      credits: '20 credits',
+      price: '₹699',
+      shadow: 'neo-blue',
+      hoverClass: 'neo-card-blue',
+      popular: false,
     },
   ]
 
@@ -57,7 +85,7 @@ export default function Pricing() {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-12">
           {/* Left - For Brands */}
           <div>
             <h3 className="font-jakarta text-3xl font-bold text-ink mb-8 text-center lg:text-left">
@@ -92,7 +120,7 @@ export default function Pricing() {
             </div>
           </div>
 
-          {/* Right - For Creators */}
+          {/* Middle - For Creators */}
           <div>
             <h3 className="font-jakarta text-3xl font-bold text-ink mb-8 text-center lg:text-left">
               For Creators: Wallet Tiers
@@ -101,8 +129,7 @@ export default function Pricing() {
               {creatorTiers.map((tier, index) => (
                 <div
                   key={index}
-                  className={`bg-white border-2 border-ink ${tier.shadow} p-6 neo-card ${tier.hoverClass} transition-all`}
-                >
+className={`bg-white border-2 border-ink shadow-${tier.shadow} p-6 neo-card ${tier.hoverClass} transition-all`}                >
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-jakarta text-2xl font-bold text-ink mb-1">
@@ -112,6 +139,39 @@ export default function Pricing() {
                     </div>
                     <div className="text-right">
                       <p className="font-space text-3xl font-bold text-ink">{tier.fee}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right - For Agencies */}
+          <div>
+            <h3 className="font-jakarta text-3xl font-bold text-ink mb-8 text-center lg:text-left">
+              For Agencies: Credit Packs
+            </h3>
+            <div className="space-y-6">
+              {agencyPacks.map((pack, index) => (
+                <div
+                  key={index}
+className={`relative bg-white border-2 border-ink shadow-${pack.shadow} p-6 neo-card ${pack.hoverClass} transition-all`}                >
+                  {pack.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="inline-block px-3 py-1 bg-pink text-white text-xs font-jakarta font-bold rounded-full">
+                        ⭐ Most Popular
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-jakarta text-2xl font-bold text-ink mb-1">
+                        {pack.name}
+                      </h4>
+                      <p className="font-nunito text-muted">{pack.credits}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-space text-3xl font-bold text-ink">{pack.price}</p>
                     </div>
                   </div>
                 </div>

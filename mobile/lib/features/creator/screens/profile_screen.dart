@@ -805,8 +805,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                     unselectedLabelColor: AppColors.ink,
                     labelStyle: AppTypography.labelSM,
                     unselectedLabelStyle: AppTypography.labelSM,
-                    overlayColor:
-                        WidgetStateProperty.all(Colors.transparent),
+                    overlayColor: WidgetStateProperty.all(Colors.transparent),
                     tabs: const [
                       Tab(text: 'Details'),
                       Tab(text: 'Posts'),
@@ -1098,37 +1097,51 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                           ),
                           const SizedBox(height: AppSpacing.xl),
                           BCCard(
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: BCPrimaryButton(
-                                    label: 'Settings',
-                                    onPressed: () =>
-                                        context.push(RouteNames.settings),
-                                    backgroundColor: AppColors.ink,
-                                    textColor: AppColors.white,
-                                    prefixIcon: const Icon(
-                                      Icons.settings_rounded,
-                                      color: AppColors.white,
-                                      size: 18,
-                                    ),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isNarrow = constraints.maxWidth < 380;
+                                final settingsButton = BCPrimaryButton(
+                                  label: 'Settings',
+                                  onPressed: () =>
+                                      context.push(RouteNames.settings),
+                                  backgroundColor: AppColors.ink,
+                                  textColor: AppColors.white,
+                                  prefixIcon: const Icon(
+                                    Icons.settings_rounded,
+                                    color: AppColors.white,
+                                    size: 18,
                                   ),
-                                ),
-                                const SizedBox(width: AppSpacing.md),
-                                Expanded(
-                                  child: BCPrimaryButton(
-                                    label: 'Logout',
-                                    onPressed: _logout,
-                                    backgroundColor: AppColors.error,
-                                    textColor: AppColors.white,
-                                    prefixIcon: const Icon(
-                                      Icons.logout_rounded,
-                                      color: AppColors.white,
-                                      size: 18,
-                                    ),
+                                );
+                                final logoutButton = BCPrimaryButton(
+                                  label: 'Logout',
+                                  onPressed: _logout,
+                                  backgroundColor: AppColors.error,
+                                  textColor: AppColors.white,
+                                  prefixIcon: const Icon(
+                                    Icons.logout_rounded,
+                                    color: AppColors.white,
+                                    size: 18,
                                   ),
-                                ),
-                              ],
+                                );
+
+                                if (isNarrow) {
+                                  return Column(
+                                    children: [
+                                      settingsButton,
+                                      const SizedBox(height: AppSpacing.md),
+                                      logoutButton,
+                                    ],
+                                  );
+                                }
+
+                                return Row(
+                                  children: [
+                                    Expanded(child: settingsButton),
+                                    const SizedBox(width: AppSpacing.md),
+                                    Expanded(child: logoutButton),
+                                  ],
+                                );
+                              },
                             ),
                           ),
                         ],

@@ -31,6 +31,14 @@ const SAMPLE = {
     phone: '9876505678',
     brandName: 'GlowKart',
   },
+  agency: {
+    email: 'agency.sample@beyondc.in',
+    password: 'Agency@1234',
+    firstName: 'Priya',
+    fullName: 'Priya Agency',
+    phone: '9876509012',
+    agencyName: 'Creator Hub Agency',
+  },
 }
 
 const IDS = {
@@ -59,11 +67,12 @@ const IDS = {
 async function ensureAuthUser(params: {
   email: string
   password: string
-  role: 'creator' | 'brand' | 'admin'
+  role: 'creator' | 'brand' | 'agency' | 'admin'
   first_name: string
   full_name: string
   phone?: string
   brand_name?: string
+  agency_name?: string
 }) {
   const { data: created, error } = await supabase.auth.admin.createUser({
     email: params.email,
@@ -75,6 +84,7 @@ async function ensureAuthUser(params: {
       full_name: params.full_name,
       phone: params.phone,
       brand_name: params.brand_name,
+      agency_name: params.agency_name,
     },
   })
 
@@ -299,6 +309,16 @@ async function seedSampleData() {
     brand_name: SAMPLE.brand.brandName,
   })
 
+  const agencyId = await ensureAuthUser({
+    email: SAMPLE.agency.email,
+    password: SAMPLE.agency.password,
+    role: 'agency',
+    first_name: SAMPLE.agency.firstName,
+    full_name: SAMPLE.agency.fullName,
+    phone: SAMPLE.agency.phone,
+    agency_name: SAMPLE.agency.agencyName,
+  })
+
   const { error: profilesError } = await supabase.from('profiles').upsert(
     [
       {
@@ -319,6 +339,17 @@ async function seedSampleData() {
         full_name: SAMPLE.brand.fullName,
         email: SAMPLE.brand.email,
         phone: SAMPLE.brand.phone,
+        is_onboarded: true,
+        is_admin: false,
+        is_super_admin: false,
+      },
+      {
+        id: agencyId,
+        role: 'agency',
+        first_name: SAMPLE.agency.firstName,
+        full_name: SAMPLE.agency.fullName,
+        email: SAMPLE.agency.email,
+        phone: SAMPLE.agency.phone,
         is_onboarded: true,
         is_admin: false,
         is_super_admin: false,
@@ -371,6 +402,26 @@ async function seedSampleData() {
     { onConflict: 'id' }
   )
   throwIfError(brandProfileError, 'Failed to upsert sample brand profile')
+
+  const { error: agencyProfileError } = await supabase.from('agency_profiles').upsert(
+    {
+      id: agencyId,
+      agency_name: SAMPLE.agency.agencyName,
+      tagline: 'Multi-creator representation and brand partnerships',
+      description: 'Representing top-tier creators and connecting them with brands.',
+      website: 'https://creatorhub.example.com',
+      niche: ['Beauty', 'Lifestyle', 'Fashion'],
+      credit_balance: 30,
+      total_partnered_creators: 0,
+      total_collabs: 0,
+      avg_rating: 0,
+      reach: 0,
+      size: 'mid',
+      is_agency_verified: true,
+    },
+    { onConflict: 'id' }
+  )
+  throwIfError(agencyProfileError, 'Failed to upsert sample agency profile')
 
   console.log('Seeding 2 campaigns, 2 bids, 2 collabs, 2 events...')
 
@@ -673,9 +724,11 @@ async function seedSampleData() {
   console.log('--- Test Login Credentials ---')
   console.log(`Creator: ${SAMPLE.creator.email} / ${SAMPLE.creator.password}`)
   console.log(`Brand:   ${SAMPLE.brand.email} / ${SAMPLE.brand.password}`)
+  console.log(`Agency:  ${SAMPLE.agency.email} / ${SAMPLE.agency.password}`)
   console.log('--- Seeded IDs ---')
   console.log(`Creator ID: ${creatorId}`)
   console.log(`Brand ID:   ${brandId}`)
+  console.log(`Agency ID:  ${agencyId}`)
 }
 
 async function run() {

@@ -122,6 +122,17 @@ export default function JoinPage() {
                   buttonClass="bg-pink text-white"
                   buttonText="Join as Brand →"
                 />
+                <RoleCard
+                  href="/join/agency"
+                  badge="🏢 For Agencies"
+                  badgeClass="bg-blue-600 text-white"
+                  title="Agency"
+                  description="Manage creators and pitch brands on their behalf."
+                  tags={["Multi-creator", "Pitches", "Managed"]}
+                  shadow="shadow-[6px_6px_0_#3B82F6]"
+                  buttonClass="bg-blue-600 text-white"
+                  buttonText="Join as Agency →"
+                />
               </div>
 
               <p className="mt-10 text-center font-nunito text-base text-ink/80">

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient, createClient } from '@/lib/supabase/server'
 import { createCreditPurchaseSchema } from '@/lib/validators'
 import { getRazorpay } from '@/lib/razorpay'
 
@@ -75,6 +75,7 @@ export async function POST(request: NextRequest) {
   try {
     const razorpay = getRazorpay()
     const supabase = createClient()
+    const adminClient = createAdminClient()
     const body = await request.json()
 
     // Get current user
@@ -98,11 +99,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid credit pack' }, { status: 400 })
     }
 
+    const receipt = `cr_${user.id.slice(0, 8)}_${Date.now().toString(36)}`
+
     // Create Razorpay order
     const order = await razorpay.orders.create({
       amount: selectedPack.amount,
       currency: 'INR',
-      receipt: `credits_${user.id}_${Date.now()}`,
+      receipt,
       notes: {
         brand_id: user.id,
         type: 'credit_purchase',
@@ -112,23 +115,50 @@ export async function POST(request: NextRequest) {
     })
 
     // Store pending transaction
-    await supabase.from('credit_transactions').insert({
+    const { error: insertError } = await adminClient.from('credit_transactions').insert({
       brand_id: user.id,
       type: 'topup',
       amount: selectedPack.credits,
-      reason: 'credit_purchase_pending',
-      reference_id: order.id,
+      reason: 'credit_pack_purchase',
+      razorpay_order_id: order.id,
       balance_after: 0, // Will be updated on verification
     })
+
+    if (insertError) {
+      throw new Error(`Failed to persist credit transaction: ${insertError.message}`)
+    }
 
     return NextResponse.json({
       order_id: order.id,
       amount: order.amount,
       currency: order.currency,
       credits: selectedPack.credits,
-      key_id: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+      key_id: process.env.RAZORPAY_KEY_ID || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
     })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 })
+    const safeError = {
+      name: error?.name,
+      message: error?.message,
+      statusCode: error?.statusCode,
+      code: error?.code,
+      description: error?.description,
+      innerErrorCode: error?.error?.code,
+      innerErrorDescription: error?.error?.description,
+      stack: error?.stack,
+    }
+
+    const message =
+      error?.error?.description ||
+      error?.description ||
+      error?.message ||
+      'Failed to create credit order'
+
+    console.error('[brand/credits POST] failed:', safeError)
+    console.error('[brand/credits POST] env-check:', {
+      hasServerKeyId: Boolean(process.env.RAZORPAY_KEY_ID),
+      hasServerSecret: Boolean(process.env.RAZORPAY_KEY_SECRET),
+      hasPublicKeyId: Boolean(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID),
+    })
+    return NextResponse.json({ error: message }, { status: 400 })
   }
 }

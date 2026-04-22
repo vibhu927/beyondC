@@ -21,6 +21,17 @@ export default function Marquee() {
     'SaaS Companies',
   ]
 
+    const agencies = [
+    'Social Agencies',
+    'Media Companies',
+    'Managing Agencies',
+    'Collab Teams',
+    'Event Managers',
+    'Ad agencies',
+    'PR Firms',
+    'Talent Managers',
+  ]
+
   return (
     <section className="bg-ink py-8 overflow-hidden">
       {/* Row 1 - Left Scroll */}
@@ -44,6 +55,19 @@ export default function Marquee() {
             <span 
               key={index} 
               className="font-space text-pink text-sm sm:text-base uppercase tracking-wide mx-4 whitespace-nowrap"
+            >
+              {item} ✦
+            </span>
+          ))}
+        </div>
+      </div>
+
+            <div className="marquee-container pt-4">
+        <div className="flex animate-marquee-reverse" style={{ animationDirection: 'reverse' }}>
+          {[...agencies, ...agencies, ...agencies].map((item, index) => (
+            <span 
+              key={index} 
+              className="font-space text-purple text-sm sm:text-base uppercase tracking-wide mx-4 whitespace-nowrap"
             >
               {item} ✦
             </span>

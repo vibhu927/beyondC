@@ -7,7 +7,10 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/constants/api_constants.dart';
 import '../../../providers/brand_provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../services/razorpay_checkout_service.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
 
@@ -19,6 +22,70 @@ class CreditsScreen extends ConsumerStatefulWidget {
 }
 
 class _CreditsScreenState extends ConsumerState<CreditsScreen> {
+  bool _isPurchaseInProgress = false;
+
+  Future<void> _buyCredits({
+    required String pack,
+    required String packName,
+    required int priceInr,
+  }) async {
+    if (_isPurchaseInProgress) return;
+
+    setState(() => _isPurchaseInProgress = true);
+
+    try {
+      final order =
+          await ref.read(creditsProvider.notifier).initiateCreditPurchase(pack);
+      final auth = ref.read(authProvider);
+      final user = auth.user;
+      final keyId = (order.keyId?.trim().isNotEmpty ?? false)
+          ? order.keyId!.trim()
+          : ApiConstants.razorpayKeyId;
+
+      if (keyId == 'YOUR_RAZORPAY_KEY_ID') {
+        throw Exception('Missing Razorpay key. Add RAZORPAY_KEY_ID in env.');
+      }
+
+      final result = await RazorpayCheckoutService().openCheckout(
+        keyId: keyId,
+        orderId: order.orderId,
+        amountPaise: order.amount,
+        currency: order.currency,
+        name: 'BeyondC',
+        description: '$packName credit pack (INR $priceInr)',
+        prefillEmail: user?.email,
+        prefillContact: user?.phone,
+      );
+
+      await ref.read(creditsProvider.notifier).verifyCreditPurchase({
+        'razorpay_order_id': result.orderId,
+        'razorpay_payment_id': result.paymentId,
+        'razorpay_signature': result.signature,
+      });
+
+      await ref.read(brandProvider.notifier).fetchCredits();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$packName credits added successfully.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      final message = error.toString().replaceFirst('Exception: ', '').trim();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            message.isNotEmpty ? message : 'Unable to complete payment.',
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isPurchaseInProgress = false);
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -111,6 +178,12 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                         shadow: AppShadows.neon,
                         badge: null,
                         buttonColor: AppColors.neon,
+                        isLoading: _isPurchaseInProgress,
+                        onBuy: () => _buyCredits(
+                          pack: 'starter',
+                          packName: 'Starter',
+                          priceInr: 149,
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -122,6 +195,12 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                         shadow: AppShadows.pink,
                         badge: 'Most Popular',
                         buttonColor: AppColors.pink,
+                        isLoading: _isPurchaseInProgress,
+                        onBuy: () => _buyCredits(
+                          pack: 'growth',
+                          packName: 'Growth',
+                          priceInr: 299,
+                        ),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -133,6 +212,12 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                         shadow: AppShadows.blue,
                         badge: null,
                         buttonColor: AppColors.blue,
+                        isLoading: _isPurchaseInProgress,
+                        onBuy: () => _buyCredits(
+                          pack: 'pro',
+                          packName: 'Pro',
+                          priceInr: 499,
+                        ),
                       ),
                     ),
                   ],
@@ -148,6 +233,12 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                     shadow: AppShadows.neon,
                     badge: null,
                     buttonColor: AppColors.neon,
+                    isLoading: _isPurchaseInProgress,
+                    onBuy: () => _buyCredits(
+                      pack: 'starter',
+                      packName: 'Starter',
+                      priceInr: 149,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   _CreditPackCard(
@@ -157,6 +248,12 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                     shadow: AppShadows.pink,
                     badge: 'Most Popular',
                     buttonColor: AppColors.pink,
+                    isLoading: _isPurchaseInProgress,
+                    onBuy: () => _buyCredits(
+                      pack: 'growth',
+                      packName: 'Growth',
+                      priceInr: 299,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   _CreditPackCard(
@@ -166,6 +263,12 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                     shadow: AppShadows.blue,
                     badge: null,
                     buttonColor: AppColors.blue,
+                    isLoading: _isPurchaseInProgress,
+                    onBuy: () => _buyCredits(
+                      pack: 'pro',
+                      packName: 'Pro',
+                      priceInr: 499,
+                    ),
                   ),
                 ],
               );
@@ -254,6 +357,8 @@ class _CreditPackCard extends StatelessWidget {
     required this.shadow,
     required this.badge,
     required this.buttonColor,
+    required this.isLoading,
+    required this.onBuy,
   });
 
   final String name;
@@ -262,6 +367,8 @@ class _CreditPackCard extends StatelessWidget {
   final List<BoxShadow> shadow;
   final String? badge;
   final Color buttonColor;
+  final bool isLoading;
+  final VoidCallback onBuy;
 
   @override
   Widget build(BuildContext context) {
@@ -304,12 +411,8 @@ class _CreditPackCard extends StatelessWidget {
             textColor:
                 buttonColor == AppColors.neon ? AppColors.ink : AppColors.white,
             shadow: AppShadows.ink,
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text('Coming Soon: Razorpay integration.')),
-              );
-            },
+            isLoading: isLoading,
+            onPressed: isLoading ? null : onBuy,
           ),
         ],
       ),

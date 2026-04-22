@@ -214,6 +214,35 @@ PUT `/api/creator/profile`
 }
 ```
 
+## Test Accounts
+
+### Sample Creator Account
+```
+Email: creator.sample@beyondc.in
+Password: Creator@1234
+Display Name: Aarav Creator
+```
+
+### Sample Brand Account
+```
+Email: brand.sample@beyondc.in
+Password: Brand@1234
+Display Name: Riya Brand
+```
+
+### Sample Agency Account
+```
+Email: agency.sample@beyondc.in
+Password: Agency@1234
+Display Name: Priya Agency
+```
+
+**Quick Setup for Testing:**
+1. Sign up with above credentials for each role (or use them to login if already seeded)
+2. Complete onboarding on `/join` or `/join/agency` pages
+3. Use provided endpoints to test role-specific features
+4. Agencies can invite creators, send pitches, and place bids on behalf of roster
+
 ## Event QR Codes
 When creator accepts event invite, a unique QR code data is generated:
 - Stored in `event_invites.qr_code_data`

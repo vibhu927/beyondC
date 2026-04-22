@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const { data: transaction, error: txnError } = await adminClient
       .from('wallet_transactions')
       .select('*')
-      .eq('reference_id', razorpay_order_id)
+      .eq('razorpay_order_id', razorpay_order_id)
       .eq('creator_id', user.id)
       .single()
 
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Transaction not found' }, { status: 404 })
     }
 
-    if (transaction.reason !== 'wallet_topup_pending') {
+    if (transaction.razorpay_payment_id) {
       return NextResponse.json({ error: 'Transaction already processed' }, { status: 400 })
     }
 
@@ -67,8 +67,7 @@ export async function POST(request: NextRequest) {
     await adminClient
       .from('wallet_transactions')
       .update({
-        reason: 'wallet_topup_success',
-        reference_id: razorpay_payment_id,
+        razorpay_payment_id: razorpay_payment_id,
         balance_after: newBalance,
       })
       .eq('id', transaction.id)
@@ -79,6 +78,7 @@ export async function POST(request: NextRequest) {
       amount_added: transaction.amount,
     })
   } catch (error: any) {
+    console.error('[creator/wallet/verify POST] failed:', error)
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
 }

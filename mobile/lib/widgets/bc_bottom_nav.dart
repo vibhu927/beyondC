@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../core/router/route_names.dart';
 
-enum BCPortalRole { creator, brand }
+enum BCPortalRole { creator, brand, agency }
 
 class BCPageSwipeArea extends StatefulWidget {
   const BCPageSwipeArea({
@@ -107,6 +107,13 @@ List<String> _routesFor(BCPortalRole role) {
         RouteNames.brandCampaigns,
         RouteNames.brandRequests,
         RouteNames.brandProfile,
+      ];
+    case BCPortalRole.agency:
+      return const [
+        RouteNames.agencyHome,
+        RouteNames.agencyCreators,
+        RouteNames.agencyDiscover,
+        RouteNames.agencyProfile,
       ];
   }
 }
@@ -273,41 +280,34 @@ class _BCBottomNavState extends State<BCBottomNav> {
     switch (role) {
       case BCPortalRole.creator:
         return [
-          _NavItem(
-              icon: Icons.home_rounded,
-              label: 'Home',
-              route: routes[0]),
+          _NavItem(icon: Icons.home_rounded, label: 'Home', route: routes[0]),
           _NavItem(
               icon: Icons.explore_rounded,
               label: 'Campaigns',
               route: routes[1]),
           _NavItem(
-              icon: Icons.bookmark_rounded,
-              label: 'My Bids',
-              route: routes[2]),
+              icon: Icons.bookmark_rounded, label: 'My Bids', route: routes[2]),
           _NavItem(
-              icon: Icons.person_rounded,
-              label: 'Profile',
-              route: routes[3]),
+              icon: Icons.person_rounded, label: 'Profile', route: routes[3]),
         ];
       case BCPortalRole.brand:
         return [
-          _NavItem(
-              icon: Icons.home_rounded,
-              label: 'Home',
-              route: routes[0]),
+          _NavItem(icon: Icons.home_rounded, label: 'Home', route: routes[0]),
           _NavItem(
               icon: Icons.campaign_rounded,
               label: 'Campaigns',
               route: routes[1]),
           _NavItem(
-              icon: Icons.inbox_rounded,
-              label: 'Requests',
-              route: routes[2]),
+              icon: Icons.inbox_rounded, label: 'Requests', route: routes[2]),
           _NavItem(
-              icon: Icons.person_rounded,
-              label: 'Profile',
-              route: routes[3]),
+              icon: Icons.person_rounded, label: 'Profile', route: routes[3]),
+        ];
+      case BCPortalRole.agency:
+        return [
+          _NavItem(icon: Icons.home_rounded, label: 'Home', route: routes[0]),
+          _NavItem(icon: Icons.group_rounded, label: 'My Creators', route: routes[1]),
+          _NavItem(icon: Icons.explore_rounded, label: 'Discover', route: routes[2]),
+          _NavItem(icon: Icons.person_rounded, label: 'Profile', route: routes[3]),
         ];
     }
   }
@@ -325,7 +325,7 @@ class _NavItem {
   final String route;
 }
 
-class _NavIcon extends StatelessWidget {
+class _NavIcon extends StatefulWidget {
   const _NavIcon({
     required this.icon,
     required this.label,
@@ -337,16 +337,99 @@ class _NavIcon extends StatelessWidget {
   final bool isSelected;
 
   @override
-  Widget build(BuildContext context) {
-    final color = isSelected
-        ? Colors.white
-        : Colors.white.withValues(alpha: 0.72);
+  State<_NavIcon> createState() => _NavIconState();
+}
 
-    return Center(
-      child: Icon(
-        icon,
-        size: 30,
-        color: color,
+class _NavIconState extends State<_NavIcon>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scale;
+  late final Animation<double> _translateY;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 360),
+    );
+    _scale = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.0, end: 1.2)
+            .chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 42,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 1.2, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeInOutCubic)),
+        weight: 58,
+      ),
+    ]).animate(_controller);
+    _translateY = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(begin: 0, end: -2.2)
+            .chain(CurveTween(curve: Curves.easeOut)),
+        weight: 45,
+      ),
+      TweenSequenceItem(
+        tween: Tween<double>(begin: -2.2, end: 0)
+            .chain(CurveTween(curve: Curves.easeIn)),
+        weight: 55,
+      ),
+    ]).animate(_controller);
+
+    if (widget.isSelected) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _controller.forward(from: 0);
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _NavIcon oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.isSelected && widget.isSelected) {
+      _controller.forward(from: 0);
+    }
+    if (oldWidget.isSelected && !widget.isSelected) {
+      _controller.stop();
+      _controller.value = 0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color =
+        widget.isSelected ? Colors.white : Colors.white.withValues(alpha: 0.72);
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final selectedScale = _controller.isAnimating ? _scale.value : 1.0;
+        final selectedTranslateY =
+            _controller.isAnimating ? _translateY.value : 0.0;
+
+        return Transform.translate(
+          offset: Offset(0, selectedTranslateY),
+          child: Transform.scale(
+            scale: widget.isSelected ? selectedScale : 1.0,
+            child: child,
+          ),
+        );
+      },
+      child: Center(
+        child: Icon(
+          widget.icon,
+          size: 30,
+          color: color,
+        ),
       ),
     );
   }

@@ -16,6 +16,7 @@ import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
+import '../../../widgets/buttons/bc_back_button.dart';
 import '../../../widgets/inputs/bc_dropdown.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 import '../widgets/campaign_card.dart';
@@ -110,216 +111,252 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      showDragHandle: false,
       backgroundColor: Colors.transparent,
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setSheetState) {
-            return Container(
-              decoration: const BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
-                border: Border(
-                  top: BorderSide(color: AppColors.ink, width: 2),
-                ),
-              ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.xl,
-                    AppSpacing.xl,
-                    AppSpacing.xl,
-                    AppSpacing.xl + MediaQuery.of(context).viewInsets.bottom,
-                  ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Filter Campaigns',
-                          style: AppTypography.displaySM,
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        const Text(
-                          'Collab Type',
-                          style: AppTypography.labelMD,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Wrap(
-                          spacing: AppSpacing.sm,
-                          runSpacing: AppSpacing.sm,
-                          children: CampaignCollabType.values.map((type) {
-                            final isActive = workingCollabTypes.contains(type);
-                            return _NeoPill(
-                              label: _collabTypeLabel(type),
-                              isActive: isActive,
-                              onTap: () {
-                                setSheetState(() {
-                                  if (isActive) {
-                                    workingCollabTypes.remove(type);
-                                  } else {
-                                    workingCollabTypes.add(type);
-                                  }
-                                });
-                              },
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: BCTextField(
-                                label: 'Min (INR)',
-                                hint: '1000',
-                                keyboardType: TextInputType.number,
-                                controller: minController,
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: BCTextField(
-                                label: 'Max (INR)',
-                                hint: '10000',
-                                keyboardType: TextInputType.number,
-                                controller: maxController,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        const Divider(color: AppColors.divider),
-                        const SizedBox(height: AppSpacing.md),
-                        const Text('Location', style: AppTypography.labelMD),
-                        const SizedBox(height: AppSpacing.sm),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: BCDropdown(
-                                label: 'State',
-                                value: workingState,
-                                hint: 'All India',
-                                items: const ['All India', ...IndiaLocations.states],
-                                onChanged: (value) {
-                                  setSheetState(() {
-                                    workingState = value == 'All India' ? null : value;
-                                    workingCity = null;
-                                  });
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: BCDropdown(
-                                label: 'City',
-                                value: workingCity,
-                                hint: workingState == null ? 'All Cities' : 'Select city',
-                                items: workingState == null
-                                    ? const ['All Cities']
-                                    : ['All Cities', ...IndiaLocations.getCities(workingState!)],
-                                onChanged: workingState == null
-                                    ? null
-                                    : (value) {
-                                        setSheetState(() {
-                                          workingCity = value == 'All Cities' ? null : value;
-                                        });
-                                      },
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: workingIncludePanIndia,
-                              onChanged: (value) {
-                                setSheetState(() {
-                                  workingIncludePanIndia = value ?? true;
-                                });
-                              },
-                            ),
-                            const Expanded(
-                              child: Text('Include Pan India campaigns'),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        const Text('Niche', style: AppTypography.labelMD),
-                        const SizedBox(height: AppSpacing.sm),
-                        Wrap(
-                          spacing: AppSpacing.sm,
-                          runSpacing: AppSpacing.sm,
-                          children: _nicheFilters.map((niche) {
-                            final isActive = workingNiches.contains(niche);
-                            return _NeoPill(
-                              label: niche,
-                              isActive: isActive,
-                              onTap: () {
-                                setSheetState(() {
-                                  if (isActive) {
-                                    workingNiches.remove(niche);
-                                  } else {
-                                    workingNiches.add(niche);
-                                  }
-                                });
-                              },
-                            );
-                          }).toList(),
-                        ),
-                        const SizedBox(height: AppSpacing.xl),
-                        BCPrimaryButton.neon(
-                          label: 'Apply Filters →',
-                          onPressed: () async {
-                            setState(() {
-                              _sheetCollabTypes
-                                ..clear()
-                                ..addAll(workingCollabTypes);
-                              _sheetNiches
-                                ..clear()
-                                ..addAll(workingNiches);
-                              _minBudgetInr =
-                                  int.tryParse(minController.text.trim());
-                              _maxBudgetInr =
-                                  int.tryParse(maxController.text.trim());
-                                _filterState = workingState;
-                                _filterCity = workingCity;
-                                _includePanIndia = workingIncludePanIndia;
-                            });
-                            Navigator.of(context).pop();
-                            await _applyServerFilters();
-                          },
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Align(
-                          alignment: Alignment.center,
-                          child: TextButton(
-                            onPressed: () async {
-                              setState(() {
-                                _sheetCollabTypes.clear();
-                                _sheetNiches.clear();
-                                _minBudgetInr = null;
-                                _maxBudgetInr = null;
-                                _filterState = null;
-                                _filterCity = null;
-                                _includePanIndia = true;
-                              });
-                              Navigator.of(context).pop();
-                              await _applyServerFilters();
-                            },
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.pink,
-                            ),
-                            child: const Text('Clear All'),
-                          ),
-                        ),
-                      ],
+        return DraggableScrollableSheet(
+          initialChildSize: 0.58,
+          minChildSize: 0.45,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, sheetController) {
+            return StatefulBuilder(
+              builder: (context, setSheetState) {
+                return Container(
+                  decoration: const BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20),
+                    ),
+                    border: Border(
+                      top: BorderSide(color: AppColors.ink, width: 2),
                     ),
                   ),
-                ),
-              ),
+                  child: SafeArea(
+                    top: false,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.xl,
+                        AppSpacing.xl,
+                        AppSpacing.xl,
+                        AppSpacing.xl +
+                            MediaQuery.of(context).viewInsets.bottom,
+                      ),
+                      child: SingleChildScrollView(
+                        controller: sheetController,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    'Filter Campaigns',
+                                    style: AppTypography.displaySM,
+                                  ),
+                                ),
+                                BCBackButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  icon: Icons.close_rounded,
+                                  iconColor: AppColors.ink,
+                                  backgroundColor: AppColors.surface,
+                                  borderColor: AppColors.ink,
+                                  tooltip: 'Close',
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            const Text(
+                              'Collab Type',
+                              style: AppTypography.labelMD,
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            _ThreeColumnPillGrid(
+                              children: CampaignCollabType.values.map((type) {
+                                final isActive =
+                                    workingCollabTypes.contains(type);
+                                return _NeoPill(
+                                  label: _collabTypeLabel(type),
+                                  isActive: isActive,
+                                  onTap: () {
+                                    setSheetState(() {
+                                      if (isActive) {
+                                        workingCollabTypes.remove(type);
+                                      } else {
+                                        workingCollabTypes.add(type);
+                                      }
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: BCTextField(
+                                    label: 'Min (INR)',
+                                    hint: '1000',
+                                    keyboardType: TextInputType.number,
+                                    controller: minController,
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: BCTextField(
+                                    label: 'Max (INR)',
+                                    hint: '10000',
+                                    keyboardType: TextInputType.number,
+                                    controller: maxController,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            const Divider(color: AppColors.divider),
+                            const SizedBox(height: AppSpacing.md),
+                            const Text('Location',
+                                style: AppTypography.labelMD),
+                            const SizedBox(height: AppSpacing.sm),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: BCDropdown(
+                                    label: 'State',
+                                    value: workingState,
+                                    hint: 'All India',
+                                    items: const [
+                                      'All India',
+                                      ...IndiaLocations.states
+                                    ],
+                                    onChanged: (value) {
+                                      setSheetState(() {
+                                        workingState =
+                                            value == 'All India' ? null : value;
+                                        workingCity = null;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: BCDropdown(
+                                    label: 'City',
+                                    value: workingCity,
+                                    hint: workingState == null
+                                        ? 'All Cities'
+                                        : 'Select city',
+                                    items: workingState == null
+                                        ? const ['All Cities']
+                                        : [
+                                            'All Cities',
+                                            ...IndiaLocations.getCities(
+                                                workingState!),
+                                          ],
+                                    onChanged: workingState == null
+                                        ? null
+                                        : (value) {
+                                            setSheetState(() {
+                                              workingCity =
+                                                  value == 'All Cities'
+                                                      ? null
+                                                      : value;
+                                            });
+                                          },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: workingIncludePanIndia,
+                                  onChanged: (value) {
+                                    setSheetState(() {
+                                      workingIncludePanIndia = value ?? true;
+                                    });
+                                  },
+                                ),
+                                const Expanded(
+                                  child: Text('Include Pan India campaigns'),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            const Text('Niche', style: AppTypography.labelMD),
+                            const SizedBox(height: AppSpacing.sm),
+                            _ThreeColumnPillGrid(
+                              children: _nicheFilters.map((niche) {
+                                final isActive = workingNiches.contains(niche);
+                                return _NeoPill(
+                                  label: niche,
+                                  isActive: isActive,
+                                  onTap: () {
+                                    setSheetState(() {
+                                      if (isActive) {
+                                        workingNiches.remove(niche);
+                                      } else {
+                                        workingNiches.add(niche);
+                                      }
+                                    });
+                                  },
+                                );
+                              }).toList(),
+                            ),
+                            const SizedBox(height: AppSpacing.xl),
+                            BCPrimaryButton.neon(
+                              label: 'Apply Filters →',
+                              onPressed: () async {
+                                setState(() {
+                                  _sheetCollabTypes
+                                    ..clear()
+                                    ..addAll(workingCollabTypes);
+                                  _sheetNiches
+                                    ..clear()
+                                    ..addAll(workingNiches);
+                                  _minBudgetInr =
+                                      int.tryParse(minController.text.trim());
+                                  _maxBudgetInr =
+                                      int.tryParse(maxController.text.trim());
+                                  _filterState = workingState;
+                                  _filterCity = workingCity;
+                                  _includePanIndia = workingIncludePanIndia;
+                                });
+                                Navigator.of(context).pop();
+                                await _applyServerFilters();
+                              },
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            Align(
+                              alignment: Alignment.center,
+                              child: TextButton(
+                                onPressed: () async {
+                                  setState(() {
+                                    _sheetCollabTypes.clear();
+                                    _sheetNiches.clear();
+                                    _minBudgetInr = null;
+                                    _maxBudgetInr = null;
+                                    _filterState = null;
+                                    _filterCity = null;
+                                    _includePanIndia = true;
+                                  });
+                                  Navigator.of(context).pop();
+                                  await _applyServerFilters();
+                                },
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.pink,
+                                ),
+                                child: const Text('Clear All'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             );
           },
         );
@@ -395,17 +432,28 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-        child: FloatingActionButton(
+        child: FloatingActionButton.extended(
           heroTag: 'creatorCampaignFiltersFab',
           onPressed: _openFiltersSheet,
-          backgroundColor: AppColors.ink,
-          foregroundColor: AppColors.neon,
+          backgroundColor: AppColors.pink,
+          foregroundColor: AppColors.white,
+          elevation: 3,
           tooltip: 'Filter campaigns',
+          extendedPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-            side: const BorderSide(color: AppColors.neon, width: 2),
+            side: const BorderSide(color: AppColors.ink, width: 2),
           ),
-          child: const Icon(Icons.tune_rounded),
+          icon: const Icon(Icons.tune_rounded, size: 20),
+          label: Text(
+            'Filters',
+            style: AppTypography.labelMD.copyWith(
+              color: AppColors.white,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         ),
       ),
       body: BCPageSwipeArea(
@@ -610,6 +658,33 @@ class _SortPill extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ThreeColumnPillGrid extends StatelessWidget {
+  const _ThreeColumnPillGrid({
+    required this.children,
+  });
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    const spacing = AppSpacing.sm;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final itemWidth = (constraints.maxWidth - (spacing * 2)) / 3;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: children
+              .map((child) => SizedBox(width: itemWidth, child: child))
+              .toList(),
+        );
+      },
     );
   }
 }

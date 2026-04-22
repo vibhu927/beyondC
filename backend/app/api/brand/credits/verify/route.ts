@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     const { data: transaction, error: txnError } = await adminClient
       .from('credit_transactions')
       .select('*')
-      .eq('reference_id', razorpay_order_id)
+      .eq('razorpay_order_id', razorpay_order_id)
       .eq('brand_id', user.id)
       .single()
 
@@ -40,14 +40,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Transaction not found' }, { status: 404 })
     }
 
-    if (transaction.reason !== 'credit_purchase_pending') {
+    if (transaction.razorpay_payment_id) {
       return NextResponse.json({ error: 'Transaction already processed' }, { status: 400 })
     }
 
     // Get current credits balance
     const { data: brandProfile, error: profileError } = await adminClient
       .from('brand_profiles')
-      .select('credits_balance')
+      .select('credit_balance')
       .eq('id', user.id)
       .single()
 
@@ -55,20 +55,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: profileError.message }, { status: 400 })
     }
 
-    const newBalance = brandProfile.credits_balance + transaction.amount
+    const newBalance = (brandProfile?.credit_balance ?? 0) + transaction.amount
 
     // Update credits balance
     await adminClient
       .from('brand_profiles')
-      .update({ credits_balance: newBalance })
+      .update({ credit_balance: newBalance })
       .eq('id', user.id)
 
     // Update transaction
     await adminClient
       .from('credit_transactions')
       .update({
-        reason: 'credit_purchase_success',
-        reference_id: razorpay_payment_id,
+        razorpay_payment_id: razorpay_payment_id,
         balance_after: newBalance,
       })
       .eq('id', transaction.id)
@@ -79,6 +78,7 @@ export async function POST(request: NextRequest) {
       credits_added: transaction.amount,
     })
   } catch (error: any) {
+    console.error('[brand/credits/verify POST] failed:', error)
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
 }

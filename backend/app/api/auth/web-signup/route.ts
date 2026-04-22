@@ -4,9 +4,11 @@ import { createAdminClient } from '@/lib/supabase/server'
 type SignupBody = {
   email?: string
   password?: string
-  role?: 'creator' | 'brand'
+  role?: 'creator' | 'brand' | 'agency'
   first_name?: string
   full_name?: string
+  agency_name?: string
+  contact_name?: string
   phone?: string
   state?: string
   city?: string
@@ -25,7 +27,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as SignupBody
     const { email, password, role, first_name, full_name, phone, state, city, ...roleData } = body
 
-    if (!email || !password || !role || !first_name || !full_name || !state || !city) {
+    if (!email || !password || !role) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
@@ -48,6 +50,12 @@ export async function POST(request: Request) {
       }
     }
 
+    if (role === 'agency') {
+      if (!roleData.agency_name?.trim() || !roleData.contact_name?.trim()) {
+        return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+      }
+    }
+
     const supabase = createAdminClient()
 
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
@@ -56,11 +64,11 @@ export async function POST(request: Request) {
       email_confirm: true,
       user_metadata: {
         role,
-        first_name,
-        full_name,
+        first_name: first_name ?? null,
+        full_name: full_name ?? null,
         phone: phone ?? null,
-        state,
-        city,
+        state: state ?? null,
+        city: city ?? null,
       },
     })
 
@@ -120,6 +128,21 @@ export async function POST(request: Request) {
 
       if (brandError) {
         return NextResponse.json({ error: brandError.message }, { status: 400 })
+      }
+    }
+
+    if (role === 'agency') {
+      const { error: agencyError } = await supabase.from('agency_profiles').upsert({
+        id: userId,
+        agency_name: roleData.agency_name,
+        contact_name: roleData.contact_name,
+        website: roleData.website ?? null,
+        phone: phone ?? null,
+        credit_balance: 0,
+      })
+
+      if (agencyError) {
+        return NextResponse.json({ error: agencyError.message }, { status: 400 })
       }
     }
 

@@ -197,6 +197,77 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+              // Agency Card
+              AnimatedScale(
+                scale: _selectedRole == 'agency' ? 1.01 : 1.0,
+                duration: const Duration(milliseconds: 150),
+                child: GestureDetector(
+                  onTap: () => _selectRole('agency'),
+                  child: BCCard(
+                    shadow: _selectedRole == 'agency'
+                        ? AppShadows.blue
+                        : AppShadows.blue,
+                    borderColor: _selectedRole == 'agency'
+                        ? AppColors.blue
+                        : AppColors.ink,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const BCBadge(
+                                label: 'For Agencies',
+                                variant: BCBadgeVariant.blue,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Agency / Manager 🏢',
+                                style: AppTypography.displaySM.copyWith(
+                                  color: AppColors.ink,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Manage creators and pitch brands on their behalf.',
+                                style: AppTypography.bodySM.copyWith(
+                                  color: AppColors.muted,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              const Row(
+                                children: [
+                                  BCBadge(
+                                    label: 'Talent Manager',
+                                    variant: BCBadgeVariant.outline,
+                                  ),
+                                  SizedBox(width: AppSpacing.sm),
+                                  BCBadge(
+                                    label: 'Creator Agency',
+                                    variant: BCBadgeVariant.outline,
+                                  ),
+                                  SizedBox(width: AppSpacing.sm),
+                                  BCBadge(
+                                    label: 'MCN',
+                                    variant: BCBadgeVariant.outline,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Text(
+                          '🏢',
+                          style: TextStyle(fontSize: 48),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               // Already have account
               Center(
                 child: TextButton(

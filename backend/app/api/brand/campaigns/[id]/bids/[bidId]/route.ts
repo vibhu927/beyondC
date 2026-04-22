@@ -74,45 +74,89 @@ export async function PUT(
         )
       }
 
-      const { data: brandProfile, error: brandProfileError } = await service
-        .from('brand_profiles')
-        .select('credit_balance, size')
-        .eq('id', user.id)
-        .single()
+      // If this bid was placed by an agency, deduct credit from the agency
+      if (bid.bidder_type === 'agency' && bid.agency_id) {
+        const { data: agencyProfile, error: agencyError } = await service
+          .from('agency_profiles')
+          .select('credit_balance')
+          .eq('id', bid.agency_id)
+          .single()
 
-      if (brandProfileError || !brandProfile) {
-        return NextResponse.json({ error: 'Brand profile not found' }, { status: 404 })
+        if (agencyError || !agencyProfile) {
+          return NextResponse.json({ error: 'Agency profile not found' }, { status: 404 })
+        }
+
+        if ((agencyProfile.credit_balance ?? 0) < 1) {
+          return NextResponse.json(
+            {
+              error: 'Agency has insufficient credits',
+              required: 1,
+              current: agencyProfile.credit_balance ?? 0,
+            },
+            { status: 400 }
+          )
+        }
+
+        const nextAgencyCredits = (agencyProfile.credit_balance ?? 0) - 1
+        const { error: agencyCreditUpdateError } = await service
+          .from('agency_profiles')
+          .update({ credit_balance: nextAgencyCredits })
+          .eq('id', bid.agency_id)
+
+        if (agencyCreditUpdateError) {
+          return NextResponse.json({ error: agencyCreditUpdateError.message }, { status: 400 })
+        }
+
+        await service.from('credit_transactions').insert({
+          agency_id: bid.agency_id,
+          type: 'deduct',
+          amount: 1,
+          reason: 'bid_accepted',
+          reference_id: params.bidId,
+          balance_after: nextAgencyCredits,
+        })
+      } else {
+        // Default behavior: deduct from brand
+        const { data: brandProfile, error: brandProfileError } = await service
+          .from('brand_profiles')
+          .select('credit_balance, size')
+          .eq('id', user.id)
+          .single()
+
+        if (brandProfileError || !brandProfile) {
+          return NextResponse.json({ error: 'Brand profile not found' }, { status: 404 })
+        }
+
+        if ((brandProfile.credit_balance ?? 0) < 1) {
+          return NextResponse.json(
+            {
+              error: 'Insufficient credits',
+              required: 1,
+              current: brandProfile.credit_balance ?? 0,
+            },
+            { status: 400 }
+          )
+        }
+
+        const nextCredits = (brandProfile.credit_balance ?? 0) - 1
+        const { error: creditUpdateError } = await service
+          .from('brand_profiles')
+          .update({ credit_balance: nextCredits })
+          .eq('id', user.id)
+
+        if (creditUpdateError) {
+          return NextResponse.json({ error: creditUpdateError.message }, { status: 400 })
+        }
+
+        await service.from('credit_transactions').insert({
+          brand_id: user.id,
+          type: 'deduct',
+          amount: 1,
+          reason: 'bid_accepted',
+          reference_id: params.bidId,
+          balance_after: nextCredits,
+        })
       }
-
-      if ((brandProfile.credit_balance ?? 0) < 1) {
-        return NextResponse.json(
-          {
-            error: 'Insufficient credits',
-            required: 1,
-            current: brandProfile.credit_balance ?? 0,
-          },
-          { status: 400 }
-        )
-      }
-
-      const nextCredits = (brandProfile.credit_balance ?? 0) - 1
-      const { error: creditUpdateError } = await service
-        .from('brand_profiles')
-        .update({ credit_balance: nextCredits })
-        .eq('id', user.id)
-
-      if (creditUpdateError) {
-        return NextResponse.json({ error: creditUpdateError.message }, { status: 400 })
-      }
-
-      await service.from('credit_transactions').insert({
-        brand_id: user.id,
-        type: 'deduct',
-        amount: 1,
-        reason: 'bid_accepted',
-        reference_id: params.bidId,
-        balance_after: nextCredits,
-      })
 
       // Create collab from accepted bid
       const agreedAmount =

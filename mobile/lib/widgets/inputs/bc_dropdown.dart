@@ -79,6 +79,7 @@ class _BCDropdownState extends State<BCDropdown> {
           child: DropdownButtonFormField<String>(
             initialValue: widget.value,
             focusNode: _focusNode,
+            isExpanded: true,
             decoration: InputDecoration(
               hintText: widget.hint,
               hintStyle: AppTypography.bodyMD.copyWith(
@@ -102,9 +103,30 @@ class _BCDropdownState extends State<BCDropdown> {
             items: widget.items.map((String item) {
               return DropdownMenuItem<String>(
                 value: item,
-                child: Text(item),
+                child: Text(
+                  item,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               );
             }).toList(),
+            selectedItemBuilder: (context) {
+              return widget.items
+                  .map(
+                    (item) => Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        item,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.bodyMD.copyWith(
+                          color: textColor,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList();
+            },
             onChanged: widget.onChanged,
             validator: widget.validator,
           ),

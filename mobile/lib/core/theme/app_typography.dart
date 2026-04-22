@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 class AppTypography {
   AppTypography._();
 
-  // Display — League Spartan (headings, big text)
+  // Main app font aligned with website body font: Nunito
   static const TextStyle displayXL = TextStyle(
-    fontFamily: 'League Spartan',
+    fontFamily: 'Nunito',
     fontSize: 40,
     fontWeight: FontWeight.w800,
     height: 1.1,
@@ -13,7 +13,7 @@ class AppTypography {
   );
 
   static const TextStyle displayLG = TextStyle(
-    fontFamily: 'League Spartan',
+    fontFamily: 'Nunito',
     fontSize: 32,
     fontWeight: FontWeight.w800,
     height: 1.15,
@@ -21,20 +21,20 @@ class AppTypography {
   );
 
   static const TextStyle displayMD = TextStyle(
-    fontFamily: 'League Spartan',
+    fontFamily: 'Nunito',
     fontSize: 26,
     fontWeight: FontWeight.w700,
     height: 1.2,
   );
 
   static const TextStyle displaySM = TextStyle(
-    fontFamily: 'League Spartan',
+    fontFamily: 'Nunito',
     fontSize: 22,
     fontWeight: FontWeight.w700,
     height: 1.25,
   );
 
-  // Body — Nunito
+  // Body
   static const TextStyle bodyLG = TextStyle(
     fontFamily: 'Nunito',
     fontSize: 18,
@@ -63,30 +63,30 @@ class AppTypography {
     height: 1.4,
   );
 
-  // Labels — Space Grotesk (tags, badges, buttons, stats)
+  // Labels
   static const TextStyle labelLG = TextStyle(
-    fontFamily: 'Space Grotesk',
+    fontFamily: 'Nunito',
     fontSize: 16,
     fontWeight: FontWeight.w700,
     letterSpacing: 0.2,
   );
 
   static const TextStyle labelMD = TextStyle(
-    fontFamily: 'Space Grotesk',
+    fontFamily: 'Nunito',
     fontSize: 14,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.1,
   );
 
   static const TextStyle labelSM = TextStyle(
-    fontFamily: 'Space Grotesk',
+    fontFamily: 'Nunito',
     fontSize: 12,
     fontWeight: FontWeight.w600,
     letterSpacing: 0.2,
   );
 
   static const TextStyle labelXS = TextStyle(
-    fontFamily: 'Space Grotesk',
+    fontFamily: 'Nunito',
     fontSize: 10,
     fontWeight: FontWeight.w700,
     letterSpacing: 0.5,
@@ -94,14 +94,14 @@ class AppTypography {
 
   // Button text
   static const TextStyle buttonLG = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+    fontFamily: 'Nunito',
     fontSize: 16,
     fontWeight: FontWeight.w700,
     letterSpacing: 0.2,
   );
 
   static const TextStyle buttonMD = TextStyle(
-    fontFamily: 'Plus Jakarta Sans',
+    fontFamily: 'Nunito',
     fontSize: 14,
     fontWeight: FontWeight.w700,
     letterSpacing: 0.2,

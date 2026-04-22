@@ -510,7 +510,7 @@ export default function BrandJoinPage() {
                     type="button"
                     onClick={goNext}
                     disabled={isLoading}
-                    className="ml-auto border-2 border-ink bg-ink px-6 py-3 font-space text-sm font-bold uppercase tracking-[0.08em] text-neon shadow-[4px_4px_0_#C8FF00]"
+                    className="ml-auto border-2 border-ink bg-ink px-6 py-3 font-space text-sm font-bold uppercase tracking-[0.08em] text-pink shadow-[4px_4px_0_#ff2d78]"
                   >
                     Next →
                   </button>

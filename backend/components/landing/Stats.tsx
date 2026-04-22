@@ -9,6 +9,7 @@ export default function Stats() {
 
   const creators = useCountUp(10000, 2000, isVisible)
   const brands = useCountUp(2400, 2000, isVisible)
+  const agencies = useCountUp(120, 2000, isVisible)
   const paidOut = useCountUp(50, 2000, isVisible)
   const rating = useCountUp(48, 2000, isVisible)
 
@@ -43,6 +44,11 @@ export default function Stats() {
       value: `${brands.toLocaleString()}+`,
       label: 'Brands',
       color: 'text-pink',
+    },
+    {
+      value: `${agencies.toLocaleString()}+`,
+      label: 'Agencies',
+      color: 'text-neon',
     },
     {
       value: `₹${paidOut}L+`,

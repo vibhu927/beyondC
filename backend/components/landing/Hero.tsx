@@ -39,7 +39,7 @@ export default function Hero() {
 
           {/* Subheadline */}
           <p className="font-nunito text-lg sm:text-xl text-muted max-w-3xl mx-auto mb-10 animate-fade-in-up animate-delay-200">
-            BeyondC connects brands and creators<br className="hidden sm:block" />
+            BeyondC connects brands, creators, and agencies<br className="hidden sm:block" />
             for real paid collabs — starting at just ₹100.<br />
             No fake followers. No cold DMs. Just results.
           </p>
@@ -131,10 +131,10 @@ export default function Hero() {
         </div>
 
         {/* Floating Cards */}
-        <div className="relative h-[400px] sm:h-[500px] mt-20">
+        <div className="relative h-[500px] sm:h-[600px] mt-20">
           {/* Creator Card */}
           <div 
-            className="absolute left-[5%] sm:left-[10%] top-[10%] w-[280px] sm:w-[320px] bg-white border-2 border-ink shadow-neo-neon p-6 float-element parallax"
+            className="absolute left-[5%] sm:left-[5%] top-[10%] w-[280px] sm:w-[320px] bg-white border-2 border-ink shadow-neo-neon p-6 float-element parallax"
             style={{ 
               transform: `rotate(3deg) translateY(${cardOffset}px)`,
             }}
@@ -165,7 +165,7 @@ export default function Hero() {
 
           {/* Brand Campaign Card */}
           <div 
-            className="absolute right-[5%] sm:right-[10%] top-[30%] sm:top-[20%] w-[280px] sm:w-[320px] bg-white border-2 border-ink shadow-neo-pink p-6 float-delayed parallax"
+            className="absolute right-[5%] sm:right-[5%] top-[30%] sm:top-[20%] w-[280px] sm:w-[320px] bg-white border-2 border-ink shadow-neo-pink p-6 float-delayed parallax"
             style={{ 
               transform: `rotate(-2deg) translateY(${cardOffset}px)`,
             }}
@@ -183,6 +183,37 @@ export default function Hero() {
                 12 bids received
               </span>
               <span className="font-nunito text-xs text-muted">3 days left ⏳</span>
+            </div>
+          </div>
+
+          {/* Agency Card - Center Bottom */}
+          <div 
+            className="absolute left-[30%] top-[48%] w-[280px] sm:w-[320px] bg-white border-2 border-ink shadow-[4px_4px_0_#9B5DE5] p-6 float-element parallax"
+            style={{ 
+              transform: `translateX(-50%) rotate(-1deg) translateY(${cardOffset}px)`,
+            }}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-purple flex items-center justify-center font-jakarta font-bold text-white text-lg">
+                CH
+              </div>
+              <div>
+                <h3 className="font-jakarta font-bold text-ink text-lg">Creator Hub</h3>
+                <p className="font-nunito text-sm text-muted">Agency Manager 🏢</p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className="font-nunito text-sm text-ink">
+                <span className="font-semibold">Creators:</span> 24 managed
+              </p>
+              <p className="font-nunito text-sm text-ink">
+                <span className="font-semibold">Won:</span> 5 collabs
+              </p>
+            </div>
+            <div className="mt-4">
+              <span className="inline-block px-3 py-1 bg-purple-600 text-white text-xs font-jakarta font-bold rounded-full">
+                Agency Pro
+              </span>
             </div>
           </div>
         </div>
