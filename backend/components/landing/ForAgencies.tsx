@@ -15,7 +15,7 @@ export default function ForAgencies() {
           <div>
             <h2 className="font-jakarta text-5xl sm:text-6xl lg:text-7xl font-extrabold text-ink mb-6 leading-tight">
               Scale your <span className="text-purple-600">agency</span>.<br />
-              <span>Represent creators better.</span>
+              <span><span className='text-purple'>Represent</span> creators better.</span>
             </h2>
 
               <div className="space-y-4 mb-8">
