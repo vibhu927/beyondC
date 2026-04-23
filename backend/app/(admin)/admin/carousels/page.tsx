@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { PermissionGate } from '@/components/admin/permission-gate'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -51,7 +52,7 @@ export default async function AdminCarouselsPage({ searchParams }: PageProps) {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {(items ?? []).map((item) => (
             <div key={item.id} className="rounded-md border p-2">
-              <img src={item.media_url} alt={item.caption || 'carousel media'} className="h-28 w-full rounded object-cover" />
+              <Image src={item.media_url} alt={item.caption || 'carousel media'} width={300} height={112} className="h-28 w-full rounded object-cover" />
               {item.caption ? <p className="mt-2 line-clamp-2 text-xs text-zinc-600 dark:text-zinc-400">{item.caption}</p> : null}
               <form action="/api/admin/carousels" method="post" className="mt-2">
                 <input type="hidden" name="action" value="delete" />

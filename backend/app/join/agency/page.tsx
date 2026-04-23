@@ -312,7 +312,7 @@ export default function AgencyJoinPage() {
                         className="mt-1 h-4 w-4 border-2 border-ink accent-purple"
                       />
                       <span className="font-nunito text-sm text-ink">
-                        I agree to BeyondC's{' '}
+                        I agree to BeyondC&apos;s{' '}
                         <Link href="#" className="font-bold underline underline-offset-2">Terms of Service</Link>{' '}
                         and{' '}
                         <Link href="#" className="font-bold underline underline-offset-2">Privacy Policy</Link>.
