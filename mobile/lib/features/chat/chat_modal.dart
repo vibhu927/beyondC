@@ -3,7 +3,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../providers/auth_provider.dart';
@@ -15,6 +14,7 @@ import '../../widgets/buttons/bc_back_button.dart';
 import 'chat_screen.dart';
 import 'widgets/archive_tile.dart';
 import 'widgets/chat_list_tile.dart';
+import '../creator/shared/widgets/creator_design_system.dart';
 
 void openChatModal(BuildContext context) {
   showModalBottomSheet<void>(
@@ -88,10 +88,12 @@ class _ChatModalSheetState extends ConsumerState<_ChatModalSheet> {
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            border: Border.all(color: AppColors.ink, width: 2),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            boxShadow: AppShadows.neon,
+            color: const Color(0xFFE7EDF7),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(
+              color: AppColors.ink.withValues(alpha: 0.14),
+              width: 1.2,
+            ),
           ),
           child: Column(
             children: [
@@ -186,8 +188,8 @@ class _ChatModalHeader extends StatelessWidget {
                 onPressed: onClose,
                 icon: Icons.close_rounded,
                 iconColor: AppColors.ink,
-                backgroundColor: AppColors.surface,
-                borderColor: AppColors.darkBorder,
+                backgroundColor: Colors.white.withValues(alpha: 0.92),
+                borderColor: AppColors.ink.withValues(alpha: 0.16),
                 tooltip: 'Close',
               ),
             ],
@@ -195,12 +197,10 @@ class _ChatModalHeader extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           SizedBox(
             height: 44,
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.neon,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-              ),
-              padding: const EdgeInsets.only(right: 3, bottom: 3),
+            child: GlassPanel(
+              accentColor: AppColors.neon,
+              radius: 999,
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
               child: TextField(
                 controller: searchController,
                 onChanged: onSearchChanged,
@@ -215,28 +215,10 @@ class _ChatModalHeader extends StatelessWidget {
                     Symbols.search_rounded,
                     color: AppColors.ink,
                   ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
                   isDense: true,
-                  filled: true,
-                  fillColor: AppColors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                    borderSide:
-                        const BorderSide(color: AppColors.ink, width: 1.8),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                    borderSide:
-                        const BorderSide(color: AppColors.ink, width: 1.8),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                    borderSide:
-                        const BorderSide(color: AppColors.ink, width: 2),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
                 ),
               ),
             ),
@@ -286,14 +268,26 @@ class _FilterChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: active ? AppColors.ink : AppColors.surface,
+          color: active
+              ? AppColors.ink.withValues(alpha: 0.9)
+              : Colors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: AppColors.ink, width: 1.2),
+          border: uniformBorder(
+            active ? AppColors.ink : AppColors.blue,
+            width: 1.1,
+          ),
+          boxShadow: neoShadows(
+            active ? AppColors.ink : AppColors.blue,
+            alpha: 0.1,
+            offset: 2.5,
+            blurRadius: 8,
+          ),
         ),
         child: Text(
           label,
           style: AppTypography.labelSM.copyWith(
             color: active ? AppColors.neon : AppColors.ink,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),

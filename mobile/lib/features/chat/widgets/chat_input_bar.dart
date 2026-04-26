@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../creator/shared/widgets/creator_design_system.dart';
 
 class ChatInputBar extends StatefulWidget {
   const ChatInputBar({
@@ -46,21 +46,12 @@ class _ChatInputBarState extends State<ChatInputBar> {
     final normalizedRole = widget.role.trim().toLowerCase();
     final isBrand = normalizedRole == 'brand';
     final accentColor = isBrand ? AppColors.error : AppColors.neon;
-    final buttonFillColor = canSend
-        ? accentColor
-        : accentColor.withValues(alpha: 0.38);
-    final buttonShadow = <BoxShadow>[
-          const BoxShadow(
-        color: Colors.black,
-            offset: Offset(3, 3),
-        blurRadius: 0,
-      ),
-    ];
-
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.divider)),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE7EDF7).withValues(alpha: 0.9),
+        border: Border(
+          top: BorderSide(color: AppColors.ink.withValues(alpha: 0.12)),
+        ),
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -70,19 +61,9 @@ class _ChatInputBarState extends State<ChatInputBar> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              curve: Curves.easeOut,
-              height: 46,
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: _focusNode.hasFocus ? AppColors.neon : AppColors.ink,
-                  width: 2,
-                ),
-                boxShadow: _focusNode.hasFocus ? AppShadows.neon : AppShadows.blue,
-              ),
+            child: GlassPanel(
+              accentColor: _focusNode.hasFocus ? AppColors.neon : AppColors.blue,
+              radius: 999,
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: TextField(
                 controller: _controller,
@@ -104,7 +85,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                   filled: false,
                   fillColor: Colors.transparent,
                   isDense: true,
-                  contentPadding: EdgeInsets.symmetric(vertical: 10),
+                  contentPadding: EdgeInsets.symmetric(vertical: 12),
                 ),
               ),
             ),
@@ -124,18 +105,20 @@ class _ChatInputBarState extends State<ChatInputBar> {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: buttonFillColor,
+                color: accentColor.withValues(alpha: canSend ? 0.2 : 0.09),
                 borderRadius: BorderRadius.circular(999),
-                border: Border.all(
-                  color: AppColors.ink,
-                  width: 2,
+                border: uniformBorder(accentColor, width: 1.2),
+                boxShadow: neoShadows(
+                  accentColor,
+                  alpha: 0.2,
+                  offset: 2.5,
+                  blurRadius: 8,
                 ),
-                boxShadow: buttonShadow,
               ),
               child: Icon(
                 Symbols.send_rounded,
                 size: 20,
-                color: AppColors.ink.withValues(alpha: canSend ? 1 : 0.62),
+                color: accentColor.withValues(alpha: canSend ? 1 : 0.55),
               ),
             ),
           ),

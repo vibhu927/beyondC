@@ -188,15 +188,15 @@ class AuthRepository {
     return user.userMetadata?['role'] as String?;
   }
 
-  /// Check if user has completed onboarding
-  /// For now, we consider user onboarded if they have a role in metadata
-  /// In future, you might check a separate onboarding_completed flag
+  /// Check if user has completed onboarding.
+  /// For now, we consider user onboarded if they have a supported role in metadata.
   Future<bool> isOnboarded() async {
     final user = _supabase.auth.currentUser;
     if (user == null) return false;
 
     final role = user.userMetadata?['role'];
-    return role != null && (role == 'creator' || role == 'brand');
+    return role != null &&
+        (role == 'creator' || role == 'brand' || role == 'agency');
   }
 
   /// Get current user

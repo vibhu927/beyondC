@@ -30,7 +30,9 @@ class _AgencyHomeScreenState extends ConsumerState<AgencyHomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future<void>.microtask(() => ref.read(agencyRepositoryProvider));
+    Future<void>.microtask(() async {
+      await ref.read(agencyProfileProvider.future);
+    });
   }
 
   @override

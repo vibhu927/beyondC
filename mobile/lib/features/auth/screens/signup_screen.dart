@@ -1,28 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_typography.dart';
-import '../../../core/theme/app_spacing.dart';
+import 'package:material_symbols_icons/symbols.dart';
+
 import '../../../core/router/route_names.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_spacing.dart';
+import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/validators.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_logo.dart';
 import '../../../widgets/buttons/bc_back_button.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
-import '../../../widgets/badges/bc_badge.dart';
-import '../../../widgets/inputs/bc_text_field.dart';
 import '../../../widgets/inputs/bc_dropdown.dart';
 import '../../../widgets/inputs/bc_location_picker.dart';
+import '../../../widgets/inputs/bc_text_field.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
-  final String? role;
-
   const SignupScreen({
     super.key,
     this.role,
   });
+
+  final String? role;
 
   @override
   ConsumerState<SignupScreen> createState() => _SignupScreenState();
@@ -47,6 +48,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   bool _showValidationErrors = false;
 
   late final String _role;
+
+  bool get _isCreator => _role == 'creator';
+  bool get _isBrand => _role == 'brand';
+  bool get _isAgency => _role == 'agency';
 
   final List<String> _niches = [
     'Fashion',
@@ -94,12 +99,51 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     super.dispose();
   }
 
+  String _roleDescription() {
+    if (_isCreator) {
+      return 'Join as a creator and start getting paid to create.';
+    }
+    if (_isBrand) {
+      return 'Join as a brand and discover your next creator.';
+    }
+    return 'Join as an agency and manage creators in one workspace.';
+  }
+
+  String _roleBadgeLabel() {
+    if (_isCreator) return 'Joining as Creator';
+    if (_isBrand) return 'Joining as Brand';
+    return 'Joining as Agency';
+  }
+
+  BCBadgeVariant _roleBadgeVariant() {
+    if (_isCreator) return BCBadgeVariant.neon;
+    if (_isBrand) return BCBadgeVariant.pink;
+    return BCBadgeVariant.blue;
+  }
+
+  String _roleSpecificValidationMessage() {
+    if (_isCreator) return 'Please select your primary niche';
+    return 'Please select your brand category';
+  }
+
+  String _successMessage() {
+    if (_isCreator) return 'Account created. Welcome creator!';
+    if (_isBrand) return 'Account created. Welcome brand!';
+    return 'Account created. Welcome agency!';
+  }
+
+  String _homeRoute() {
+    if (_isCreator) return RouteNames.creatorHome;
+    if (_isBrand) return RouteNames.brandHome;
+    return RouteNames.agencyHome;
+  }
+
   Future<void> _submit() async {
     final formValid = _formKey.currentState!.validate();
-    final roleSpecificValid = (_role == 'creator' && _selectedNiche != null) ||
-        (_role == 'brand' && _selectedCategory != null);
-    final locationValid =
-      (_selectedState ?? '').trim().isNotEmpty &&
+    final roleSpecificValid = (_isCreator && _selectedNiche != null) ||
+        (_isBrand && _selectedCategory != null) ||
+        _isAgency;
+    final locationValid = (_selectedState ?? '').trim().isNotEmpty &&
         (_selectedCity ?? '').trim().isNotEmpty;
 
     if (!formValid || !roleSpecificValid || !locationValid) {
@@ -111,9 +155,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              _role == 'creator'
-                  ? 'Please select your primary niche'
-                  : 'Please select your brand category',
+              _roleSpecificValidationMessage(),
               style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: AppColors.ink,
@@ -136,15 +178,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       return;
     }
 
-    // Prepare extra data based on role
     Map<String, dynamic>? extraData;
-    if (_role == 'creator') {
+    if (_isCreator) {
       extraData = {
         if (_selectedNiche != null) 'primary_niche': _selectedNiche,
       };
-    } else {
+    } else if (_isBrand) {
       extraData = {
-        'brand_name': _brandNameController.text,
+        'brand_name': _brandNameController.text.trim(),
         if (_selectedCategory != null) 'brand_category': _selectedCategory,
       };
     }
@@ -157,29 +198,24 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             firstName: _firstNameController.text.trim(),
             fullName: _fullNameController.text.trim(),
             phone: _phoneController.text.trim(),
-        locationState: _selectedState!.trim(),
-        locationCity: _selectedCity!.trim(),
+            locationState: _selectedState!.trim(),
+            locationCity: _selectedCity!.trim(),
             extraData: extraData,
           );
 
       if (!mounted) return;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            _role == 'creator'
-                ? 'Account created. Welcome creator!'
-                : 'Account created. Welcome brand!',
+            _successMessage(),
             style: const TextStyle(color: Colors.white),
           ),
           backgroundColor: AppColors.ink,
         ),
       );
 
-      if (_role == 'creator') {
-        context.go(RouteNames.creatorHome);
-      } else {
-        context.go(RouteNames.brandHome);
-      }
+      context.go(_homeRoute());
     } catch (e) {
       if (!mounted) return;
 
@@ -213,7 +249,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top row: Back arrow + Logo
                 Row(
                   children: [
                     BCBackButton(
@@ -234,7 +269,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ],
                 ),
                 const SizedBox(height: 32),
-                // Headline
                 Text(
                   'Create your\naccount.',
                   style: AppTypography.displayMD.copyWith(
@@ -243,27 +277,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Subtext
                 Text(
-                  _role == 'creator'
-                      ? 'Join as a creator and start getting paid to create.'
-                      : 'Join as a brand and discover your next creator.',
+                  _roleDescription(),
                   style: AppTypography.bodyMD.copyWith(
                     color: AppColors.muted,
                   ),
                 ),
                 const SizedBox(height: 32),
-                // Role badge
                 BCBadge(
-                  label: _role == 'creator'
-                      ? '🎨 Joining as Creator'
-                      : '🏢 Joining as Brand',
-                  variant: _role == 'creator'
-                      ? BCBadgeVariant.neon
-                      : BCBadgeVariant.pink,
+                  label: _roleBadgeLabel(),
+                  variant: _roleBadgeVariant(),
                 ),
                 const SizedBox(height: 24),
-                // Common fields
                 BCTextField(
                   label: 'First Name',
                   controller: _firstNameController,
@@ -351,8 +376,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                // Role-specific fields
-                if (_role == 'creator') ...[
+                if (_isCreator) ...[
                   BCDropdown(
                     label: 'Primary Niche',
                     value: _selectedNiche,
@@ -368,7 +392,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             });
                           },
                   ),
-                ] else ...[
+                ] else if (_isBrand) ...[
                   BCTextField(
                     label: 'Brand Name',
                     controller: _brandNameController,
@@ -392,24 +416,38 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                             });
                           },
                   ),
+                ] else ...[
+                  Text(
+                    'You can finish your agency profile after account creation.',
+                    style: AppTypography.bodySM.copyWith(
+                      color: AppColors.muted,
+                    ),
+                  ),
                 ],
                 const SizedBox(height: 32),
-                // Submit button
-                _role == 'creator'
+                _isCreator
                     ? BCPrimaryButton.neon(
-                        label: 'Create Account →',
+                        label: 'Create Account ->',
                         onPressed: isLoading ? null : _submit,
                         isLoading: isLoading,
                         isFullWidth: true,
                       )
-                    : BCPrimaryButton.pink(
-                        label: 'Create Account →',
-                        onPressed: isLoading ? null : _submit,
-                        isLoading: isLoading,
-                        isFullWidth: true,
-                      ),
+                    : _isBrand
+                        ? BCPrimaryButton.pink(
+                            label: 'Create Account ->',
+                            onPressed: isLoading ? null : _submit,
+                            isLoading: isLoading,
+                            isFullWidth: true,
+                          )
+                        : BCPrimaryButton(
+                            label: 'Create Account ->',
+                            onPressed: isLoading ? null : _submit,
+                            isLoading: isLoading,
+                            isFullWidth: true,
+                            backgroundColor: AppColors.blue,
+                            textColor: AppColors.white,
+                          ),
                 const SizedBox(height: 16),
-                // Already have account
                 Center(
                   child: TextButton(
                     onPressed: isLoading

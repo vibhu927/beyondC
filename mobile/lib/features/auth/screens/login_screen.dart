@@ -53,6 +53,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         context.go(RouteNames.creatorHome);
       } else if (role == 'brand') {
         context.go(RouteNames.brandHome);
+      } else if (role == 'agency') {
+        context.go(RouteNames.agencyHome);
       } else {
         context.go(RouteNames.roleSelect);
       }

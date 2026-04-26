@@ -16,6 +16,7 @@ import '../../widgets/bc_error_state.dart';
 import 'profile_view_sheet.dart';
 import 'widgets/chat_input_bar.dart';
 import 'widgets/message_bubble.dart';
+import '../creator/shared/widgets/creator_design_system.dart';
 
 void openChatDrawer(BuildContext context, String collabId) {
   final container = ProviderScope.containerOf(context, listen: false);
@@ -110,18 +111,51 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: Colors.transparent,
         resizeToAvoidBottomInset: true,
-        body: SafeArea(
-          child: Column(
-            children: [
-              _TopBar(
-                chat: chat,
-                onClose: () => Navigator.of(context).pop(),
-                onInfo: () => openProfileViewSheet(context, widget.collabId),
+        body: Stack(
+          children: [
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFFE1E8F4),
+                      Color(0xFFE9EFF8),
+                      Color(0xFFF5F7FB),
+                    ],
+                  ),
+                ),
               ),
-              Expanded(
-                child: ref.watch(chatProvider(widget.collabId)).when(
+            ),
+            Positioned(
+              top: 16,
+              right: -54,
+              child: AmbientGlow(
+                size: 164,
+                color: AppColors.neon.withValues(alpha: 0.14),
+              ),
+            ),
+            Positioned(
+              top: 220,
+              left: -42,
+              child: AmbientGlow(
+                size: 126,
+                color: AppColors.pink.withValues(alpha: 0.12),
+              ),
+            ),
+            SafeArea(
+              child: Column(
+                children: [
+                  _TopBar(
+                    chat: chat,
+                    onClose: () => Navigator.of(context).pop(),
+                    onInfo: () => openProfileViewSheet(context, widget.collabId),
+                  ),
+                  Expanded(
+                    child: ref.watch(chatProvider(widget.collabId)).when(
                       loading: () => const Center(child: BCAppLoader()),
                       error: (error, _) => BCErrorState(
                         message: error.toString(),
@@ -172,23 +206,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 ),
                                 if (showDateSeparator)
                                   Center(
-                                    child: Container(
-                                      margin: const EdgeInsets.symmetric(
-                                          vertical: 8),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 4,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.lightDivider,
-                                        borderRadius:
-                                            BorderRadius.circular(999),
-                                      ),
-                                      child: Text(
-                                        _dayLabel(current.createdAt),
-                                        style: AppTypography.bodyXS
-                                            .copyWith(color: AppColors.muted),
-                                      ),
+                                    child: InlineTonePill(
+                                      label: _dayLabel(current.createdAt),
+                                      accent: AppColors.ink,
                                     ),
                                   ),
                               ],
@@ -197,17 +217,19 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         );
                       },
                     ),
+                  ),
+                  ChatInputBar(
+                    role: role,
+                    onSend: (text) {
+                      ref
+                          .read(chatProvider(widget.collabId).notifier)
+                          .sendMessage(text);
+                    },
+                  ),
+                ],
               ),
-              ChatInputBar(
-                role: role,
-                onSend: (text) {
-                  ref
-                      .read(chatProvider(widget.collabId).notifier)
-                      .sendMessage(text);
-                },
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -261,16 +283,20 @@ class _TopBar extends StatelessWidget {
         horizontal: AppSpacing.screenPadding,
         vertical: AppSpacing.sm,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.ink,
-        border: Border(bottom: BorderSide(color: Color(0x33FFFFFF))),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE7EDF7).withValues(alpha: 0.92),
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.ink.withValues(alpha: 0.12),
+          ),
+        ),
       ),
       child: Row(
         children: [
           BCBackButton(
             onPressed: onClose,
             icon: Icons.close_rounded,
-            iconColor: AppColors.white,
+            iconColor: AppColors.ink,
             tooltip: 'Close',
           ),
           const SizedBox(width: 12),
@@ -278,9 +304,12 @@ class _TopBar extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.darkSurface,
+              color: AppColors.ink,
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.white, width: 1.6),
+              border: Border.all(
+                color: AppColors.neon.withValues(alpha: 0.8),
+                width: 1.6,
+              ),
             ),
             alignment: Alignment.center,
             child: avatarUrl.isNotEmpty
@@ -311,14 +340,17 @@ class _TopBar extends StatelessWidget {
               children: [
                 Text(
                   chat?.otherPartyName ?? 'Chat',
-                  style: AppTypography.labelLG.copyWith(color: AppColors.white),
+                  style: AppTypography.labelLG.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w900,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   subtitle,
                   style: AppTypography.bodyXS
-                      .copyWith(color: AppColors.white.withValues(alpha: 0.82)),
+                      .copyWith(color: AppColors.muted),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -329,7 +361,7 @@ class _TopBar extends StatelessWidget {
             onPressed: onInfo,
             icon: const Icon(
               Icons.info_rounded,
-              color: AppColors.white,
+              color: AppColors.ink,
             ),
           ),
         ],

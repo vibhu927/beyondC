@@ -296,29 +296,30 @@ class _CreatorDiscoveryScreenState
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setSheetState) {
-            return Container(
-              decoration: const BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(AppSpacing.radiusLG),
-                ),
-                border: Border(
-                  top: BorderSide(color: AppColors.ink, width: 2),
-                ),
+            return ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppSpacing.radiusLG),
               ),
-              child: SafeArea(
-                top: false,
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.xl,
-                    AppSpacing.xl,
-                    AppSpacing.xl,
-                    AppSpacing.xl + MediaQuery.of(context).viewInsets.bottom,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: AppColors.white,
+                  border: Border(
+                    top: BorderSide(color: AppColors.ink, width: 2),
                   ),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.xl,
+                      AppSpacing.xl,
+                      AppSpacing.xl,
+                      AppSpacing.xl + MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         const Text('Filters', style: AppTypography.displaySM),
                         const SizedBox(height: AppSpacing.lg),
                         const Text('Tier', style: AppTypography.labelMD),
@@ -396,7 +397,8 @@ class _CreatorDiscoveryScreenState
                             Navigator.of(context).pop();
                           },
                         ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

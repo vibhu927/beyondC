@@ -8,8 +8,8 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
-import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../shared/widgets/creator_design_system.dart';
 
 class CampaignCard extends StatelessWidget {
   const CampaignCard({
@@ -31,102 +31,114 @@ class CampaignCard extends StatelessWidget {
 
     return SizedBox(
       width: width,
-      child: BCCard(
+      child: GestureDetector(
         onTap: onTap,
-        shadow: AppShadows.pink,
-        backgroundColor: AppColors.white,
-        borderColor: AppColors.ink,
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: _avatarColor(campaign.brandInitial),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.ink, width: 2),
+        child: GlassPanel(
+          accentColor: _collabAccent(campaign.collabType),
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: _avatarColor(campaign.brandInitial),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.ink, width: 1.4),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      campaign.brandInitial,
+                      style:
+                          AppTypography.labelMD.copyWith(color: AppColors.white),
+                    ),
                   ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    campaign.brandInitial,
-                    style:
-                        AppTypography.labelMD.copyWith(color: AppColors.white),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Brand in ${campaign.brandCategory}',
+                          style: AppTypography.labelMD.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        InlineTonePill(
+                          label: _deadlineLabel(campaign.deadline),
+                          accent: AppColors.ink,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Brand in ${campaign.brandCategory}',
-                        style: AppTypography.labelMD,
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${Formatters.currencyFromINR(campaign.minBudget)}–${Formatters.currencyFromINR(campaign.maxBudget)}',
+                      style: AppTypography.displaySM.copyWith(
+                        fontWeight: FontWeight.w900,
                       ),
-                      const SizedBox(height: AppSpacing.xs),
-                      BCBadge(
-                        label: _deadlineLabel(campaign.deadline),
-                        variant: BCBadgeVariant.outline,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    '${Formatters.currencyFromINR(campaign.minBudget)}–${Formatters.currencyFromINR(campaign.maxBudget)}',
-                    style: AppTypography.displaySM,
+                  InlineTonePill(
+                    label: _collabLabel(campaign.collabType),
+                    accent: _collabAccent(campaign.collabType),
                   ),
-                ),
-                BCBadge(
-                  label: _collabLabel(campaign.collabType),
-                  variant: _collabVariant(campaign.collabType),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                for (final deliverable in visibleDeliverables)
-                  BCBadge(label: deliverable, variant: BCBadgeVariant.outline),
-                if (extraCount > 0)
-                  BCBadge(
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  for (final deliverable in visibleDeliverables)
+                    InlineTonePill(
+                      label: deliverable,
+                      accent: AppColors.blue,
+                    ),
+                  if (extraCount > 0)
+                    InlineTonePill(
                       label: '+$extraCount more',
-                      variant: BCBadgeVariant.outline),
-              ],
-            ),
-            const Spacer(),
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    '${campaign.bidCount} bids so far',
-                    style: AppTypography.bodyXS,
+                      accent: AppColors.purple,
+                    ),
+                ],
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${campaign.bidCount} bids so far',
+                      style: AppTypography.bodyXS,
+                    ),
                   ),
-                ),
-                BCBadge(
-                  label: campaign.targetCity != null
-                      ? '📍 ${campaign.targetCity}'
-                      : campaign.targetState != null
-                          ? '📍 ${campaign.targetState}'
-                          : '🌏 Pan India',
-                  variant: BCBadgeVariant.outline,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _SmallNeoButton(label: 'Bid Now →', onTap: onTap),
-              ],
-            ),
-          ],
+                  InlineTonePill(
+                    label: campaign.targetCity != null
+                        ? '📍 ${campaign.targetCity}'
+                        : campaign.targetState != null
+                            ? '📍 ${campaign.targetState}'
+                            : '🌏 Pan India',
+                    accent: AppColors.orange,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  GlassButton(
+                    label: 'Bid Now',
+                    accent: AppColors.neon,
+                    onTap: onTap,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -207,33 +219,6 @@ class CampaignCardSkeleton extends StatelessWidget {
   }
 }
 
-class _SmallNeoButton extends StatelessWidget {
-  const _SmallNeoButton({
-    required this.label,
-    this.onTap,
-  });
-
-  final String label;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-        decoration: BoxDecoration(
-          color: AppColors.neon,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusSM),
-          border: Border.all(color: AppColors.ink, width: 2),
-        ),
-        child: Text(label, style: AppTypography.labelSM),
-      ),
-    );
-  }
-}
-
 String _collabLabel(CampaignCollabType type) {
   switch (type) {
     case CampaignCollabType.paid:
@@ -245,14 +230,14 @@ String _collabLabel(CampaignCollabType type) {
   }
 }
 
-BCBadgeVariant _collabVariant(CampaignCollabType type) {
+Color _collabAccent(CampaignCollabType type) {
   switch (type) {
     case CampaignCollabType.paid:
-      return BCBadgeVariant.pink;
+      return AppColors.pink;
     case CampaignCollabType.barter:
-      return BCBadgeVariant.blue;
+      return AppColors.blue;
     case CampaignCollabType.hybrid:
-      return BCBadgeVariant.purple;
+      return AppColors.purple;
   }
 }
 

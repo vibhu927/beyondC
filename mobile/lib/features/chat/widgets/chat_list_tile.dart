@@ -6,6 +6,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/collab_chat.dart';
+import '../../creator/shared/widgets/creator_design_system.dart';
 
 class ChatListTile extends StatelessWidget {
   const ChatListTile({
@@ -28,109 +29,106 @@ class ChatListTile extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.screenPadding,
-          vertical: AppSpacing.md,
+      borderRadius: BorderRadius.circular(22),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screenPadding,
+          0,
+          AppSpacing.screenPadding,
+          AppSpacing.sm,
         ),
-        decoration: const BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.divider)),
-        ),
-        child: Row(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                _Avatar(
-                  label: chat.otherPartyName,
-                  avatarUrl: chat.otherPartyAvatar,
-                ),
-                if (unread > 0)
-                  Positioned(
-                    right: -1,
-                    bottom: -1,
-                    child: Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        color: AppColors.neon,
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: AppColors.ink, width: 1.2),
+        child: GlassPanel(
+          accentColor: unread > 0 ? AppColors.neon : AppColors.blue,
+          radius: 22,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.md,
+          ),
+          child: Row(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  _Avatar(
+                    label: chat.otherPartyName,
+                    avatarUrl: chat.otherPartyAvatar,
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      right: -1,
+                      bottom: -1,
+                      child: Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: AppColors.neon,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: AppColors.ink, width: 1.2),
+                        ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          chat.otherPartyName,
-                          style: nameStyle,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        _timeLabel(chat.lastMessageAt),
-                        style: AppTypography.bodyXS.copyWith(
-                          color: unread > 0 ? AppColors.ink : AppColors.muted,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          chat.campaignTitle?.trim().isNotEmpty == true
-                              ? chat.campaignTitle!
-                              : 'Campaign conversation',
-                          style: AppTypography.bodySM.copyWith(
-                            color: unread > 0 ? AppColors.ink : AppColors.muted,
-                            fontWeight: unread > 0 ? FontWeight.w600 : FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      if (unread > 0)
-                        Container(
-                          width: 20,
-                          height: 20,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: AppColors.pink,
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            unread > 9 ? '9+' : '$unread',
-                            style: AppTypography.bodyXS.copyWith(
-                              color: AppColors.white,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        )
-                      else if (chat.isArchived)
-                        const Icon(
-                          Symbols.archive_rounded,
-                          size: 16,
-                          color: AppColors.muted,
-                        ),
-                    ],
-                  ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            chat.otherPartyName,
+                            style: nameStyle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Text(
+                          _timeLabel(chat.lastMessageAt),
+                          style: AppTypography.bodyXS.copyWith(
+                            color: unread > 0 ? AppColors.ink : AppColors.muted,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            chat.campaignTitle?.trim().isNotEmpty == true
+                                ? chat.campaignTitle!
+                                : 'Campaign conversation',
+                            style: AppTypography.bodySM.copyWith(
+                              color: unread > 0 ? AppColors.ink : AppColors.muted,
+                              fontWeight:
+                                  unread > 0 ? FontWeight.w600 : FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        if (unread > 0)
+                          InlineTonePill(
+                            label: unread > 9 ? '9+' : '$unread',
+                            accent: AppColors.pink,
+                          )
+                        else if (chat.isArchived)
+                          const Icon(
+                            Symbols.archive_rounded,
+                            size: 16,
+                            color: AppColors.muted,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

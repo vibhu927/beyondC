@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../core/router/route_names.dart';
@@ -20,6 +20,7 @@ import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
 import '../../shared/widgets/home_carousel_strip.dart';
+import '../../shared/widgets/home_content_sheet.dart';
 
 class BrandHomeScreen extends ConsumerStatefulWidget {
   const BrandHomeScreen({super.key});
@@ -30,7 +31,8 @@ class BrandHomeScreen extends ConsumerStatefulWidget {
 
 class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
   static const double _carouselHeight = 200;
-  static const double _contentTopInset = 168;
+  static const double _contentGap = AppSpacing.lg;
+  static const double _contentTopInset = _carouselHeight + _contentGap;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -115,172 +117,202 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                             : AppSpacing.lg,
                       ),
                     ),
-                    SliverPadding(
-                      padding: EdgeInsets.fromLTRB(
-                        AppSpacing.screenPadding,
-                        AppSpacing.lg,
-                        AppSpacing.screenPadding,
-                        AppSpacing.huge + navClearance,
-                      ),
-                      sliver: SliverList(
-                        delegate: SliverChildListDelegate([
-                      Wrap(
-                        spacing: AppSpacing.md,
-                        runSpacing: AppSpacing.md,
-                        children: [
-                          _MiniStatPill(
-                            emoji: '⚡',
-                            label: '${brandState.creditBalance} credits',
-                            backgroundColor: AppColors.blue,
-                            textColor: AppColors.white,
-                          ),
-                          _MiniStatPill(
-                            emoji: '📢',
-                            label:
-                                '${brandState.activeCampaignCount} campaigns',
-                            backgroundColor: AppColors.ink,
-                            textColor: AppColors.white,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.xxxl),
-                      IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child: _ActionCard(
-                                emoji: '📢',
-                                title: 'Post Campaign',
-                                subtitle: 'Let creators bid for you',
-                                shadow: AppShadows.pink,
-                                onTap: () =>
-                                    context.push(RouteNames.createCampaign),
-                              ),
-                            ),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: _ActionCard(
-                                emoji: '🔍',
-                                title: 'Find Creators',
-                                subtitle: 'Browse and send requests',
-                                shadow: AppShadows.neon,
-                                onTap: () =>
-                                    context.push(RouteNames.brandDiscover),
-                              ),
-                            ),
-                          ],
+                    SliverToBoxAdapter(
+                      child: HomeContentSheet(
+                        padding: EdgeInsets.fromLTRB(
+                          AppSpacing.screenPadding,
+                          AppSpacing.lg,
+                          AppSpacing.screenPadding,
+                          AppSpacing.huge + navClearance,
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-
-                      // Quick action card: Host an Event
-                      BCCard(
-                        onTap: () => context.push(RouteNames.brandEvents),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('🎟️', style: TextStyle(fontSize: 30)),
-                            const SizedBox(width: AppSpacing.md),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                            Wrap(
+                              spacing: AppSpacing.md,
+                              runSpacing: AppSpacing.md,
+                              children: [
+                                _MiniStatPill(
+                                  emoji: '⚡',
+                                  label:
+                                      '${brandState.creditBalance} credits',
+                                  backgroundColor: AppColors.blue,
+                                  textColor: AppColors.white,
+                                ),
+                                _MiniStatPill(
+                                  emoji: '📢',
+                                  label:
+                                      '${brandState.activeCampaignCount} campaigns',
+                                  backgroundColor: AppColors.ink,
+                                  textColor: AppColors.white,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.xxxl),
+                            IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  Text('Host an Event', style: AppTypography.labelLG),
-                                  const SizedBox(height: AppSpacing.xs),
-                                  Text(
-                                    'Invite creators to your IRL event',
-                                    style: AppTypography.bodyXS,
+                                  Expanded(
+                                    child: _ActionCard(
+                                      emoji: '📢',
+                                      title: 'Post Campaign',
+                                      subtitle: 'Let creators bid for you',
+                                      shadow: AppShadows.pink,
+                                      onTap: () => context.push(
+                                        RouteNames.createCampaign,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: AppSpacing.md),
+                                  Expanded(
+                                    child: _ActionCard(
+                                      emoji: '🔍',
+                                      title: 'Find Creators',
+                                      subtitle: 'Browse and send requests',
+                                      shadow: AppShadows.neon,
+                                      onTap: () => context.push(
+                                        RouteNames.brandDiscover,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
-                            Icon(Symbols.arrow_forward_rounded, color: AppColors.ink),
+                            const SizedBox(height: AppSpacing.md),
+                            BCCard(
+                              onTap: () => context.push(RouteNames.brandEvents),
+                              child: Row(
+                                children: [
+                                  const Text(
+                                    '🎟️',
+                                    style: TextStyle(fontSize: 30),
+                                  ),
+                                  const SizedBox(width: AppSpacing.md),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Host an Event',
+                                          style: AppTypography.labelLG,
+                                        ),
+                                        const SizedBox(height: AppSpacing.xs),
+                                        Text(
+                                          'Invite creators to your IRL event',
+                                          style: AppTypography.bodyXS,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Symbols.arrow_forward_rounded,
+                                    color: AppColors.ink,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.xxxl),
+                            _SectionHeader(
+                              title: 'Active Collabs',
+                              actionLabel: 'Manage ->',
+                              onTap: () =>
+                                  context.push(RouteNames.brandCollabs),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            if (brandState.activeCollabs.isEmpty)
+                              const _EmptyState(
+                                emoji: '🤝',
+                                message:
+                                    'No active collabs yet.\nAccept a bid or request to see live collaborations here.',
+                              )
+                            else
+                              SizedBox(
+                                height: 212,
+                                child: ListView.separated(
+                                  clipBehavior: Clip.none,
+                                  padding: const EdgeInsets.only(
+                                    right: AppSpacing.sm,
+                                    bottom: AppSpacing.sm,
+                                  ),
+                                  scrollDirection: Axis.horizontal,
+                                  itemBuilder: (context, index) {
+                                    final collab =
+                                        brandState.activeCollabs[index];
+                                    return SizedBox(
+                                      width: 260,
+                                      child: BCCard(
+                                        shadow: AppShadows.pink,
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    collab.creatorName,
+                                                    style:
+                                                        AppTypography.labelLG,
+                                                  ),
+                                                ),
+                                                BCBadge(
+                                                  label: _collabStatusLabel(
+                                                    collab.status,
+                                                  ),
+                                                  variant:
+                                                      _collabStatusVariant(
+                                                    collab.status,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(
+                                              height: AppSpacing.md,
+                                            ),
+                                            BCBadge(
+                                              label: collab.campaignTitle,
+                                              variant: BCBadgeVariant.neon,
+                                            ),
+                                            const SizedBox(
+                                              height: AppSpacing.md,
+                                            ),
+                                            Text(
+                                              _collabMeta(collab),
+                                              style: AppTypography.bodySM
+                                                  .copyWith(
+                                                color: AppColors.muted,
+                                              ),
+                                            ),
+                                            const Spacer(),
+                                            Align(
+                                              alignment:
+                                                  Alignment.centerRight,
+                                              child: BCPrimaryButton.dark(
+                                                label: 'Open Collabs ->',
+                                                onPressed: () => context.push(
+                                                  RouteNames.brandCollabs,
+                                                ),
+                                                isFullWidth: false,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(width: AppSpacing.md),
+                                  itemCount: brandState.activeCollabs.length,
+                                ),
+                              ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.xxxl),
-                      _SectionHeader(
-                        title: 'Active Collabs',
-                        actionLabel: 'Manage →',
-                        onTap: () => context.push(RouteNames.brandCollabs),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      if (brandState.activeCollabs.isEmpty)
-                        const _EmptyState(
-                          emoji: '🤝',
-                          message:
-                              'No active collabs yet.\nAccept a bid or request to see live collaborations here.',
-                        )
-                      else
-                        SizedBox(
-                          height: 212,
-                          child: ListView.separated(
-                            clipBehavior: Clip.none,
-                            padding: const EdgeInsets.only(
-                              right: AppSpacing.sm,
-                              bottom: AppSpacing.sm,
-                            ),
-                            scrollDirection: Axis.horizontal,
-                            itemBuilder: (context, index) {
-                              final collab = brandState.activeCollabs[index];
-                              return SizedBox(
-                                width: 260,
-                                child: BCCard(
-                                  shadow: AppShadows.pink,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(collab.creatorName,
-                                                style: AppTypography.labelLG),
-                                          ),
-                                          BCBadge(
-                                            label: _collabStatusLabel(
-                                                collab.status),
-                                            variant: _collabStatusVariant(
-                                                collab.status),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: AppSpacing.md),
-                                      BCBadge(
-                                        label: collab.campaignTitle,
-                                        variant: BCBadgeVariant.neon,
-                                      ),
-                                      const SizedBox(height: AppSpacing.md),
-                                      Text(
-                                        _collabMeta(collab),
-                                        style: AppTypography.bodySM
-                                            .copyWith(color: AppColors.muted),
-                                      ),
-                                      const Spacer(),
-                                      Align(
-                                        alignment: Alignment.centerRight,
-                                        child: BCPrimaryButton.dark(
-                                          label: 'Open Collabs →',
-                                          onPressed: () => context
-                                              .push(RouteNames.brandCollabs),
-                                          isFullWidth: false,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(width: AppSpacing.md),
-                            itemCount: brandState.activeCollabs.length,
-                          ),
-                        ),
-                    ]),
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
               ],
             ),
           ),
@@ -307,7 +339,9 @@ class _MiniStatPill extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
@@ -318,7 +352,10 @@ class _MiniStatPill extends StatelessWidget {
         children: [
           Text(emoji),
           const SizedBox(width: AppSpacing.sm),
-          Text(label, style: AppTypography.labelSM.copyWith(color: textColor)),
+          Text(
+            label,
+            style: AppTypography.labelSM.copyWith(color: textColor),
+          ),
         ],
       ),
     );

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../core/router/route_names.dart';
+import '../core/theme/app_colors.dart';
 
 enum BCPortalRole { creator, brand, agency }
 
@@ -187,31 +188,36 @@ class _BCBottomNavState extends State<BCBottomNav> {
               onHorizontalDragUpdate: _onDragUpdate,
               onHorizontalDragEnd: (_) => _onDragEnd(items, width, context),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(34),
+                borderRadius: BorderRadius.circular(30),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                   child: Container(
                     key: _navKey,
                     height: 72,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          const Color(0xFF0D131C),
-                          const Color(0xFF121A25),
+                          Colors.white.withValues(alpha: 0.94),
+                          const Color(0xFFEFF4FC).withValues(alpha: 0.94),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
-                      borderRadius: BorderRadius.circular(34),
+                      borderRadius: BorderRadius.circular(30),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.16),
-                        width: 1.2,
+                        color: AppColors.ink.withValues(alpha: 0.14),
+                        width: 1.1,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.24),
+                          color: AppColors.blue.withValues(alpha: 0.2),
+                          blurRadius: 0,
+                          offset: const Offset(4, 4),
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
                           blurRadius: 16,
-                          offset: const Offset(0, 6),
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
@@ -228,17 +234,17 @@ class _BCBottomNavState extends State<BCBottomNav> {
                           height: 60,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.18),
-                              borderRadius: BorderRadius.circular(30),
+                              color: AppColors.neon.withValues(alpha: 0.16),
+                              borderRadius: BorderRadius.circular(26),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.34),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
+                                  color: AppColors.neon.withValues(alpha: 0.22),
+                                  blurRadius: 0,
+                                  offset: const Offset(2, 2),
                                 ),
                               ],
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.32),
+                                color: AppColors.ink.withValues(alpha: 0.2),
                                 width: 1.0,
                               ),
                             ),
@@ -406,8 +412,9 @@ class _NavIconState extends State<_NavIcon>
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        widget.isSelected ? Colors.white : Colors.white.withValues(alpha: 0.72);
+    final color = widget.isSelected
+        ? AppColors.ink
+        : AppColors.ink.withValues(alpha: 0.58);
 
     return AnimatedBuilder(
       animation: _controller,
@@ -427,7 +434,7 @@ class _NavIconState extends State<_NavIcon>
       child: Center(
         child: Icon(
           widget.icon,
-          size: 30,
+          size: 28,
           color: color,
         ),
       ),

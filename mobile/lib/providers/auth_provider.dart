@@ -7,7 +7,7 @@ import '../services/fcm_service.dart';
 
 class AuthState {
   final User? user;
-  final String? role; // 'creator' | 'brand'
+  final String? role; // 'creator' | 'brand' | 'agency'
   final bool isLoading;
   final String? error;
 

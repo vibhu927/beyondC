@@ -52,6 +52,12 @@ function parseState(rawState: string | null): OAuthState | null {
 }
 
 export async function GET(request: NextRequest) {
+  // Log incoming callback request for debugging
+  console.log('Instagram callback request', {
+    url: request.url,
+    searchParams: Object.fromEntries(request.nextUrl.searchParams.entries()),
+    headers: Object.fromEntries(request.headers.entries()),
+  });
   const appUrl = resolveAppUrl(request)
   const code = request.nextUrl.searchParams.get('code')
   const error = request.nextUrl.searchParams.get('error')

@@ -9,6 +9,11 @@ final agencyRepositoryProvider = Provider<AgencyRepository>((ref) {
   return AgencyRepository(ref.read(apiServiceProvider));
 });
 
+final agencyProfileProvider =
+    AsyncNotifierProvider<AgencyProfileNotifier, Map<String, dynamic>>(
+  () => AgencyProfileNotifier(),
+);
+
 class AgencyProfileNotifier extends AsyncNotifier<Map<String, dynamic>> {
   @override
   Future<Map<String, dynamic>> build() async {
@@ -52,6 +57,11 @@ class AgencyDiscoveryFilters {
 }
 
 const _sentinel = Object();
+
+final agencyDiscoveryProvider =
+    AsyncNotifierProvider<AgencyDiscoveryNotifier, AgencyDiscoveryState>(
+  () => AgencyDiscoveryNotifier(),
+);
 
 class AgencyDiscoveryState {
   const AgencyDiscoveryState({

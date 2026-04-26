@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../creator/shared/widgets/creator_design_system.dart';
 import '../../../widgets/buttons/bc_back_button.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
@@ -106,17 +107,17 @@ class _ProfilePostsTabState extends State<ProfilePostsTab> {
   @override
   Widget build(BuildContext context) {
     final media = widget.mediaUrls.take(widget.maxItems).toList();
+    final navClearance = MediaQuery.of(context).padding.bottom + 84;
 
     return Stack(
       children: [
         if (media.isEmpty)
           Center(
             child: widget.canManage
-                ? BCPrimaryButton.neon(
-                    label: _isUploading ? 'Uploading...' : 'Upload Media',
-                    isFullWidth: false,
-                    isLoading: _isUploading,
-                    onPressed: _canUpload ? _handleUpload : null,
+                ? GlassButton(
+                    label: _isUploading ? 'Uploading...' : 'Upload media',
+                    accent: AppColors.blue,
+                    onTap: _canUpload ? _handleUpload : null,
                   )
                 : Text(
                     widget.emptyTitle,
@@ -127,11 +128,11 @@ class _ProfilePostsTabState extends State<ProfilePostsTab> {
           )
         else
           GridView.builder(
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               AppSpacing.screenPadding,
               AppSpacing.lg,
               AppSpacing.screenPadding,
-              AppSpacing.huge,
+              AppSpacing.huge + navClearance,
             ),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
@@ -203,26 +204,11 @@ class _ProfilePostsTabState extends State<ProfilePostsTab> {
         if (media.isNotEmpty && _canUpload)
           Positioned(
             right: AppSpacing.lg,
-            bottom: MediaQuery.of(context).padding.bottom + AppSpacing.xl,
-            child: FloatingActionButton(
-              heroTag: 'uploadMediaFab',
-              onPressed: _handleUpload,
-              backgroundColor: AppColors.ink,
-              foregroundColor: AppColors.neon,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                side: const BorderSide(color: AppColors.neon, width: 2),
-              ),
-              child: _isUploading
-                  ? const SizedBox(
-                      width: 22,
-                      height: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        color: AppColors.neon,
-                      ),
-                    )
-                  : const Icon(Symbols.add_rounded),
+            bottom: navClearance,
+            child: GlassButton(
+              label: _isUploading ? 'Uploading...' : 'Upload media',
+              accent: AppColors.blue,
+              onTap: _isUploading ? null : _handleUpload,
             ),
           ),
       ],

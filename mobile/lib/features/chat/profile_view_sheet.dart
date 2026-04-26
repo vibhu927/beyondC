@@ -5,15 +5,13 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/router/route_names.dart';
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/app_shadows.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/formatters.dart';
 import '../../data/models/collab_chat.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
-import '../../widgets/buttons/bc_primary_button.dart';
-import '../../widgets/cards/bc_card.dart';
+import '../creator/shared/widgets/creator_design_system.dart';
 
 void openProfileViewSheet(BuildContext context, String collabId) {
   showModalBottomSheet<void>(
@@ -118,9 +116,13 @@ class ProfileViewSheet extends ConsumerWidget {
       expand: false,
       builder: (context, controller) {
         return Container(
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: const Color(0xFFE7EDF7),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(
+              color: AppColors.ink.withValues(alpha: 0.14),
+              width: 1.2,
+            ),
           ),
           child: ListView(
             controller: controller,
@@ -132,59 +134,64 @@ class ProfileViewSheet extends ConsumerWidget {
             ),
             children: [
               Container(
-                padding: const EdgeInsets.all(AppSpacing.lg),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0D0D0D),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 72,
-                      height: 72,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: role == 'brand' ? AppColors.neon : AppColors.pink,
-                          width: 3,
+                child: GlassPanel(
+                  accentColor: role == 'brand' ? AppColors.neon : AppColors.pink,
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 72,
+                        height: 72,
+                        decoration: BoxDecoration(
+                          color: AppColors.ink,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: role == 'brand' ? AppColors.neon : AppColors.pink,
+                            width: 2.4,
+                          ),
+                        ),
+                        child: CircleAvatar(
+                          radius: 34,
+                          backgroundColor: Colors.transparent,
+                          backgroundImage: (avatarUrl ?? '').trim().isNotEmpty
+                              ? NetworkImage(avatarUrl!.trim())
+                              : null,
+                          child: (avatarUrl ?? '').trim().isNotEmpty
+                              ? null
+                              : Text(
+                                  partnerName.isNotEmpty
+                                      ? partnerName.substring(0, 1).toUpperCase()
+                                      : 'U',
+                                  style: AppTypography.displaySM.copyWith(
+                                    color: AppColors.white,
+                                  ),
+                                ),
                         ),
                       ),
-                      child: CircleAvatar(
-                        radius: 34,
-                        backgroundColor: AppColors.surface,
-                        backgroundImage: (avatarUrl ?? '').trim().isNotEmpty
-                            ? NetworkImage(avatarUrl!.trim())
-                            : null,
-                        child: (avatarUrl ?? '').trim().isNotEmpty
-                            ? null
-                            : Text(
-                                partnerName.isNotEmpty
-                                    ? partnerName.substring(0, 1).toUpperCase()
-                                    : 'U',
-                                style: AppTypography.displaySM,
-                              ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        partnerFullName,
+                        style: AppTypography.labelLG.copyWith(
+                          color: AppColors.ink,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      partnerFullName,
-                      style: AppTypography.labelLG.copyWith(color: AppColors.white),
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      partnerUsername != null && partnerUsername.trim().isNotEmpty
-                          ? '@$partnerUsername'
-                          : role == 'brand'
-                              ? 'Creator'
-                              : 'Brand',
-                      style: AppTypography.bodySM.copyWith(color: AppColors.darkMuted),
-                    ),
-                  ],
+                      const SizedBox(height: AppSpacing.xs),
+                      InlineTonePill(
+                        label: partnerUsername != null &&
+                                partnerUsername.trim().isNotEmpty
+                            ? '@$partnerUsername'
+                            : role == 'brand'
+                                ? 'Creator'
+                                : 'Brand',
+                        accent: AppColors.ink,
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              BCCard(
-                shadow: AppShadows.neon,
+              GlassPanel(
+                accentColor: AppColors.neon,
                 child: Row(
                   children: [
                     Expanded(
@@ -198,8 +205,8 @@ class ProfileViewSheet extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              BCCard(
-                shadow: AppShadows.pink,
+              GlassPanel(
+                accentColor: AppColors.pink,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -219,8 +226,8 @@ class ProfileViewSheet extends ConsumerWidget {
               if ((partnerState ?? '').trim().isNotEmpty ||
                   (partnerCity ?? '').trim().isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.md),
-                BCCard(
-                  shadow: AppShadows.blue,
+                GlassPanel(
+                  accentColor: AppColors.blue,
                   child: Row(
                     children: [
                       const Icon(
@@ -241,28 +248,35 @@ class ProfileViewSheet extends ConsumerWidget {
                 ),
               ],
               const SizedBox(height: AppSpacing.lg),
-              BCPrimaryButton.dark(
-                label: 'View Full Profile ->',
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  context.push(
-                    RouteNames.partnerProfile,
-                    extra: {
-                      'id': partnerId,
-                      'collabId': chat?.id,
-                      'name': partnerFullName,
-                      'full_name': partnerFullName,
-                      'avatar_url': avatarUrl,
-                      'avatarUrl': avatarUrl,
-                      'role': partnerRole,
-                      'viewerRole': role,
-                      'tier': profileTier,
-                      'bio': profileBio,
-                      'followers': preview?.followers,
-                      'readOnly': true,
-                    },
-                  );
-                },
+              Row(
+                children: [
+                  Expanded(
+                    child: GlassButton(
+                      label: 'View Full Profile',
+                      accent: AppColors.blue,
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        context.push(
+                          RouteNames.partnerProfile,
+                          extra: {
+                            'id': partnerId,
+                            'collabId': chat?.id,
+                            'name': partnerFullName,
+                            'full_name': partnerFullName,
+                            'avatar_url': avatarUrl,
+                            'avatarUrl': avatarUrl,
+                            'role': partnerRole,
+                            'viewerRole': role,
+                            'tier': profileTier,
+                            'bio': profileBio,
+                            'followers': preview?.followers,
+                            'readOnly': true,
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

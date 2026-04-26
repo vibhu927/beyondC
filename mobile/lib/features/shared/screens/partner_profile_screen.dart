@@ -4,16 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../widgets/bc_app_loader.dart';
-import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_error_state.dart';
-import '../../../widgets/cards/bc_card.dart';
 import '../../../widgets/buttons/bc_back_button.dart';
+import '../../creator/shared/widgets/creator_design_system.dart';
 import '../widgets/profile_posts_tab.dart';
 
 class PartnerProfileScreen extends StatefulWidget {
@@ -308,11 +306,11 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
                                 textAlign: TextAlign.center,
                               ),
                               const SizedBox(height: AppSpacing.xs),
-                              BCBadge(
+                              InlineTonePill(
                                 label: partner.badgeLabel,
-                                variant: partner.isCreator
-                                    ? BCBadgeVariant.neon
-                                    : BCBadgeVariant.pink,
+                                accent: partner.isCreator
+                                    ? AppColors.neon
+                                    : AppColors.pink,
                               ),
                             ],
                           ),
@@ -430,7 +428,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
             child: _StatCard(
               label: 'Followers',
               value: Formatters.followerCount(partner.followers),
-              shadow: AppShadows.neon,
+              accent: AppColors.neon,
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -438,7 +436,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
             child: _StatCard(
               label: 'Engagement',
               value: '${partner.engagementRate.toStringAsFixed(1)}%',
-              shadow: AppShadows.blue,
+              accent: AppColors.blue,
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
@@ -446,7 +444,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
             child: _StatCard(
               label: 'Start Price',
               value: Formatters.currency(partner.startingPricePaise),
-              shadow: AppShadows.pink,
+              accent: AppColors.pink,
             ),
           ),
         ],
@@ -459,7 +457,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
           child: _StatCard(
             label: 'Total Collabs',
             value: '${partner.totalCollabs}',
-            shadow: AppShadows.pink,
+            accent: AppColors.pink,
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
@@ -467,7 +465,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
           child: _StatCard(
             label: 'Avg Rating',
             value: '${partner.avgRating.toStringAsFixed(1)} ★',
-            shadow: AppShadows.blue,
+            accent: AppColors.blue,
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
@@ -475,7 +473,7 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
           child: _StatCard(
             label: 'Category',
             value: partner.brandCategory,
-            shadow: AppShadows.neon,
+            accent: AppColors.neon,
           ),
         ),
       ],
@@ -499,8 +497,8 @@ class _CreatorProfileSection extends StatelessWidget {
           ),
           child: SizedBox(
             width: double.infinity,
-            child: BCCard(
-              shadow: AppShadows.blue,
+            child: GlassPanel(
+              accentColor: AppColors.blue,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -528,8 +526,8 @@ class _CreatorProfileSection extends StatelessWidget {
           ),
           child: SizedBox(
             width: double.infinity,
-            child: BCCard(
-              shadow: AppShadows.neon,
+            child: GlassPanel(
+              accentColor: AppColors.neon,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -576,8 +574,8 @@ class _CreatorProfileSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.screenPadding,
           ),
-          child: BCCard(
-            shadow: AppShadows.purple,
+          child: GlassPanel(
+            accentColor: AppColors.purple,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -689,8 +687,8 @@ class _BrandProfileSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        BCCard(
-          shadow: AppShadows.pink,
+        GlassPanel(
+          accentColor: AppColors.pink,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -700,15 +698,15 @@ class _BrandProfileSection extends StatelessWidget {
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.sm,
                 children: [
-                  BCBadge(
+                  InlineTonePill(
                     label: partner.brandCategory,
-                    variant: BCBadgeVariant.pink,
+                    accent: AppColors.pink,
                   ),
-                  BCBadge(
+                  InlineTonePill(
                     label: partner.verified ? 'Verified' : 'Unverified',
-                    variant: partner.verified
-                        ? BCBadgeVariant.success
-                        : BCBadgeVariant.warning,
+                    accent: partner.verified
+                        ? AppColors.success
+                        : AppColors.orange,
                   ),
                 ],
               ),
@@ -723,8 +721,8 @@ class _BrandProfileSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        BCCard(
-          shadow: AppShadows.blue,
+        GlassPanel(
+          accentColor: AppColors.blue,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -743,10 +741,10 @@ class _BrandProfileSection extends StatelessWidget {
               ),
               if (partner.website.trim().isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.sm),
-                TextButton(
-                  onPressed: () => _openWebsite(partner.website),
-                  style: TextButton.styleFrom(foregroundColor: AppColors.blue),
-                  child: const Text('Open Website →'),
+                GlassButton(
+                  label: 'Open Website',
+                  accent: AppColors.blue,
+                  onTap: () => _openWebsite(partner.website),
                 ),
               ],
             ],
@@ -761,17 +759,17 @@ class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.label,
     required this.value,
-    required this.shadow,
+    required this.accent,
   });
 
   final String label;
   final String value;
-  final List<BoxShadow> shadow;
+  final Color accent;
 
   @override
   Widget build(BuildContext context) {
-    return BCCard(
-      shadow: shadow,
+    return GlassPanel(
+      accentColor: accent,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,
         vertical: AppSpacing.md,
@@ -780,7 +778,7 @@ class _StatCard extends StatelessWidget {
         children: [
           Text(
             value,
-            style: AppTypography.labelMD,
+            style: AppTypography.labelMD.copyWith(fontWeight: FontWeight.w900),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
@@ -788,7 +786,7 @@ class _StatCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             label,
-            style: AppTypography.bodyXS,
+            style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -838,17 +836,9 @@ class _PillTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        border: Border.all(color: AppColors.lightDivider),
-      ),
-      child: Text(label, style: AppTypography.labelXS),
+    return InlineTonePill(
+      label: label,
+      accent: AppColors.blue,
     );
   }
 }

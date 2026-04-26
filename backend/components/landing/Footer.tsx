@@ -23,7 +23,7 @@ export default function Footer() {
               <h4 className="font-jakarta font-bold text-white mb-3">Company</h4>
               <ul className="space-y-2">
                 <li>
-                  <a href="#" className="font-nunito text-gray-400 hover:text-neon transition-colors">
+                  <a href="/privacy" className="font-nunito text-gray-400 hover:text-neon transition-colors">
                     Privacy Policy
                   </a>
                 </li>

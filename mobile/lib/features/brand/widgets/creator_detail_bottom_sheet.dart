@@ -35,24 +35,25 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
         return Container(
           decoration: const BoxDecoration(
             color: AppColors.white,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(AppSpacing.radiusXL),
-            ),
             border: Border(
               top: BorderSide(color: AppColors.ink, width: 2),
             ),
           ),
-          child: SingleChildScrollView(
-            controller: scrollController,
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              AppSpacing.lg,
-              AppSpacing.xl,
-              AppSpacing.huge,
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppSpacing.radiusXL),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            child: SingleChildScrollView(
+              controller: scrollController,
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.lg,
+                AppSpacing.xl,
+                AppSpacing.huge,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 Center(
                   child: Container(
                     width: 56,
@@ -273,6 +274,7 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                   },
                 ),
               ],
+            ),
             ),
           ),
         );

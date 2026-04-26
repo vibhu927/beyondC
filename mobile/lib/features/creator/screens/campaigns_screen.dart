@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/india_locations.dart';
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../data/models/creator_models.dart';
@@ -15,11 +13,12 @@ import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
-import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/buttons/bc_back_button.dart';
 import '../../../widgets/inputs/bc_dropdown.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 import '../widgets/campaign_card.dart';
+import '../../shared/widgets/home_content_sheet.dart';
+import '../shared/widgets/creator_design_system.dart';
 
 enum _CampaignSort { newest, budgetAsc, budgetDesc }
 
@@ -123,13 +122,14 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
             return StatefulBuilder(
               builder: (context, setSheetState) {
                 return Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE7EDF7),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
                     ),
-                    border: Border(
-                      top: BorderSide(color: AppColors.ink, width: 2),
+                    border: Border.all(
+                      color: AppColors.ink.withValues(alpha: 0.14),
+                      width: 1.2,
                     ),
                   ),
                   child: SafeArea(
@@ -305,50 +305,58 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                               }).toList(),
                             ),
                             const SizedBox(height: AppSpacing.xl),
-                            BCPrimaryButton.neon(
-                              label: 'Apply Filters →',
-                              onPressed: () async {
-                                setState(() {
-                                  _sheetCollabTypes
-                                    ..clear()
-                                    ..addAll(workingCollabTypes);
-                                  _sheetNiches
-                                    ..clear()
-                                    ..addAll(workingNiches);
-                                  _minBudgetInr =
-                                      int.tryParse(minController.text.trim());
-                                  _maxBudgetInr =
-                                      int.tryParse(maxController.text.trim());
-                                  _filterState = workingState;
-                                  _filterCity = workingCity;
-                                  _includePanIndia = workingIncludePanIndia;
-                                });
-                                Navigator.of(context).pop();
-                                await _applyServerFilters();
-                              },
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GlassButton(
+                                    label: 'Apply Filters',
+                                    accent: AppColors.neon,
+                                    onTap: () async {
+                                      setState(() {
+                                        _sheetCollabTypes
+                                          ..clear()
+                                          ..addAll(workingCollabTypes);
+                                        _sheetNiches
+                                          ..clear()
+                                          ..addAll(workingNiches);
+                                        _minBudgetInr =
+                                            int.tryParse(minController.text.trim());
+                                        _maxBudgetInr =
+                                            int.tryParse(maxController.text.trim());
+                                        _filterState = workingState;
+                                        _filterCity = workingCity;
+                                        _includePanIndia = workingIncludePanIndia;
+                                      });
+                                      Navigator.of(context).pop();
+                                      await _applyServerFilters();
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: AppSpacing.sm),
-                            Align(
-                              alignment: Alignment.center,
-                              child: TextButton(
-                                onPressed: () async {
-                                  setState(() {
-                                    _sheetCollabTypes.clear();
-                                    _sheetNiches.clear();
-                                    _minBudgetInr = null;
-                                    _maxBudgetInr = null;
-                                    _filterState = null;
-                                    _filterCity = null;
-                                    _includePanIndia = true;
-                                  });
-                                  Navigator.of(context).pop();
-                                  await _applyServerFilters();
-                                },
-                                style: TextButton.styleFrom(
-                                  foregroundColor: AppColors.pink,
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GlassButton(
+                                    label: 'Clear All',
+                                    accent: AppColors.pink,
+                                    onTap: () async {
+                                      setState(() {
+                                        _sheetCollabTypes.clear();
+                                        _sheetNiches.clear();
+                                        _minBudgetInr = null;
+                                        _maxBudgetInr = null;
+                                        _filterState = null;
+                                        _filterCity = null;
+                                        _includePanIndia = true;
+                                      });
+                                      Navigator.of(context).pop();
+                                      await _applyServerFilters();
+                                    },
+                                  ),
                                 ),
-                                child: const Text('Clear All'),
-                              ),
+                              ],
                             ),
                           ],
                         ),
@@ -421,6 +429,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
   @override
   Widget build(BuildContext context) {
     final campaignsAsync = ref.watch(creatorCampaignsProvider);
+    final navClearance = MediaQuery.of(context).padding.bottom + 84;
 
     return Scaffold(
       extendBody: true,
@@ -429,158 +438,202 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
         role: BCPortalRole.creator,
         currentIndex: 1,
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-        child: FloatingActionButton.extended(
-          heroTag: 'creatorCampaignFiltersFab',
-          onPressed: _openFiltersSheet,
-          backgroundColor: AppColors.pink,
-          foregroundColor: AppColors.white,
-          elevation: 3,
-          tooltip: 'Filter campaigns',
-          extendedPadding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-            side: const BorderSide(color: AppColors.ink, width: 2),
-          ),
-          icon: const Icon(Icons.tune_rounded, size: 20),
-          label: Text(
-            'Filters',
-            style: AppTypography.labelMD.copyWith(
-              color: AppColors.white,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
-      ),
       body: BCPageSwipeArea(
         role: BCPortalRole.creator,
         currentIndex: 1,
-        child: RefreshIndicator(
-          color: AppColors.neon,
-          onRefresh: _refresh,
-          child: ListView(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.sm,
-              AppSpacing.md,
-              AppSpacing.huge,
+        child: Stack(
+          children: [
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFFE1E8F4),
+                      Color(0xFFE9EFF8),
+                      Color(0xFFF5F7FB),
+                    ],
+                  ),
+                ),
+              ),
             ),
-            children: [
-              SizedBox(
-                height: 40,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: _campaignFilterChips.length,
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(width: AppSpacing.sm),
-                  itemBuilder: (context, index) {
-                    final chip = _campaignFilterChips[index];
-                    final isActive = chip == _activeChip;
-                    return _NeoPill(
-                      label: chip,
-                      isActive: isActive,
-                      onTap: () async {
-                        setState(() {
-                          _activeChip = chip;
-                        });
-                        await _applyServerFilters();
-                      },
-                    );
-                  },
-                ),
+            Positioned(
+              top: 28,
+              right: -54,
+              child: AmbientGlow(
+                size: 164,
+                color: AppColors.neon.withValues(alpha: 0.16),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              Row(
-                children: [
-                  const Text('Sort by:', style: AppTypography.labelMD),
-                  const SizedBox(width: AppSpacing.sm),
-                  _SortPill(
-                    label: 'Newest',
-                    isActive: _activeSort == _CampaignSort.newest,
-                    onTap: () =>
-                        setState(() => _activeSort = _CampaignSort.newest),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  _SortPill(
-                    label: 'Budget ↑',
-                    isActive: _activeSort == _CampaignSort.budgetAsc,
-                    onTap: () =>
-                        setState(() => _activeSort = _CampaignSort.budgetAsc),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  _SortPill(
-                    label: 'Budget ↓',
-                    isActive: _activeSort == _CampaignSort.budgetDesc,
-                    onTap: () =>
-                        setState(() => _activeSort = _CampaignSort.budgetDesc),
-                  ),
-                ],
+            ),
+            Positioned(
+              top: 164,
+              left: -42,
+              child: AmbientGlow(
+                size: 126,
+                color: AppColors.pink.withValues(alpha: 0.14),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              campaignsAsync.when(
-                loading: () => Column(
-                  children: List.generate(
-                    4,
-                    (index) => const Padding(
-                      padding: EdgeInsets.only(bottom: AppSpacing.md),
-                      child: SizedBox(
-                        height: 220,
-                        child: CampaignCardSkeleton(width: double.infinity),
-                      ),
-                    ),
-                  ),
+            ),
+            Positioned.fill(
+              child: HomeContentSheet(
+                backgroundColor: const Color(0xFFE7EDF7),
+                borderColor: Colors.transparent,
+                borderRadius: BorderRadius.zero,
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenPadding,
+                  AppSpacing.xl,
+                  AppSpacing.screenPadding,
+                  AppSpacing.xl,
                 ),
-                error: (error, _) => BCErrorState(
-                  message: error.toString(),
-                  onRetry: _refresh,
-                ),
-                data: (state) {
-                  final visibleCampaigns = _applyLocalFilters(state.campaigns);
-                  if (visibleCampaigns.isEmpty) {
-                    return const BCEmptyState(
-                      emoji: '🔍',
-                      message: 'No campaigns match your filters.',
-                    );
-                  }
-
-                  return Column(
+                child: RefreshIndicator(
+                  color: AppColors.neon,
+                  onRefresh: _refresh,
+                  child: ListView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(bottom: navClearance),
                     children: [
-                      for (final campaign in visibleCampaigns)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                          child: SizedBox(
-                            height: 220,
-                            child: CampaignCard(
-                              width: double.infinity,
-                              campaign: campaign,
-                              onTap: () => context.push(
-                                RouteNames.campaignDetail
-                                    .replaceFirst(':id', campaign.id),
+                      const Text(
+                        'Campaigns',
+                        style: AppTypography.displaySM,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'Find briefs that match your style and goals.',
+                        style: AppTypography.bodySM.copyWith(
+                          color: AppColors.muted,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      SizedBox(
+                        height: 40,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _campaignFilterChips.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(width: AppSpacing.sm),
+                          itemBuilder: (context, index) {
+                            final chip = _campaignFilterChips[index];
+                            final isActive = chip == _activeChip;
+                            return _NeoPill(
+                              label: chip,
+                              isActive: isActive,
+                              onTap: () async {
+                                setState(() {
+                                  _activeChip = chip;
+                                });
+                                await _applyServerFilters();
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            const Text('Sort by:', style: AppTypography.labelMD),
+                            const SizedBox(width: AppSpacing.sm),
+                            _SortPill(
+                              label: 'Newest',
+                              isActive: _activeSort == _CampaignSort.newest,
+                              onTap: () =>
+                                  setState(() => _activeSort = _CampaignSort.newest),
+                            ),
+                            const SizedBox(width: AppSpacing.xs),
+                            _SortPill(
+                              label: 'Budget ↑',
+                              isActive: _activeSort == _CampaignSort.budgetAsc,
+                              onTap: () =>
+                                  setState(() => _activeSort = _CampaignSort.budgetAsc),
+                            ),
+                            const SizedBox(width: AppSpacing.xs),
+                            _SortPill(
+                              label: 'Budget ↓',
+                              isActive: _activeSort == _CampaignSort.budgetDesc,
+                              onTap: () => setState(
+                                () => _activeSort = _CampaignSort.budgetDesc,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      campaignsAsync.when(
+                        loading: () => Column(
+                          children: List.generate(
+                            4,
+                            (index) => const Padding(
+                              padding: EdgeInsets.only(bottom: AppSpacing.md),
+                              child: SizedBox(
+                                height: 220,
+                                child: CampaignCardSkeleton(width: double.infinity),
                               ),
                             ),
                           ),
                         ),
-                      if (state.isLoadingMore)
-                        const Padding(
-                          padding:
-                              EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                          child: Center(
-                            child:
-                                CircularProgressIndicator(color: AppColors.ink),
-                          ),
+                        error: (error, _) => BCErrorState(
+                          message: error.toString(),
+                          onRetry: _refresh,
                         ),
+                        data: (state) {
+                          final visibleCampaigns =
+                              _applyLocalFilters(state.campaigns);
+                          if (visibleCampaigns.isEmpty) {
+                            return const BCEmptyState(
+                              emoji: '🔍',
+                              message: 'No campaigns match your filters.',
+                            );
+                          }
+
+                          return Column(
+                            children: [
+                              for (final campaign in visibleCampaigns)
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.only(bottom: AppSpacing.md),
+                                  child: SizedBox(
+                                    height: 220,
+                                    child: CampaignCard(
+                                      width: double.infinity,
+                                      campaign: campaign,
+                                      onTap: () => context.push(
+                                        RouteNames.campaignDetail
+                                            .replaceFirst(':id', campaign.id),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              if (state.isLoadingMore)
+                                const Padding(
+                                  padding:
+                                      EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.ink,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
                     ],
-                  );
-                },
+                  ),
+                ),
               ),
-            ],
-          ),
+            ),
+            Positioned(
+              left: AppSpacing.screenPadding,
+              bottom: MediaQuery.of(context).padding.bottom + AppSpacing.lg,
+              child: GlassButton(
+                label: 'Filters',
+                accent: AppColors.pink,
+                onTap: _openFiltersSheet,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -609,15 +662,26 @@ class _NeoPill extends StatelessWidget {
         ),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isActive ? AppColors.ink : AppColors.white,
+          color: isActive
+              ? AppColors.ink.withValues(alpha: 0.9)
+              : Colors.white.withValues(alpha: 0.88),
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          border: Border.all(color: AppColors.ink, width: 2),
-          boxShadow: AppShadows.softTight(context),
+          border: uniformBorder(
+            isActive ? AppColors.ink : AppColors.blue,
+            width: 1.1,
+          ),
+          boxShadow: neoShadows(
+            isActive ? AppColors.ink : AppColors.blue,
+            alpha: 0.12,
+            offset: 2.5,
+            blurRadius: 10,
+          ),
         ),
         child: Text(
           label,
           style: AppTypography.labelSM.copyWith(
             color: isActive ? AppColors.neon : AppColors.ink,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),
@@ -646,15 +710,26 @@ class _SortPill extends StatelessWidget {
           vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.ink : AppColors.white,
+          color: isActive
+              ? AppColors.ink.withValues(alpha: 0.9)
+              : Colors.white.withValues(alpha: 0.88),
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          border: Border.all(color: AppColors.ink, width: 1.5),
-          boxShadow: AppShadows.softTight(context),
+          border: uniformBorder(
+            isActive ? AppColors.ink : AppColors.purple,
+            width: 1.0,
+          ),
+          boxShadow: neoShadows(
+            isActive ? AppColors.ink : AppColors.purple,
+            alpha: 0.1,
+            offset: 2.5,
+            blurRadius: 9,
+          ),
         ),
         child: Text(
           label,
           style: AppTypography.labelSM.copyWith(
-            color: isActive ? AppColors.white : AppColors.ink,
+            color: isActive ? AppColors.neon : AppColors.ink,
+            fontWeight: FontWeight.w800,
           ),
         ),
       ),

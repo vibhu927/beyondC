@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../shared/widgets/creator_design_system.dart';
+import '../../shared/widgets/home_content_sheet.dart';
 
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
@@ -19,7 +21,6 @@ import '../../../data/services/instagram_oauth_service.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
-import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/bc_error_state.dart';
@@ -495,24 +496,38 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
             children: [
               const Text('Upload Post', style: AppTypography.displaySM),
               const SizedBox(height: AppSpacing.md),
-              BCPrimaryButton.dark(
-                label: 'Choose Photo',
-                onPressed: () async {
-                  final file =
-                      await picker.pickImage(source: ImageSource.gallery);
-                  if (!sheetContext.mounted) return;
-                  Navigator.of(sheetContext).pop(file);
-                },
+              Row(
+                children: [
+                  Expanded(
+                    child: GlassButton(
+                      label: 'Choose Photo',
+                      accent: AppColors.ink,
+                      onTap: () async {
+                        final file =
+                            await picker.pickImage(source: ImageSource.gallery);
+                        if (!sheetContext.mounted) return;
+                        Navigator.of(sheetContext).pop(file);
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: AppSpacing.sm),
-              BCPrimaryButton.neon(
-                label: 'Choose Video',
-                onPressed: () async {
-                  final file =
-                      await picker.pickVideo(source: ImageSource.gallery);
-                  if (!sheetContext.mounted) return;
-                  Navigator.of(sheetContext).pop(file);
-                },
+              Row(
+                children: [
+                  Expanded(
+                    child: GlassButton(
+                      label: 'Choose Video',
+                      accent: AppColors.neon,
+                      onTap: () async {
+                        final file =
+                            await picker.pickVideo(source: ImageSource.gallery);
+                        if (!sheetContext.mounted) return;
+                        Navigator.of(sheetContext).pop(file);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -532,10 +547,136 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
   }
 
   bool _isVideoFile(XFile file) {
-    final mime = (file.mimeType ?? '').toLowerCase();
-    if (mime.startsWith('video/')) return true;
-    return _isVideoFileName(file.name) || _isVideoFileName(file.path);
+    final name = file.name.isNotEmpty
+        ? file.name
+        : file.path.split('/').last.split('\\').last;
+    return _isVideoFileName(name);
   }
+
+  Widget _buildProfileHeader(CreatorProfile profile) {
+    return Stack(
+      children: [
+        Align(
+          child: Column(
+            children: [
+              Container(
+                width: 82,
+                height: 82,
+                decoration: BoxDecoration(
+                  color: AppColors.ink,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.neon.withValues(alpha: 0.8),
+                    width: 2.4,
+                  ),
+                  boxShadow: AppShadows.neon,
+                ),
+                alignment: Alignment.center,
+                child: _avatarUrl != null && _avatarUrl!.trim().isNotEmpty
+                    ? ClipOval(
+                        child: Image.network(
+                          _avatarUrl!,
+                          width: 82,
+                          height: 82,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Text(
+                            _avatarInitials(profile.fullName),
+                            style: AppTypography.labelLG.copyWith(
+                              color: AppColors.white,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Text(
+                        _avatarInitials(profile.fullName),
+                        style: AppTypography.labelLG.copyWith(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                profile.displayName?.trim().isNotEmpty == true
+                    ? profile.displayName!.trim()
+                    : profile.fullName,
+                textAlign: TextAlign.center,
+                style: AppTypography.displaySM.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  InlineTonePill(
+                    label: profile.tier,
+                    accent: AppColors.neon,
+                  ),
+                  if ((profile.instagramUsername ?? '').trim().isNotEmpty)
+                    InlineTonePill(
+                      label: '@${profile.instagramUsername}',
+                      accent: AppColors.ink,
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+          right: 0,
+          top: 0,
+          child: BCBackButton(
+            onPressed: () => _openEditProfileSheet(profile),
+            icon: Icons.edit_rounded,
+            iconColor: AppColors.ink,
+            backgroundColor: Colors.white.withValues(alpha: 0.92),
+            borderColor: AppColors.ink.withValues(alpha: 0.2),
+            buttonSize: 36,
+            iconSize: 20,
+            tooltip: 'Edit profile',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProfileTabBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.86),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          border: Border.all(color: AppColors.ink.withValues(alpha: 0.12)),
+          boxShadow: AppShadows.blue,
+        ),
+        child: TabBar(
+          dividerColor: Colors.transparent,
+          indicatorSize: TabBarIndicatorSize.tab,
+          indicatorPadding: const EdgeInsets.all(4),
+          indicator: BoxDecoration(
+            color: AppColors.ink,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          ),
+          labelColor: AppColors.white,
+          unselectedLabelColor: AppColors.ink,
+          labelStyle: AppTypography.labelSM.copyWith(fontWeight: FontWeight.w900),
+          unselectedLabelStyle:
+              AppTypography.labelSM.copyWith(fontWeight: FontWeight.w800),
+          overlayColor: WidgetStateProperty.all(Colors.transparent),
+          tabs: const [
+            Tab(text: 'Details'),
+            Tab(text: 'Posts'),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   String _resolveExtension(XFile file, bool isVideo) {
     String source = file.name;
@@ -685,6 +826,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
         collabsAsync.valueOrNull?.take(3).toList() ?? const <Collab>[];
     final walletBalance =
         walletAsync.valueOrNull?.balance ?? profile.walletBalancePaise;
+    final navClearance = MediaQuery.of(context).padding.bottom + 84;
 
     return Scaffold(
       extendBody: true,
@@ -698,136 +840,79 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
         currentIndex: 3,
         child: DefaultTabController(
           length: 2,
-          child: Column(
+          child: Stack(
             children: [
-              Container(
-                color: AppColors.ink,
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenPadding,
-                  AppSpacing.xl,
-                  AppSpacing.screenPadding,
-                  AppSpacing.lg,
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  child: Stack(
-                    children: [
-                      Align(
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: AppColors.darkSurface,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppColors.neon,
-                                  width: 3,
-                                ),
-                              ),
-                              alignment: Alignment.center,
-                              child: _avatarUrl != null &&
-                                      _avatarUrl!.trim().isNotEmpty
-                                  ? ClipOval(
-                                      child: Image.network(
-                                        _avatarUrl!,
-                                        width: 80,
-                                        height: 80,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => Text(
-                                          _avatarInitials(profile.fullName),
-                                          style: AppTypography.labelLG
-                                              .copyWith(color: AppColors.white),
-                                        ),
-                                      ),
-                                    )
-                                  : Text(
-                                      _avatarInitials(profile.fullName),
-                                      style: AppTypography.labelLG
-                                          .copyWith(color: AppColors.white),
-                                    ),
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            Text(
-                              profile.fullName,
-                              style: AppTypography.labelLG
-                                  .copyWith(color: AppColors.white),
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            BCBadge(
-                              label: profile.tier,
-                              variant: BCBadgeVariant.neon,
-                            ),
-                          ],
-                        ),
-                      ),
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: BCBackButton(
-                          onPressed: () => _openEditProfileSheet(profile),
-                          icon: Icons.edit_rounded,
-                          iconColor: AppColors.white,
-                          backgroundColor: AppColors.darkSurface,
-                          borderColor: AppColors.darkBorder,
-                          buttonSize: 36,
-                          iconSize: 20,
-                          tooltip: 'Edit profile',
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                color: Theme.of(context).colorScheme.surface,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.screenPadding,
-                  vertical: AppSpacing.sm,
-                ),
-                child: Container(
+              const Positioned.fill(
+                child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceAlt,
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                    border: Border.all(color: AppColors.lightBorder),
-                  ),
-                  child: TabBar(
-                    dividerColor: Colors.transparent,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicatorPadding: const EdgeInsets.all(4),
-                    indicator: BoxDecoration(
-                      color: AppColors.ink,
-                      borderRadius:
-                          BorderRadius.circular(AppSpacing.radiusFull),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color(0xFFE1E8F4),
+                        Color(0xFFE9EFF8),
+                        Color(0xFFF5F7FB),
+                      ],
                     ),
-                    labelColor: AppColors.white,
-                    unselectedLabelColor: AppColors.ink,
-                    labelStyle: AppTypography.labelSM,
-                    unselectedLabelStyle: AppTypography.labelSM,
-                    overlayColor: WidgetStateProperty.all(Colors.transparent),
-                    tabs: const [
-                      Tab(text: 'Details'),
-                      Tab(text: 'Posts'),
-                    ],
                   ),
                 ),
               ),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    RefreshIndicator(
-                      color: AppColors.neon,
-                      onRefresh: _refresh,
-                      child: ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.screenPadding,
-                          AppSpacing.lg,
-                          AppSpacing.screenPadding,
-                          AppSpacing.huge + AppSpacing.xxxl,
-                        ),
-                        children: [
+              Positioned(
+                top: 24,
+                right: -54,
+                child: _AmbientGlow(
+                  size: 164,
+                  color: AppColors.neon.withValues(alpha: 0.16),
+                ),
+              ),
+              Positioned(
+                top: 176,
+                left: -42,
+                child: _AmbientGlow(
+                  size: 126,
+                  color: AppColors.pink.withValues(alpha: 0.14),
+                ),
+              ),
+              Positioned.fill(
+                child: HomeContentSheet(
+                  backgroundColor: const Color(0xFFE7EDF7),
+                  borderColor: Colors.transparent,
+                  borderRadius: BorderRadius.zero,
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x240B4DFF),
+                      offset: Offset(6, 6),
+                      blurRadius: 0,
+                    ),
+                    BoxShadow(
+                      color: Color(0x14000000),
+                      blurRadius: 18,
+                      offset: Offset(0, 10),
+                    ),
+                  ],
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.screenPadding,
+                    AppSpacing.xl,
+                    AppSpacing.screenPadding,
+                    AppSpacing.xl,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _buildProfileHeader(profile),
+                      const SizedBox(height: AppSpacing.lg),
+                      _buildProfileTabBar(),
+                      const SizedBox(height: AppSpacing.md),
+                      Expanded(
+                        child: TabBarView(
+                          children: [
+                            RefreshIndicator(
+                              color: AppColors.neon,
+                              onRefresh: _refresh,
+                              child: ListView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                padding: EdgeInsets.only(bottom: navClearance),
+                                children: [
                           Row(
                             children: [
                               Expanded(
@@ -835,7 +920,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                   value: Formatters.followerCount(
                                       profile.followers),
                                   label: 'Followers',
-                                  shadow: AppShadows.neon,
+                                  accent: AppColors.neon,
                                 ),
                               ),
                               const SizedBox(width: AppSpacing.sm),
@@ -844,7 +929,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                   value:
                                       '${profile.engagementRate.toStringAsFixed(1)}%',
                                   label: 'Engagement',
-                                  shadow: AppShadows.blue,
+                                  accent: AppColors.blue,
                                 ),
                               ),
                               const SizedBox(width: AppSpacing.sm),
@@ -853,7 +938,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                   value: Formatters.currency(
                                       profile.avgCollabPaise),
                                   label: 'Avg Collab',
-                                  shadow: AppShadows.pink,
+                                  accent: AppColors.pink,
                                 ),
                               ),
                             ],
@@ -905,13 +990,13 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                           const SizedBox(height: AppSpacing.sm),
                           Row(
                             children: [
-                              BCBadge(
+                              InlineTonePill(
                                 label: profile.instagramVerified
-                                    ? '🔵 Verified'
-                                    : '⚠️ Unverified',
-                                variant: profile.instagramVerified
-                                    ? BCBadgeVariant.blue
-                                    : BCBadgeVariant.warning,
+                                    ? 'Verified'
+                                    : 'Unverified',
+                                accent: profile.instagramVerified
+                                    ? AppColors.blue
+                                    : AppColors.orange,
                               ),
                               const SizedBox(width: AppSpacing.sm),
                               Text(
@@ -945,8 +1030,8 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                 .toList(),
                           ),
                           const SizedBox(height: AppSpacing.xl),
-                          BCCard(
-                            shadow: AppShadows.purple,
+                          GlassPanel(
+                            accentColor: AppColors.purple,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -954,15 +1039,13 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                   'Starting at ${Formatters.currency(profile.startingPricePaise)}/collab',
                                   style: AppTypography.displaySM,
                                 ),
+                                const SizedBox(height: AppSpacing.md),
                                 Align(
                                   alignment: Alignment.centerRight,
-                                  child: TextButton(
-                                    onPressed: () =>
-                                        _openEditPricingSheet(profile),
-                                    style: TextButton.styleFrom(
-                                      foregroundColor: AppColors.blue,
-                                    ),
-                                    child: const Text('Edit collab fee →'),
+                                  child: GlassButton(
+                                    label: 'Edit collab fee',
+                                    accent: AppColors.blue,
+                                    onTap: () => _openEditPricingSheet(profile),
                                   ),
                                 ),
                               ],
@@ -1008,8 +1091,9 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                     (collab) => Padding(
                                       padding: const EdgeInsets.only(
                                           bottom: AppSpacing.sm),
-                                      child: BCCard(
-                                        backgroundColor: AppColors.surfaceAlt,
+                                      child: GlassPanel(
+                                        accentColor:
+                                            _collabTypeAccent(collab.collabType),
                                         child: Row(
                                           children: [
                                             Expanded(
@@ -1036,7 +1120,10 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                             Text(
                                               Formatters.currency(
                                                   collab.amount),
-                                              style: AppTypography.labelLG,
+                                              style: AppTypography.labelLG
+                                                  .copyWith(
+                                                fontWeight: FontWeight.w900,
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -1046,9 +1133,8 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                   .toList(),
                             ),
                           const SizedBox(height: AppSpacing.xl),
-                          BCCard(
-                            shadow: AppShadows.orange,
-                            onTap: () => context.push(RouteNames.creatorWallet),
+                          GlassPanel(
+                            accentColor: AppColors.orange,
                             child: Row(
                               children: [
                                 Expanded(
@@ -1063,65 +1149,39 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                       const SizedBox(height: AppSpacing.xs),
                                       Text(
                                         Formatters.currency(walletBalance),
-                                        style: AppTypography.displaySM
-                                            .copyWith(color: AppColors.purple),
+                                        style:
+                                            AppTypography.displaySM.copyWith(
+                                          fontWeight: FontWeight.w900,
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
                                 const SizedBox(width: AppSpacing.sm),
-                                GestureDetector(
+                                GlassButton(
+                                  label: 'Top up',
+                                  accent: AppColors.orange,
                                   onTap: () =>
                                       context.push(RouteNames.creatorWallet),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: AppSpacing.md,
-                                      vertical: AppSpacing.sm,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.ink,
-                                      borderRadius: BorderRadius.circular(
-                                          AppSpacing.radiusSM),
-                                      border: Border.all(
-                                          color: AppColors.ink, width: 2),
-                                    ),
-                                    child: Text(
-                                      'Top Up →',
-                                      style: AppTypography.labelSM
-                                          .copyWith(color: AppColors.orange),
-                                    ),
-                                  ),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(height: AppSpacing.xl),
-                          BCCard(
+                          GlassPanel(
+                            accentColor: AppColors.ink,
                             child: LayoutBuilder(
                               builder: (context, constraints) {
                                 final isNarrow = constraints.maxWidth < 380;
-                                final settingsButton = BCPrimaryButton(
+                                final settingsButton = GlassButton(
                                   label: 'Settings',
-                                  onPressed: () =>
-                                      context.push(RouteNames.settings),
-                                  backgroundColor: AppColors.ink,
-                                  textColor: AppColors.white,
-                                  prefixIcon: const Icon(
-                                    Icons.settings_rounded,
-                                    color: AppColors.white,
-                                    size: 18,
-                                  ),
+                                  accent: AppColors.ink,
+                                  onTap: () => context.push(RouteNames.settings),
                                 );
-                                final logoutButton = BCPrimaryButton(
+                                final logoutButton = GlassButton(
                                   label: 'Logout',
-                                  onPressed: _logout,
-                                  backgroundColor: AppColors.error,
-                                  textColor: AppColors.white,
-                                  prefixIcon: const Icon(
-                                    Icons.logout_rounded,
-                                    color: AppColors.white,
-                                    size: 18,
-                                  ),
+                                  accent: AppColors.error,
+                                  onTap: _logout,
                                 );
 
                                 if (isNarrow) {
@@ -1145,17 +1205,22 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                             ),
                           ),
                         ],
+                                ),
+                              ),
+                            ProfilePostsTab(
+                              mediaUrls: profile.portfolioLinks,
+                              canManage: true,
+                              emptyTitle:
+                                  'Upload photos/videos to showcase your sample work.',
+                              onUpload: () => _uploadProfilePost(profile),
+                              onDelete: (url) =>
+                                  _deleteProfilePost(profile, url),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    ProfilePostsTab(
-                      mediaUrls: profile.portfolioLinks,
-                      canManage: true,
-                      emptyTitle:
-                          'Upload photos/videos to showcase your sample work.',
-                      onUpload: () => _uploadProfilePost(profile),
-                      onDelete: (url) => _deleteProfilePost(profile, url),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -1166,33 +1231,69 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
   }
 }
 
+class _AmbientGlow extends StatelessWidget {
+  const _AmbientGlow({
+    required this.size,
+    required this.color,
+  });
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: color,
+              blurRadius: size * 0.7,
+              spreadRadius: size * 0.08,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.value,
     required this.label,
-    required this.shadow,
+    required this.accent,
   });
 
   final String value;
   final String label;
-  final List<BoxShadow> shadow;
+  final Color accent;
 
   @override
   Widget build(BuildContext context) {
-    return BCCard(
-      shadow: shadow,
+    return GlassPanel(
+      accentColor: accent,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,
         vertical: AppSpacing.md,
       ),
       child: Column(
         children: [
-          Text(value, style: AppTypography.labelLG),
+          Text(
+            value,
+            style: AppTypography.labelLG.copyWith(fontWeight: FontWeight.w900),
+          ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             label,
             textAlign: TextAlign.center,
-            style: AppTypography.bodyXS,
+            style: AppTypography.bodyXS.copyWith(
+              color: AppColors.muted,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -1217,8 +1318,8 @@ class _InstagramStatsCard extends StatelessWidget {
     final totalPosts = profile.postsCount ?? 0;
     final hasFetchedStats = profile.statsFetchedAt != null;
 
-    return BCCard(
-      shadow: AppShadows.blue,
+    return GlassPanel(
+      accentColor: AppColors.blue,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1230,9 +1331,9 @@ class _InstagramStatsCard extends StatelessWidget {
                   style: AppTypography.labelLG,
                 ),
               ),
-              const BCBadge(
-                label: '🔵 Verified',
-                variant: BCBadgeVariant.blue,
+              const InlineTonePill(
+                label: 'Verified',
+                accent: AppColors.blue,
               ),
             ],
           ),
@@ -1243,7 +1344,7 @@ class _InstagramStatsCard extends StatelessWidget {
                 child: _StatCard(
                   value: Formatters.followerCount(followers),
                   label: 'Followers',
-                  shadow: AppShadows.neon,
+                  accent: AppColors.neon,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -1251,7 +1352,7 @@ class _InstagramStatsCard extends StatelessWidget {
                 child: _StatCard(
                   value: '${engagementRate.toStringAsFixed(1)}%',
                   label: 'Engagement',
-                  shadow: AppShadows.blue,
+                  accent: AppColors.blue,
                 ),
               ),
             ],
@@ -1263,7 +1364,7 @@ class _InstagramStatsCard extends StatelessWidget {
                 child: _StatCard(
                   value: Formatters.followerCount(highestViews),
                   label: 'Highest Views',
-                  shadow: AppShadows.pink,
+                  accent: AppColors.pink,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
@@ -1271,7 +1372,7 @@ class _InstagramStatsCard extends StatelessWidget {
                 child: _StatCard(
                   value: '$totalPosts',
                   label: 'Total Posts',
-                  shadow: AppShadows.orange,
+                  accent: AppColors.orange,
                 ),
               ),
             ],
@@ -1285,12 +1386,10 @@ class _InstagramStatsCard extends StatelessWidget {
           if (!hasFetchedStats) const SizedBox(height: AppSpacing.sm),
           Align(
             alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: onRefreshStats,
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.pink,
-              ),
-              child: const Text('Refresh Stats'),
+            child: GlassButton(
+              label: 'Refresh Stats',
+              accent: AppColors.pink,
+              onTap: onRefreshStats,
             ),
           ),
         ],
@@ -1424,5 +1523,16 @@ String _collabTypeLabel(CampaignCollabType type) {
       return 'Barter';
     case CampaignCollabType.hybrid:
       return 'Hybrid';
+  }
+}
+
+Color _collabTypeAccent(CampaignCollabType type) {
+  switch (type) {
+    case CampaignCollabType.paid:
+      return AppColors.pink;
+    case CampaignCollabType.barter:
+      return AppColors.blue;
+    case CampaignCollabType.hybrid:
+      return AppColors.purple;
   }
 }
