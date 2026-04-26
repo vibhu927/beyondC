@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
         </h1>
         <article className="prose prose-neutral max-w-none text-ink">
           <p>
-            This Privacy Policy explains how BeyondC ("we", "our", or "us") collects, uses, and
+            This Privacy Policy explains how BeyondC (&quot;we&quot;, &quot;our&quot;, or &quot;us&quot;) collects, uses, and
             discloses information when you use our web application.
           </p>
           <h2>Information We Collect</h2>
