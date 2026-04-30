@@ -73,13 +73,13 @@ class BidReviewCard extends StatelessWidget {
                           errorBuilder: (_, __, ___) => Text(
                             bid.creatorInitials,
                             style: AppTypography.labelSM
-                                .copyWith(color: AppColors.neon),
+                                .copyWith(color: AppColors.brandPrimary),
                           ),
                         )
                       : Text(
                           bid.creatorInitials,
                           style: AppTypography.labelSM
-                              .copyWith(color: AppColors.neon),
+                              .copyWith(color: AppColors.brandPrimary),
                         ),
                 ),
               ),
@@ -122,7 +122,7 @@ class BidReviewCard extends StatelessWidget {
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
             children: [
-              _pill(_compactFollowers(bid.followersCount), AppColors.neon,
+              _pill(_compactFollowers(bid.followersCount), AppColors.brandPrimary,
                   AppColors.ink),
               if (niches.isNotEmpty)
                 _pill(niches[0], AppColors.pink, AppColors.white),
@@ -276,3 +276,4 @@ BCBadgeVariant _tierVariant(String tier) {
 
 String _inr(int value) =>
     '₹${NumberFormat.decimalPattern('en_IN').format(value)}';
+

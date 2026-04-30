@@ -543,7 +543,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
         child: Text(
           label,
           style: AppTypography.labelSM.copyWith(
-            color: selected ? AppColors.neon : AppColors.ink,
+            color: selected ? AppColors.brandPrimary : AppColors.ink,
           ),
         ),
       ),
@@ -570,7 +570,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
         child: Text(
           label,
           style: AppTypography.labelSM.copyWith(
-            color: selected ? AppColors.neon : AppColors.ink,
+            color: selected ? AppColors.brandPrimary : AppColors.ink,
           ),
         ),
       ),
@@ -592,7 +592,7 @@ class _StepIndicator extends StatelessWidget {
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
             height: 3,
-            color: currentStep == 0 ? AppColors.divider : AppColors.neon,
+            color: currentStep == 0 ? AppColors.divider : AppColors.brandPrimary,
           ),
         ),
         _dot(active: currentStep == 1),
@@ -605,7 +605,7 @@ class _StepIndicator extends StatelessWidget {
       width: 16,
       height: 16,
       decoration: BoxDecoration(
-        color: active ? AppColors.neon : AppColors.white,
+        color: active ? AppColors.brandPrimary : AppColors.white,
         border: Border.all(color: AppColors.ink, width: 2),
         borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
       ),
@@ -635,3 +635,4 @@ const _niches = [
   'Comedy',
   'Lifestyle',
 ];
+

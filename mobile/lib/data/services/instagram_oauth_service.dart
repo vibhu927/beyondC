@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 
@@ -32,6 +33,7 @@ class InstagramOAuthService {
     if (authUrl == null || authUrl.isEmpty) {
       throw Exception('Could not create Instagram auth URL');
     }
+    debugPrint('[Instagram OAuth] authorize url: $authUrl');
 
     final result = await FlutterWebAuth2.authenticate(
       url: authUrl,

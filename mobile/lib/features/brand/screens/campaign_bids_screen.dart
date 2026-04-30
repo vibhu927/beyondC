@@ -166,7 +166,7 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
                       widthFactor: campaign.slotsTotal == 0
                           ? 0
                           : effectiveSlotsFilled / campaign.slotsTotal,
-                      child: const ColoredBox(color: AppColors.neon),
+                      child: const ColoredBox(color: AppColors.brandPrimary),
                     ),
                   ),
                 ),
@@ -593,3 +593,4 @@ String _collabLabel(CampaignCollabType type) {
       return 'Hybrid';
   }
 }
+

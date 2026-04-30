@@ -24,6 +24,9 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: 'BeyondC - Collabs that go Beyond the feed',
   description: 'BeyondC connects brands and creators  for real paid collabs — starting at just ₹100. No fake followers. No cold DMs. Just results.',
+  icons: {
+    icon: '/favicon.svg',
+  },
   keywords: 'brand collaboration, content creators, influencer marketing, paid collabs, creator economy, India',
   openGraph: {
     title: 'BeyondC - Collabs that go Beyond the feed',

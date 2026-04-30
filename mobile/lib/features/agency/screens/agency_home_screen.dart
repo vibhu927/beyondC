@@ -58,7 +58,7 @@ class _AgencyHomeScreenState extends ConsumerState<AgencyHomeScreen> {
       body: BCLoadingOverlay(
         isLoading: agencyState.isLoading,
         child: RefreshIndicator(
-          color: AppColors.blue,
+          color: AppColors.agencyDark,
           onRefresh: _refresh,
           child: CustomScrollView(
             controller: _scrollController,
@@ -119,7 +119,7 @@ class _GreetingSection extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.md),
-          const Icon(Icons.business, size: 48, color: AppColors.blue),
+          const Icon(Icons.business, size: 48, color: AppColors.agencyDark),
         ],
       ),
     );
@@ -233,3 +233,4 @@ class _ActionCard extends StatelessWidget {
     return BCCard(shadow: shadow, onTap: onTap, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(emoji, style: const TextStyle(fontSize: 28)), const SizedBox(height: AppSpacing.md), Text(title, style: AppTypography.labelLG), const SizedBox(height: AppSpacing.xs), Text(subtitle, style: AppTypography.bodyXS)]));
   }
 }
+

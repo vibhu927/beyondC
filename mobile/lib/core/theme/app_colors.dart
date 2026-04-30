@@ -3,39 +3,58 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // ── BRAND (same in both modes) ──────────────────
-  static const Color neon = Color(0xFFC8FF00);
+  // Canonical minimal palette for the current design direction.
+  static const Color neon = Color(0xFFD8FF1A);
+  static const Color darkGreen = Color(0xFF0F5B3B);
+  static const Color offWhite = Color(0xFFF6F5F1);
+  static const Color pureWhite = Color(0xFFFFFFFF);
+  static const Color black = Color(0xFF111111);
+  static const Color gray = Color(0xFF6B6B6B);
+  static const Color darkBgGreen = Color(0xFF08110D);
+  static const Color darkSurfaceGreen = Color(0xFF0F1B16);
+  static const Color darkTintGreen = Color(0xFF163326);
+
+  // Legacy accent colors kept for compatibility with older screens.
   static const Color pink = Color(0xFFFF2D78);
   static const Color blue = Color(0xFF3D5BFF);
+  static const Color skyBlue = Color(0xFF78C8FF);
   static const Color purple = Color(0xFF9B5DE5);
   static const Color orange = Color(0xFFFF6B00);
 
-  // ── LIGHT MODE ──────────────────────────────────
-  static const Color lightBg = Color.fromARGB(255, 246, 246, 246);
-  static const Color lightSurface = Color(0xFFFFFFFF);
-  static const Color lightSurfaceAlt = Color(0xFFFFFFFF);
-  static const Color lightBorder = Color(0xFF0D0D0D);
-  static const Color lightText = Color(0xFF0D0D0D);
-  static const Color lightMuted = Color(0xFF6B6B6B);
-  static const Color lightDivider = Color(0xFFE5E5E5);
+  // Role palettes
+  static const Color creatorPrimary = neon;
+  static const Color creatorDark = darkGreen;
+  static const Color brandPrimary = Color.fromARGB(255, 251, 22, 102);
+  static const Color brandDark = Color.fromARGB(255, 109, 17, 54);
+  static const Color agencyPrimary = Color.fromARGB(255, 120, 200, 255);
+  static const Color agencyDark = Color.fromARGB(255, 61, 91, 255);
 
-  // ── DARK MODE ───────────────────────────────────
-  static const Color darkBg = Color(0xFF0D0D0D);
-  static const Color darkSurface = Color(0xFF1A1A1A);
-  static const Color darkSurfaceAlt = Color(0xFF222222);
-  static const Color darkBorder = Color(0xFF333333);
-  static const Color darkText = Color(0xFFF5F5F5);
-  static const Color darkMuted = Color(0xFF888888);
-  static const Color darkDivider = Color(0xFF2A2A2A);
+  // LIGHT MODE
+  static const Color lightBg = offWhite;
+  static const Color lightSurface = pureWhite;
+  static const Color lightSurfaceAlt = pureWhite;
+  static const Color lightBorder = Color(0xFFE2E2E2);
+  static const Color lightText = black;
+  static const Color lightMuted = gray;
+  static const Color lightDivider = Color(0xFFE8E8E8);
 
-  // ── SEMANTIC (same both modes) ──────────────────
+  // DARK MODE
+  static const Color darkBg = darkBgGreen;
+  static const Color darkSurface = darkSurfaceGreen;
+  static const Color darkSurfaceAlt = darkTintGreen;
+  static const Color darkBorder = Color(0xFF234636);
+  static const Color darkText = Color(0xFFF5F5F1);
+  static const Color darkMuted = Color(0xFFB0B0B0);
+  static const Color darkDivider = Color(0xFF1E3329);
+
+  // SEMANTIC (same both modes)
   static const Color success = Color(0xFF22C55E);
   static const Color error = Color(0xFFEF4444);
   static const Color warning = Color(0xFFF59E0B);
 
   // Backward-compatible aliases used across the app.
   static const Color ink = lightText;
-  static const Color white = Color(0xFFFFFFFF);
+  static const Color white = pureWhite;
   static const Color surface = lightSurface;
   static const Color surfaceAlt = lightSurfaceAlt;
   static const Color muted = lightMuted;

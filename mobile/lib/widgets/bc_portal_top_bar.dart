@@ -16,8 +16,6 @@ import '../features/shared/widgets/notifications_modal.dart';
 class BCPortalTopBar extends ConsumerWidget implements PreferredSizeWidget {
   const BCPortalTopBar({super.key});
 
-  static const Color _topBarColor = Color(0xFF0D0D0D);
-
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
@@ -38,16 +36,14 @@ class BCPortalTopBar extends ConsumerWidget implements PreferredSizeWidget {
       elevation: 0,
       scrolledUnderElevation: 0,
       shadowColor: Colors.transparent,
-      backgroundColor: _topBarColor,
+      backgroundColor: AppColors.lightBg,
       surfaceTintColor: Colors.transparent,
-      shape: const Border(
-        bottom: BorderSide(color: Colors.transparent, width: 0),
-      ),
-      flexibleSpace: const ColoredBox(color: _topBarColor),
+      shape: const Border(bottom: BorderSide(color: Colors.transparent, width: 0)),
+      flexibleSpace: const ColoredBox(color: AppColors.lightBg),
       systemOverlayStyle: SystemUiOverlayStyle(
-        statusBarColor: _topBarColor,
-        statusBarIconBrightness: Brightness.light,
-        statusBarBrightness: Brightness.dark,
+        statusBarColor: AppColors.lightBg,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
       ),
       automaticallyImplyLeading: false,
       centerTitle: false,
@@ -60,7 +56,7 @@ class BCPortalTopBar extends ConsumerWidget implements PreferredSizeWidget {
             Text(
               'Beyond',
               style: AppTypography.displaySM.copyWith(
-                color: AppColors.white,
+                color: AppColors.darkGreen,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 0.35,
               ),
@@ -71,7 +67,10 @@ class BCPortalTopBar extends ConsumerWidget implements PreferredSizeWidget {
               decoration: BoxDecoration(
                 color: AppColors.neon,
                 borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: AppColors.white, width: 2),
+                border: Border.all(
+                  color: AppColors.darkGreen.withValues(alpha: 0.16),
+                  width: 1.2,
+                ),
               ),
               child: Text(
                 'C',
@@ -91,9 +90,9 @@ class BCPortalTopBar extends ConsumerWidget implements PreferredSizeWidget {
             BCBackButton(
               onPressed: () => openNotificationsModal(context),
               icon: Icons.notifications_rounded,
-              iconColor: AppColors.white,
-              backgroundColor: AppColors.darkSurface,
-              borderColor: AppColors.darkBorder,
+              iconColor: AppColors.darkGreen,
+              backgroundColor: AppColors.white,
+              borderColor: AppColors.darkGreen.withValues(alpha: 0.14),
               buttonSize: 36,
               iconSize: 20,
               tooltip: 'Notifications',
@@ -128,9 +127,9 @@ class BCPortalTopBar extends ConsumerWidget implements PreferredSizeWidget {
             BCBackButton(
               onPressed: () => openChatModal(context),
               icon: Symbols.send_rounded,
-              iconColor: AppColors.white,
-              backgroundColor: AppColors.darkSurface,
-              borderColor: AppColors.darkBorder,
+              iconColor: AppColors.darkGreen,
+              backgroundColor: AppColors.white,
+              borderColor: AppColors.darkGreen.withValues(alpha: 0.14),
               buttonSize: 36,
               iconSize: 20,
               tooltip: 'Messages',

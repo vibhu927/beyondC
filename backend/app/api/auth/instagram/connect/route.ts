@@ -27,6 +27,10 @@ export async function GET(request: NextRequest) {
   try {
     const clientId = process.env.INSTAGRAM_CLIENT_ID
     const redirectUri = process.env.INSTAGRAM_REDIRECT_URI
+    const authorizeUrl = process.env.INSTAGRAM_OAUTH_AUTHORIZE_URL?.trim() || 'https://www.instagram.com/oauth/authorize'
+    const scope =
+      process.env.INSTAGRAM_OAUTH_SCOPE?.trim() ||
+      'instagram_business_basic,instagram_business_manage_comments,instagram_business_manage_messages,instagram_business_content_publish'
 
     if (!clientId || !redirectUri) {
       return NextResponse.json({ error: 'Instagram OAuth env is not configured' }, { status: 500 })
@@ -68,13 +72,13 @@ export async function GET(request: NextRequest) {
     const params = new URLSearchParams({
       client_id: clientId,
       redirect_uri: redirectUri,
-      scope: 'user_profile,user_media',
+      scope,
       response_type: 'code',
       state: `${encodedPayload}.${signature}`,
     })
 
     return NextResponse.json({
-      url: `https://api.instagram.com/oauth/authorize?${params.toString()}`,
+      url: `${authorizeUrl}?${params.toString()}`,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Could not start Instagram OAuth flow'

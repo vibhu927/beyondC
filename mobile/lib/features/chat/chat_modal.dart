@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
@@ -14,7 +14,6 @@ import '../../widgets/buttons/bc_back_button.dart';
 import 'chat_screen.dart';
 import 'widgets/archive_tile.dart';
 import 'widgets/chat_list_tile.dart';
-import '../creator/shared/widgets/creator_design_system.dart';
 
 void openChatModal(BuildContext context) {
   showModalBottomSheet<void>(
@@ -28,15 +27,13 @@ void openChatModal(BuildContext context) {
 
 class _ChatModalSheet extends ConsumerStatefulWidget {
   const _ChatModalSheet();
-
   @override
   ConsumerState<_ChatModalSheet> createState() => _ChatModalSheetState();
 }
 
 class _ChatModalSheetState extends ConsumerState<_ChatModalSheet> {
   final TextEditingController _searchController = TextEditingController();
-  final DraggableScrollableController _sheetController =
-      DraggableScrollableController();
+  final DraggableScrollableController _sheetController = DraggableScrollableController();
   String _filter = 'all';
 
   static const double _minSheetSize = 0.5;
@@ -53,22 +50,16 @@ class _ChatModalSheetState extends ConsumerState<_ChatModalSheet> {
     if (!_sheetController.isAttached) return;
     final screenHeight = MediaQuery.of(context).size.height;
     final delta = details.primaryDelta ?? 0;
-    final next = (_sheetController.size - (delta / screenHeight))
-        .clamp(_minSheetSize, _maxSheetSize);
+    final next = (_sheetController.size - (delta / screenHeight)).clamp(_minSheetSize, _maxSheetSize);
     _sheetController.jumpTo(next);
   }
 
   void _onHandleDragEnd(DragEndDetails details) {
     if (!_sheetController.isAttached) return;
-
     final velocity = details.primaryVelocity ?? 0;
-    double target;
-    if (velocity.abs() > 280) {
-      target = velocity < 0 ? _maxSheetSize : _minSheetSize;
-    } else {
-      target = _sheetController.size > 0.75 ? _maxSheetSize : _minSheetSize;
-    }
-
+    final target = velocity.abs() > 280
+        ? (velocity < 0 ? _maxSheetSize : _minSheetSize)
+        : (_sheetController.size > 0.75 ? _maxSheetSize : _minSheetSize);
     _sheetController.animateTo(
       target,
       duration: const Duration(milliseconds: 180),
@@ -78,6 +69,9 @@ class _ChatModalSheetState extends ConsumerState<_ChatModalSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final role = ref.watch(authProvider.select((a) => a.role)) ?? 'creator';
+    final roleDark = _roleDark(role);
+    final rolePrimary = _rolePrimary(role);
     return DraggableScrollableSheet(
       controller: _sheetController,
       initialChildSize: 0.5,
@@ -88,16 +82,15 @@ class _ChatModalSheetState extends ConsumerState<_ChatModalSheet> {
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFE7EDF7),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            border: Border.all(
-              color: AppColors.ink.withValues(alpha: 0.14),
-              width: 1.2,
-            ),
+            color: AppColors.lightBg,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border.all(color: roleDark.withValues(alpha: 0.16), width: 1.2),
           ),
           child: Column(
             children: [
               _ChatModalHeader(
+                roleDark: roleDark,
+                rolePrimary: rolePrimary,
                 searchController: _searchController,
                 filter: _filter,
                 onSearchChanged: (_) => setState(() {}),
@@ -112,9 +105,7 @@ class _ChatModalSheetState extends ConsumerState<_ChatModalSheet> {
                   filter: _filter,
                   searchQuery: _searchController.text,
                   onOpenArchived: () => setState(() => _filter = 'archived'),
-                  onChatTap: (collabId) {
-                    openChatDrawer(context, collabId);
-                  },
+                  onChatTap: (collabId) => openChatDrawer(context, collabId),
                 ),
               ),
             ],
@@ -127,6 +118,8 @@ class _ChatModalSheetState extends ConsumerState<_ChatModalSheet> {
 
 class _ChatModalHeader extends StatelessWidget {
   const _ChatModalHeader({
+    required this.roleDark,
+    required this.rolePrimary,
     required this.searchController,
     required this.filter,
     required this.onSearchChanged,
@@ -136,6 +129,8 @@ class _ChatModalHeader extends StatelessWidget {
     required this.onHandleDragEnd,
   });
 
+  final Color roleDark;
+  final Color rolePrimary;
   final TextEditingController searchController;
   final String filter;
   final ValueChanged<String> onSearchChanged;
@@ -160,15 +155,15 @@ class _ChatModalHeader extends StatelessWidget {
               behavior: HitTestBehavior.translucent,
               onVerticalDragUpdate: onHandleDragUpdate,
               onVerticalDragEnd: onHandleDragEnd,
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: 6),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
                 child: SizedBox(
                   width: 40,
                   height: 4,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: AppColors.darkMuted,
-                      borderRadius: BorderRadius.all(Radius.circular(999)),
+                      color: roleDark.withValues(alpha: 0.6),
+                      borderRadius: const BorderRadius.all(Radius.circular(999)),
                     ),
                   ),
                 ),
@@ -178,18 +173,24 @@ class _ChatModalHeader extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('Messages', style: AppTypography.displaySM),
+                  child: Text(
+                    'Messages',
+                    style: AppTypography.displaySM.copyWith(
+                      color: roleDark,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                 ),
               ),
               BCBackButton(
                 onPressed: onClose,
                 icon: Icons.close_rounded,
-                iconColor: AppColors.ink,
-                backgroundColor: Colors.white.withValues(alpha: 0.92),
-                borderColor: AppColors.ink.withValues(alpha: 0.16),
+                iconColor: roleDark,
+                backgroundColor: Colors.white.withValues(alpha: 0.96),
+                borderColor: roleDark.withValues(alpha: 0.16),
                 tooltip: 'Close',
               ),
             ],
@@ -197,24 +198,21 @@ class _ChatModalHeader extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           SizedBox(
             height: 44,
-            child: GlassPanel(
-              accentColor: AppColors.neon,
-              radius: 999,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                border: Border.all(color: roleDark.withValues(alpha: 0.16)),
+              ),
               child: TextField(
                 controller: searchController,
                 onChanged: onSearchChanged,
-                style: AppTypography.bodySM.copyWith(color: AppColors.ink),
-                cursorColor: AppColors.ink,
+                style: AppTypography.bodySM.copyWith(color: roleDark),
+                cursorColor: roleDark,
                 decoration: InputDecoration(
-                  hintText: 'Search chats...',
-                  hintStyle: AppTypography.bodySM.copyWith(
-                    color: AppColors.muted,
-                  ),
-                  prefixIcon: const Icon(
-                    Symbols.search_rounded,
-                    color: AppColors.ink,
-                  ),
+                  hintText: 'Search chats',
+                  hintStyle: AppTypography.bodySM.copyWith(color: AppColors.muted),
+                  prefixIcon: Icon(Symbols.search_rounded, color: roleDark),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
@@ -229,15 +227,13 @@ class _ChatModalHeader extends StatelessWidget {
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
-                _FilterChip(
-                  label: 'All',
-                  active: filter == 'all',
-                  onTap: () => onFilterChanged('all'),
-                ),
+                _FilterChip(label: 'All', active: filter == 'all', darkColor: roleDark, primaryColor: rolePrimary, onTap: () => onFilterChanged('all')),
                 const SizedBox(width: AppSpacing.sm),
                 _FilterChip(
                   label: 'Archived',
                   active: filter == 'archived',
+                  darkColor: roleDark,
+                  primaryColor: rolePrimary,
                   onTap: () => onFilterChanged('archived'),
                 ),
               ],
@@ -250,14 +246,11 @@ class _ChatModalHeader extends StatelessWidget {
 }
 
 class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    required this.active,
-    required this.onTap,
-  });
-
+  const _FilterChip({required this.label, required this.active, required this.darkColor, required this.primaryColor, required this.onTap});
   final String label;
   final bool active;
+  final Color darkColor;
+  final Color primaryColor;
   final VoidCallback onTap;
 
   @override
@@ -268,30 +261,41 @@ class _FilterChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: active
-              ? AppColors.ink.withValues(alpha: 0.9)
-              : Colors.white.withValues(alpha: 0.9),
+          color: active ? darkColor : AppColors.white,
           borderRadius: BorderRadius.circular(999),
-          border: uniformBorder(
-            active ? AppColors.ink : AppColors.blue,
-            width: 1.1,
-          ),
-          boxShadow: neoShadows(
-            active ? AppColors.ink : AppColors.blue,
-            alpha: 0.1,
-            offset: 2.5,
-            blurRadius: 8,
-          ),
+          border: Border.all(color: darkColor.withValues(alpha: 0.2)),
         ),
         child: Text(
           label,
           style: AppTypography.labelSM.copyWith(
-            color: active ? AppColors.neon : AppColors.ink,
+            color: active ? primaryColor : darkColor,
             fontWeight: FontWeight.w800,
           ),
         ),
       ),
     );
+  }
+}
+
+Color _rolePrimary(String role) {
+  switch (role) {
+    case 'brand':
+      return AppColors.brandPrimary;
+    case 'agency':
+      return AppColors.agencyPrimary;
+    default:
+      return AppColors.creatorPrimary;
+  }
+}
+
+Color _roleDark(String role) {
+  switch (role) {
+    case 'brand':
+      return AppColors.brandDark;
+    case 'agency':
+      return AppColors.agencyDark;
+    default:
+      return AppColors.creatorDark;
   }
 }
 
@@ -313,7 +317,6 @@ class _ChatList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(authProvider.select((a) => a.role)) ?? 'creator';
-
     return ref.watch(chatListProvider).when(
           loading: () => const Center(child: BCAppLoader()),
           error: (error, _) => BCErrorState(
@@ -321,8 +324,7 @@ class _ChatList extends ConsumerWidget {
             onRetry: () => ref.invalidate(chatListProvider),
           ),
           data: (result) {
-            final source =
-                filter == 'archived' ? result.archived : result.active;
+            final source = filter == 'archived' ? result.archived : result.active;
             final query = searchQuery.trim().toLowerCase();
             final chats = query.isEmpty
                 ? source
@@ -333,32 +335,18 @@ class _ChatList extends ConsumerWidget {
                   }).toList();
 
             if (chats.isEmpty) {
-              return const BCEmptyState(
-                emoji: '💬',
-                message: 'No chats found.',
-              );
+              return const BCEmptyState(emoji: '💬', message: 'No chats found.');
             }
 
             return ListView.builder(
               controller: scrollController,
-              itemCount: chats.length +
-                  (filter == 'all' && result.archived.isNotEmpty ? 1 : 0),
+              itemCount: chats.length + (filter == 'all' && result.archived.isNotEmpty ? 1 : 0),
               itemBuilder: (context, index) {
-                if (filter == 'all' &&
-                    result.archived.isNotEmpty &&
-                    index == chats.length) {
-                  return ArchiveTile(
-                    count: result.archived.length,
-                    onTap: onOpenArchived,
-                  );
+                if (filter == 'all' && result.archived.isNotEmpty && index == chats.length) {
+                  return ArchiveTile(count: result.archived.length, onTap: onOpenArchived);
                 }
-
                 final chat = chats[index];
-                return ChatListTile(
-                  chat: chat,
-                  role: role,
-                  onTap: () => onChatTap(chat.id),
-                );
+                return ChatListTile(chat: chat, role: role, onTap: () => onChatTap(chat.id));
               },
             );
           },

@@ -11,20 +11,21 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/brand_models.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
+import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
-import '../../../widgets/buttons/bc_primary_button.dart';
+import '../../../widgets/brand_page_top_header.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../../../widgets/buttons/bc_primary_button.dart';
 
-final _brandActiveCollabsProvider =
-    FutureProvider<List<ActiveCollabSummary>>((ref) {
-  return ref.read(brandRepositoryProvider).getActiveCollabs();
-});
+final _brandActiveCollabsProvider = FutureProvider<List<ActiveCollabSummary>>(
+  (ref) => ref.read(brandRepositoryProvider).getActiveCollabs(),
+);
 
 final _brandCompletedCollabsProvider =
-    FutureProvider<List<ActiveCollabSummary>>((ref) {
-  return ref.read(brandRepositoryProvider).getCompletedCollabs();
-});
+    FutureProvider<List<ActiveCollabSummary>>(
+  (ref) => ref.read(brandRepositoryProvider).getCompletedCollabs(),
+);
 
 class BrandCollabsScreen extends ConsumerWidget {
   const BrandCollabsScreen({super.key});
@@ -46,31 +47,100 @@ class BrandCollabsScreen extends ConsumerWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        appBar: AppBar(
-          elevation: 0,
-          backgroundColor: Theme.of(context).colorScheme.surface,
-          surfaceTintColor: Colors.transparent,
-          title: const Text('Brand Collabs', style: AppTypography.displaySM),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Active'),
-              Tab(text: 'Completed'),
-            ],
-          ),
+        extendBody: true,
+        bottomNavigationBar: const BCBottomNav(
+          role: BCPortalRole.brand,
+          currentIndex: 1,
         ),
-        body: RefreshIndicator(
-          color: AppColors.neon,
-          onRefresh: refresh,
-          child: TabBarView(
+        body: BCPageSwipeArea(
+          role: BCPortalRole.brand,
+          currentIndex: 1,
+          child: Stack(
             children: [
-              _CollabsList(
-                asyncValue: activeAsync,
-                emptyMessage:
-                    'No active collabs yet. Accept a bid or request to start one.',
+              const Positioned.fill(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: AppColors.lightBg),
+                ),
               ),
-              _CollabsList(
-                asyncValue: completedAsync,
-                emptyMessage: 'No completed collabs yet.',
+              Positioned(
+                top: -46,
+                right: -32,
+                child: _GlowOrb(
+                  size: 136,
+                  color: AppColors.brandPrimary.withValues(alpha: 0.08),
+                ),
+              ),
+              Positioned(
+                top: 220,
+                left: -44,
+                child: _GlowOrb(
+                  size: 112,
+                  color: AppColors.brandDark.withValues(alpha: 0.08),
+                ),
+              ),
+              Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.screenPadding,
+                      MediaQuery.of(context).padding.top + 14,
+                      AppSpacing.screenPadding,
+                      AppSpacing.sm,
+                    ),
+                    child: const BrandPageTopHeader(),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.screenPadding,
+                      AppSpacing.sm,
+                      AppSpacing.screenPadding,
+                      AppSpacing.sm,
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: AppColors.brandDark.withValues(alpha: 0.14),
+                        ),
+                      ),
+                      child: const TabBar(
+                        dividerColor: Colors.transparent,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        indicatorPadding: EdgeInsets.all(4),
+                        indicator: BoxDecoration(
+                          color: AppColors.brandDark,
+                          borderRadius: BorderRadius.all(Radius.circular(999)),
+                        ),
+                        labelColor: AppColors.white,
+                        unselectedLabelColor: AppColors.brandDark,
+                        tabs: [
+                          Tab(text: 'Active'),
+                          Tab(text: 'Completed'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: RefreshIndicator(
+                      color: AppColors.brandPrimary,
+                      onRefresh: refresh,
+                      child: TabBarView(
+                        children: [
+                          _CollabsList(
+                            asyncValue: activeAsync,
+                            emptyMessage:
+                                'No active collabs yet. Accept a bid or request to start one.',
+                          ),
+                          _CollabsList(
+                            asyncValue: completedAsync,
+                            emptyMessage: 'No completed collabs yet.',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -96,10 +166,7 @@ class _CollabsList extends StatelessWidget {
       error: (error, _) => BCErrorState(message: error.toString()),
       data: (collabs) {
         if (collabs.isEmpty) {
-          return BCEmptyState(
-            emoji: '🤝',
-            message: emptyMessage,
-          );
+          return BCEmptyState(emoji: '🤝', message: emptyMessage);
         }
 
         return ListView.separated(
@@ -112,10 +179,7 @@ class _CollabsList extends StatelessWidget {
           ),
           itemCount: collabs.length,
           separatorBuilder: (_, __) => const SizedBox(height: AppSpacing.md),
-          itemBuilder: (context, index) {
-            final collab = collabs[index];
-            return _CollabCard(collab: collab);
-          },
+          itemBuilder: (context, index) => _CollabCard(collab: collabs[index]),
         );
       },
     );
@@ -130,17 +194,15 @@ class _CollabCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BCCard(
-      shadow: AppShadows.pink,
+      shadow: AppShadows.neon,
+      borderColor: AppColors.lightBorder,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Expanded(
-                child: Text(
-                  collab.creatorName,
-                  style: AppTypography.labelLG,
-                ),
+                child: Text(collab.creatorName, style: AppTypography.labelLG),
               ),
               BCBadge(
                 label: _statusLabel(collab.status),
@@ -149,10 +211,7 @@ class _CollabCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          BCBadge(
-            label: collab.campaignTitle,
-            variant: BCBadgeVariant.neon,
-          ),
+          BCBadge(label: collab.campaignTitle, variant: BCBadgeVariant.neon),
           const SizedBox(height: AppSpacing.sm),
           Text(
             _meta(collab),
@@ -162,11 +221,10 @@ class _CollabCard extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: BCPrimaryButton.dark(
-              label: 'Open Details →',
+              label: 'Open Details ->',
               isFullWidth: false,
-              onPressed: () => context.push(
-                RouteNames.collabDetail.replaceFirst(':id', collab.id),
-              ),
+              onPressed: () =>
+                  context.push(RouteNames.collabDetail.replaceFirst(':id', collab.id)),
             ),
           ),
         ],
@@ -202,14 +260,39 @@ BCBadgeVariant _statusVariant(String status) {
 }
 
 String _meta(ActiveCollabSummary collab) {
-  final amount = collab.agreedAmount;
-  final startedAt = collab.startedAt;
-
-  final amountCopy =
-      amount != null ? Formatters.currencyFromINR(amount) : 'Amount not set';
-  final startedCopy = startedAt != null
-      ? 'Started ${Formatters.date(startedAt)}'
+  final amountCopy = collab.agreedAmount != null
+      ? Formatters.currencyFromINR(collab.agreedAmount!)
+      : 'Amount not set';
+  final startedCopy = collab.startedAt != null
+      ? 'Started ${Formatters.date(collab.startedAt!)}'
       : 'Start date pending';
-
-  return '$amountCopy • $startedCopy';
+  return '$amountCopy | $startedCopy';
 }
+
+class _GlowOrb extends StatelessWidget {
+  const _GlowOrb({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: color,
+              blurRadius: size * 0.55,
+              spreadRadius: size * 0.04,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

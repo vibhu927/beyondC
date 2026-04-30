@@ -213,7 +213,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         ),
                         Switch(
                           value: _isVirtual,
-                          activeColor: AppColors.neon,
+                          activeColor: AppColors.brandPrimary,
                           onChanged: (value) =>
                               setState(() => _isVirtual = value),
                         ),
@@ -355,7 +355,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         child: Text(
           label,
           style: AppTypography.labelSM.copyWith(
-            color: active ? AppColors.neon : AppColors.ink,
+            color: active ? AppColors.brandPrimary : AppColors.ink,
           ),
         ),
       ),
@@ -384,3 +384,4 @@ const _niches = [
 ];
 
 const _tiers = ['Nano', 'Micro', 'Mid', 'Macro'];
+

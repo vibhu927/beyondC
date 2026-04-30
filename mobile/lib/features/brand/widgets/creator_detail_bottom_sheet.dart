@@ -75,7 +75,7 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                         color: AppColors.ink,
                         borderRadius:
                             BorderRadius.circular(AppSpacing.radiusFull),
-                        border: Border.all(color: AppColors.neon, width: 3),
+                        border: Border.all(color: AppColors.brandPrimary, width: 3),
                       ),
                       alignment: Alignment.center,
                       child: (creator.avatarUrl ?? '').trim().isNotEmpty
@@ -88,14 +88,14 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                                 errorBuilder: (_, __, ___) => Text(
                                   creator.initials,
                                   style: AppTypography.labelLG
-                                      .copyWith(color: AppColors.neon),
+                                      .copyWith(color: AppColors.brandPrimary),
                                 ),
                               ),
                             )
                           : Text(
                               creator.initials,
                               style: AppTypography.labelLG
-                                  .copyWith(color: AppColors.neon),
+                                  .copyWith(color: AppColors.brandPrimary),
                             ),
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -367,3 +367,4 @@ String _starsForCreator(CreatorPreview creator) {
   final count = rating.round().clamp(1, 5);
   return List.filled(count, '★').join();
 }
+

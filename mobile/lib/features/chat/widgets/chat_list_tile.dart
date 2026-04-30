@@ -6,7 +6,6 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/collab_chat.dart';
-import '../../creator/shared/widgets/creator_design_system.dart';
 
 class ChatListTile extends StatelessWidget {
   const ChatListTile({
@@ -29,7 +28,7 @@ class ChatListTile extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(26),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.screenPadding,
@@ -37,12 +36,19 @@ class ChatListTile extends StatelessWidget {
           AppSpacing.screenPadding,
           AppSpacing.sm,
         ),
-        child: GlassPanel(
-          accentColor: unread > 0 ? AppColors.neon : AppColors.blue,
-          radius: 22,
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.md,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: AppColors.lightBorder),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 18,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -112,9 +118,20 @@ class ChatListTile extends StatelessWidget {
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         if (unread > 0)
-                          InlineTonePill(
-                            label: unread > 9 ? '9+' : '$unread',
-                            accent: AppColors.pink,
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.neon,
+                              borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                              border: Border.all(color: AppColors.darkGreen.withValues(alpha: 0.16)),
+                            ),
+                            child: Text(
+                              unread > 9 ? '9+' : '$unread',
+                              style: AppTypography.labelXS.copyWith(
+                                color: AppColors.darkGreen,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
                           )
                         else if (chat.isArchived)
                           const Icon(

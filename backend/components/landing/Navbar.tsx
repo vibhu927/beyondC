@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { useFrontendSession } from '@/hooks/useFrontendSession'
 
@@ -27,9 +28,16 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16 sm:h-20">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center gap-0 font-space text-2xl sm:text-3xl font-bold">
-              <span className="text-ink">Beyond</span>
-              <span className="bg-ink text-neon px-2 sm:px-3 py-1 rounded-full">C</span>
+            <Link href="/" className="flex items-center">
+              <span className="relative block h-12 w-12 overflow-hidden rounded-full border-2 border-ink sm:h-14 sm:w-14">
+                <Image
+                  src="/assets/logo.png"
+                  alt="BeyondC logo"
+                  fill
+                  className="object-cover"
+                  priority
+                />
+              </span>
             </Link>
           </div>
 
@@ -56,7 +64,7 @@ export default function Navbar() {
           <div className="relative z-[120] flex items-center gap-3 shrink-0 pointer-events-auto">
             {hasSession ? (
               <>
-                <span className="hidden sm:inline-flex items-center rounded-full border-2 border-ink bg-neon px-4 py-2 font-space text-xs font-bold uppercase tracking-[0.08em] text-ink">
+                <span className="hidden sm:inline-flex items-center rounded-full border-2 border-ink bg-neon px-4 py-2 font-jakarta text-xs font-bold uppercase tracking-[0.08em] text-ink">
                   Hi, {session?.firstName}
                 </span>
                 <Link
@@ -82,7 +90,7 @@ export default function Navbar() {
                   Join as Brand
                 </Link>
                 */}
-                  {/* <span className="hidden md:inline-flex items-center rounded-full border-2 border-ink bg-neon px-3 py-2 font-space text-[10px] font-bold uppercase tracking-[0.08em] text-ink">
+                  {/* <span className="hidden md:inline-flex items-center rounded-full border-2 border-ink bg-neon px-3 py-2 font-jakarta text-[10px] font-bold uppercase tracking-[0.08em] text-ink">
                     Join via waitlist
                   </span> */}
                 <a

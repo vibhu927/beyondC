@@ -185,7 +185,7 @@ class _EventCard extends StatelessWidget {
                 widthFactor: event.totalSlots == 0
                     ? 0
                     : event.filledSlots / event.totalSlots,
-                child: const ColoredBox(color: AppColors.neon),
+                child: const ColoredBox(color: AppColors.brandPrimary),
               ),
             ),
           ),
@@ -263,3 +263,4 @@ class _EventsShimmerList extends StatelessWidget {
     );
   }
 }
+

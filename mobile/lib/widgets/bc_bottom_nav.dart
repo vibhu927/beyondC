@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -167,109 +168,124 @@ class _BCBottomNavState extends State<BCBottomNav> {
   @override
   Widget build(BuildContext context) {
     final items = _itemsFor(widget.role);
+    final roleDark = _roleDark(widget.role);
+    final rolePrimary = _rolePrimary(widget.role);
 
     return SafeArea(
       top: false,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+        padding: const EdgeInsets.only(bottom: 10),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final width = constraints.maxWidth;
+            final width = constraints.maxWidth * 0.85;
             final itemWidth = width / items.length;
-            final capsuleWidth = itemWidth - 10;
+            final selectionSize = math.min(58.0, itemWidth - 14);
             final targetCenterX =
                 _dragX ?? (widget.currentIndex * itemWidth + itemWidth / 2);
-            final capsuleLeft = (targetCenterX - capsuleWidth / 2)
-                .clamp(5.0, width - capsuleWidth - 5.0)
+            final selectionLeft = (targetCenterX - selectionSize / 2)
+                .clamp(8.0, width - selectionSize - 8.0)
                 .toDouble();
+            final selectionTop = (72 - selectionSize) / 2;
             final isDragging = _dragX != null;
 
-            return GestureDetector(
-              onHorizontalDragUpdate: _onDragUpdate,
-              onHorizontalDragEnd: (_) => _onDragEnd(items, width, context),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(30),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                  child: Container(
-                    key: _navKey,
-                    height: 72,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.white.withValues(alpha: 0.94),
-                          const Color(0xFFEFF4FC).withValues(alpha: 0.94),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(30),
-                      border: Border.all(
-                        color: AppColors.ink.withValues(alpha: 0.14),
-                        width: 1.1,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.blue.withValues(alpha: 0.2),
-                          blurRadius: 0,
-                          offset: const Offset(4, 4),
-                        ),
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 16,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      children: [
-                        AnimatedPositioned(
-                          duration: isDragging
-                              ? Duration.zero
-                              : const Duration(milliseconds: 220),
-                          curve: Curves.easeOutCubic,
-                          left: capsuleLeft,
-                          top: 6,
-                          width: capsuleWidth,
-                          height: 60,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.neon.withValues(alpha: 0.16),
-                              borderRadius: BorderRadius.circular(26),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.neon.withValues(alpha: 0.22),
-                                  blurRadius: 0,
-                                  offset: const Offset(2, 2),
-                                ),
-                              ],
-                              border: Border.all(
-                                color: AppColors.ink.withValues(alpha: 0.2),
-                                width: 1.0,
-                              ),
+            return Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: SizedBox(
+                  width: width,
+                  child: GestureDetector(
+                    onHorizontalDragUpdate: _onDragUpdate,
+                    onHorizontalDragEnd: (_) =>
+                        _onDragEnd(items, width, context),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                        child: Container(
+                          key: _navKey,
+                          height: 72,
+                          decoration: BoxDecoration(
+                            color: roleDark,
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: roleDark.withValues(alpha: 0.7),
+                              width: 1.1,
                             ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.16),
+                                blurRadius: 0,
+                                offset: const Offset(4, 4),
+                              ),
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.12),
+                                blurRadius: 16,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
                           ),
-                        ),
-                        Row(
-                          children: [
-                            for (var i = 0; i < items.length; i++)
-                              Expanded(
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(30),
-                                  onTap: () {
-                                    if (i == widget.currentIndex) return;
-                                    context.go(items[i].route);
-                                  },
-                                  child: _NavIcon(
-                                    icon: items[i].icon,
-                                    label: items[i].label,
-                                    isSelected: i == widget.currentIndex,
+                          child: Stack(
+                            children: [
+                              AnimatedPositioned(
+                                duration: isDragging
+                                    ? Duration.zero
+                                    : const Duration(milliseconds: 220),
+                                curve: Curves.easeOutCubic,
+                                left: selectionLeft,
+                                top: selectionTop,
+                                width: selectionSize,
+                                height: selectionSize,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        AppColors.white,
+                                        rolePrimary.withValues(alpha: 0.96),
+                                      ],
+                                    ),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: roleDark.withValues(alpha: 0.16),
+                                        blurRadius: 14,
+                                        offset: const Offset(0, 7),
+                                      ),
+                                    ],
+                                    border: Border.all(
+                                      color: roleDark.withValues(alpha: 0.3),
+                                      width: 1.0,
+                                    ),
                                   ),
                                 ),
                               ),
-                          ],
+                              Row(
+                                children: [
+                                  for (var i = 0; i < items.length; i++)
+                                    Expanded(
+                                      child: InkWell(
+                                        borderRadius:
+                                            BorderRadius.circular(999),
+                                        onTap: () {
+                                          if (i == widget.currentIndex) return;
+                                          context.go(items[i].route);
+                                        },
+                                        child: _NavIcon(
+                                          icon: items[i].icon,
+                                          label: items[i].label,
+                                          isSelected: i == widget.currentIndex,
+                                          role: widget.role,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -336,11 +352,13 @@ class _NavIcon extends StatefulWidget {
     required this.icon,
     required this.label,
     required this.isSelected,
+    required this.role,
   });
 
   final IconData icon;
   final String label;
   final bool isSelected;
+  final BCPortalRole role;
 
   @override
   State<_NavIcon> createState() => _NavIconState();
@@ -412,9 +430,10 @@ class _NavIconState extends State<_NavIcon>
 
   @override
   Widget build(BuildContext context) {
+    final roleDark = _roleDark(widget.role);
     final color = widget.isSelected
-        ? AppColors.ink
-        : AppColors.ink.withValues(alpha: 0.58);
+        ? roleDark
+        : AppColors.lightBg.withValues(alpha: 0.84);
 
     return AnimatedBuilder(
       animation: _controller,
@@ -439,5 +458,27 @@ class _NavIconState extends State<_NavIcon>
         ),
       ),
     );
+  }
+}
+
+Color _rolePrimary(BCPortalRole role) {
+  switch (role) {
+    case BCPortalRole.creator:
+      return AppColors.creatorPrimary;
+    case BCPortalRole.brand:
+      return AppColors.brandPrimary;
+    case BCPortalRole.agency:
+      return AppColors.agencyPrimary;
+  }
+}
+
+Color _roleDark(BCPortalRole role) {
+  switch (role) {
+    case BCPortalRole.creator:
+      return AppColors.creatorDark;
+    case BCPortalRole.brand:
+      return AppColors.brandDark;
+    case BCPortalRole.agency:
+      return AppColors.agencyDark;
   }
 }

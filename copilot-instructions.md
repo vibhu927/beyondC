@@ -1,5 +1,10 @@
 # BeyondC Copilot Notes
 
+## Design System
+- Follow `DESIGN_SYSTEM.md` at the repo root as the source of truth for all UI work.
+- New screens and components must use the canonical minimal palette: off-white, white, neon green, dark green, gray, and black.
+- The bottom navbar should stay centered at about 85% width, use a full rounded dark green pill, and use a circular neon green active tab.
+
 ## Shared Constants
 - `mobile/lib/core/constants/india_locations.dart`: Canonical India states + city mapping for Flutter forms and filters.
 - `backend/lib/constants/india-locations.ts`: Canonical India states + city mapping for web onboarding and API-side validation/helpers.

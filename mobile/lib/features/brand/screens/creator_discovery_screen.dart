@@ -69,11 +69,11 @@ class _CreatorDiscoveryScreenState
           heroTag: 'creatorDiscoveryFiltersFab',
           onPressed: _openFilterBottomSheet,
           backgroundColor: AppColors.ink,
-          foregroundColor: AppColors.neon,
+          foregroundColor: AppColors.brandPrimary,
           tooltip: 'Filters',
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-            side: const BorderSide(color: AppColors.neon, width: 2),
+            side: const BorderSide(color: AppColors.brandPrimary, width: 2),
           ),
           child: const Icon(Icons.tune_rounded),
         ),
@@ -432,7 +432,7 @@ class _CreatorDiscoveryScreenState
         child: Text(
           label,
           style: AppTypography.labelSM.copyWith(
-            color: active ? AppColors.neon : AppColors.ink,
+            color: active ? AppColors.brandPrimary : AppColors.ink,
             height: 1,
           ),
           textAlign: TextAlign.center,
@@ -455,3 +455,4 @@ const _niches = [
 
 const _tiers = ['Nano', 'Micro', 'Mid', 'Macro'];
 const _platforms = ['Instagram', 'YouTube', 'Both'];
+

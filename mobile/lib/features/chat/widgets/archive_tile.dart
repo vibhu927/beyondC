@@ -15,6 +15,7 @@ class ArchiveTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(26),
       child: Container(
         margin: const EdgeInsets.fromLTRB(
           AppSpacing.screenPadding,
@@ -27,13 +28,29 @@ class ArchiveTile extends StatelessWidget {
           vertical: AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.darkBorder, width: 1.4),
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
-          color: AppColors.surface,
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(color: AppColors.lightBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 18,
+              offset: const Offset(0, 10),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            const Icon(Symbols.archive_rounded, color: AppColors.ink),
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: AppColors.lightBg,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                border: Border.all(color: AppColors.darkGreen.withValues(alpha: 0.14)),
+              ),
+              child: const Icon(Symbols.archive_rounded, color: AppColors.darkGreen, size: 18),
+            ),
             const SizedBox(width: AppSpacing.sm),
             const Expanded(
               child: Text(

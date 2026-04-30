@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 export default function Footer() {
   const currentYear = new Date().getFullYear()
 
@@ -8,9 +10,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           {/* Left - Logo & Tagline */}
           <div>
-            <a href="#" className="flex items-center gap-0 font-space text-3xl font-bold mb-3">
-              <span className="text-white">Beyond</span>
-              <span className="bg-neon text-ink px-3 py-1 rounded-full">C</span>
+            <a href="#" className="relative inline-flex h-10 w-10 items-center overflow-visible mb-3">
+              <span className="pointer-events-none absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2">
+                <Image
+                  src="/assets/logo.png"
+                  alt="BeyondC logo"
+                  fill
+                  sizes="64px"
+                  className="rounded-full object-cover border-2 border-neon"
+                />
+              </span>
             </a>
             <p className="font-jakarta text-lg font-semibold text-neon">
               Collabs, but make it Beyond.

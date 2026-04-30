@@ -268,7 +268,7 @@ class _EventInvitesScreenState extends ConsumerState<EventInvitesScreen> {
         child: Text(
           label,
           style: AppTypography.labelSM.copyWith(
-            color: active ? AppColors.neon : AppColors.ink,
+            color: active ? AppColors.brandPrimary : AppColors.ink,
           ),
         ),
       ),
@@ -319,7 +319,7 @@ class _InviteTab extends StatelessWidget {
                       child: Text(
                         creator.initials,
                         style: AppTypography.labelSM
-                            .copyWith(color: AppColors.neon),
+                            .copyWith(color: AppColors.brandPrimary),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -551,3 +551,4 @@ class _InvitesShimmerList extends StatelessWidget {
     );
   }
 }
+

@@ -177,7 +177,7 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                         price: 149,
                         shadow: AppShadows.neon,
                         badge: null,
-                        buttonColor: AppColors.neon,
+                        buttonColor: AppColors.brandPrimary,
                         isLoading: _isPurchaseInProgress,
                         onBuy: () => _buyCredits(
                           pack: 'starter',
@@ -232,7 +232,7 @@ class _CreditsScreenState extends ConsumerState<CreditsScreen> {
                     price: 149,
                     shadow: AppShadows.neon,
                     badge: null,
-                    buttonColor: AppColors.neon,
+                    buttonColor: AppColors.brandPrimary,
                     isLoading: _isPurchaseInProgress,
                     onBuy: () => _buyCredits(
                       pack: 'starter',
@@ -409,7 +409,7 @@ class _CreditPackCard extends StatelessWidget {
             isFullWidth: true,
             backgroundColor: buttonColor,
             textColor:
-                buttonColor == AppColors.neon ? AppColors.ink : AppColors.white,
+                buttonColor == AppColors.brandPrimary ? AppColors.ink : AppColors.white,
             shadow: AppShadows.ink,
             isLoading: isLoading,
             onPressed: isLoading ? null : onBuy,
@@ -463,3 +463,4 @@ class _TransactionsShimmer extends StatelessWidget {
     );
   }
 }
+

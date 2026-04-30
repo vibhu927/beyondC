@@ -172,7 +172,7 @@ class CreatorCard extends StatelessWidget {
                   child: Text(
                     'Send Request →',
                     style:
-                        AppTypography.labelSM.copyWith(color: AppColors.neon),
+                        AppTypography.labelSM.copyWith(color: AppColors.brandPrimary),
                   ),
                 ),
               ),
@@ -264,3 +264,4 @@ Color _avatarColor(String initials) {
   ];
   return palette[initials.codeUnitAt(0) % palette.length];
 }
+
