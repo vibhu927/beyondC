@@ -5,18 +5,17 @@ import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
+import '../shared/widgets/creator_design_system.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
-import '../../../widgets/cards/bc_card.dart';
 import '../../../widgets/bc_portal_top_bar.dart';
 
 class CreatorRequestsScreen extends ConsumerWidget {
@@ -85,8 +84,8 @@ class _RequestCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final actionLoading = ref.watch(creatorActionsProvider).isLoading;
 
-    return BCCard(
-      shadow: AppShadows.blue,
+    return GlassPanel(
+      accentColor: AppColors.blue,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

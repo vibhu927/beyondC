@@ -4,18 +4,17 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
+import '../shared/widgets/creator_design_system.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
-import '../../../widgets/cards/bc_card.dart';
 
 class CreatorEventsScreen extends ConsumerWidget {
   const CreatorEventsScreen({super.key});
@@ -83,8 +82,8 @@ class _InviteCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final loading = ref.watch(creatorActionsProvider).isLoading;
 
-    return BCCard(
-      shadow: AppShadows.purple,
+    return GlassPanel(
+      accentColor: AppColors.purple,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

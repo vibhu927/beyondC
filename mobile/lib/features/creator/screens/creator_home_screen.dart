@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,12 +13,14 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
 import '../../../data/services/instagram_oauth_service.dart';
+import '../shared/widgets/creator_design_system.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
+import '../../../widgets/bc_portal_top_bar.dart';
 
 class CreatorHomeScreen extends ConsumerStatefulWidget {
   const CreatorHomeScreen({super.key});
@@ -102,6 +103,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
 
     return Scaffold(
       extendBody: true,
+      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.creator,
         currentIndex: 0,
@@ -141,7 +143,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                   Positioned(
                     top: -46,
                     right: -54,
-                    child: _AmbientGlow(
+                    child: AmbientGlow(
                       size: 136,
                       color: AppColors.creatorPrimary.withValues(alpha: 0.12),
                     ),
@@ -149,7 +151,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                   Positioned(
                     top: 220,
                     left: -42,
-                    child: _AmbientGlow(
+                    child: AmbientGlow(
                       size: 112,
                       color: AppColors.creatorDark.withValues(alpha: 0.1),
                     ),
@@ -163,13 +165,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                       AppSpacing.huge + navClearance,
                     ),
                     children: [
-                      _CreatorTopHeader(
-                        name: profile.firstName,
-                        notificationsCount: 0,
-                        onNotificationsTap: () => context.push(RouteNames.notifications),
-                        onProfileTap: () => context.push(RouteNames.creatorProfile),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.sm),
                       _CreatorQuickActions(
                         onCampaignsTap: () => context.push(RouteNames.creatorCampaigns),
                         onBidsTap: () => context.push(RouteNames.myBids),
@@ -221,7 +217,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                       ),
                       const SizedBox(height: AppSpacing.lg),
                       SizedBox(
-                        height: 252,
+                        height: 224,
                         child: home.campaigns.isEmpty
                             ? const BCEmptyState(
                                 emoji: ' ',
@@ -313,106 +309,6 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _CreatorTopHeader extends StatelessWidget {
-  const _CreatorTopHeader({
-    required this.name,
-    required this.notificationsCount,
-    required this.onNotificationsTap,
-    required this.onProfileTap,
-  });
-
-  final String name;
-  final int notificationsCount;
-  final VoidCallback onNotificationsTap;
-  final VoidCallback onProfileTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final firstName = name.trim().isEmpty ? 'Creator' : name.trim();
-    final avatarLabel = firstName.substring(0, 1).toUpperCase();
-
-    return Row(
-      children: [
-        GestureDetector(
-          onTap: onProfileTap,
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.creatorDark.withValues(alpha: 0.16)),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              avatarLabel,
-              style: AppTypography.labelLG.copyWith(
-                color: AppColors.creatorDark,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Good to see you,',
-                style: AppTypography.bodySM.copyWith(color: AppColors.muted),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                firstName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.displaySM.copyWith(
-                  color: AppColors.creatorDark,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Stack(
-          clipBehavior: Clip.none,
-          children: [
-            GestureDetector(
-              onTap: onNotificationsTap,
-              child: Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.creatorDark.withValues(alpha: 0.14)),
-                ),
-                alignment: Alignment.center,
-                child: const Icon(Symbols.notifications_rounded, color: AppColors.creatorDark),
-              ),
-            ),
-            if (notificationsCount > 0)
-              Positioned(
-                right: -2,
-                top: -2,
-                child: Container(
-                  width: 16,
-                  height: 16,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.brandPrimaryGlassGradient,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: AppColors.white, width: 1.5),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ],
     );
   }
 }
@@ -523,72 +419,6 @@ class _QuickActionTile extends StatelessWidget {
   }
 }
 
-class _AmbientGlow extends StatelessWidget {
-  const _AmbientGlow({
-    required this.size,
-    required this.color,
-  });
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: color,
-              blurRadius: size * 0.7,
-              spreadRadius: size * 0.08,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _GlassPanel extends StatelessWidget {
-  const _GlassPanel({
-    required this.child,
-    this.padding = const EdgeInsets.all(18),
-    this.radius = 28,
-    this.backgroundColor,
-    this.accentColor = AppColors.blue,
-  });
-
-  final Widget child;
-  final EdgeInsetsGeometry padding;
-  final double radius;
-  final Color? backgroundColor;
-  final Color accentColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            color: backgroundColor ?? Colors.white.withValues(alpha: 0.9),
-            border: _uniformBorder(accentColor),
-            borderRadius: BorderRadius.circular(radius),
-            boxShadow: _neoShadows(accentColor),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
-}
-
 class _InstagramConnectBanner extends StatelessWidget {
   const _InstagramConnectBanner({
     required this.onConnect,
@@ -600,8 +430,8 @@ class _InstagramConnectBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _GlassPanel(
-      accentColor: AppColors.pink,
+    return _CreatorCardShell(
+      accent: AppColors.neon,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.md,
@@ -685,8 +515,8 @@ class _CreatorSnapshotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _GlassPanel(
-      accentColor: AppColors.neon,
+    return _CreatorCardShell(
+      accent: AppColors.neon,
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -728,12 +558,12 @@ class _CreatorSnapshotCard extends StatelessWidget {
                           const Color(0xFF1B2440),
                         ],
                       ),
-                      border: _uniformBorder(
+                      border: uniformBorder(
                         AppColors.neon,
                         width: 0.95,
                         // emphasisWidth: 1.6,
                       ),
-                      boxShadow: _neoShadows(
+                      boxShadow: neoShadows(
                         AppColors.neon,
                         alpha: 0.16,
                         offset: 3,
@@ -784,7 +614,7 @@ class _CreatorSnapshotCard extends StatelessWidget {
                       const SizedBox(height: AppSpacing.sm),
                       _InlineTonePill(
                         label: '$activeBids active bids in motion',
-                        accent: AppColors.blue,
+                        accent: AppColors.neon,
                         onDark: true,
                       ),
                     ]),
@@ -805,14 +635,14 @@ class _CreatorSnapshotCard extends StatelessWidget {
                     _MetricTile(
                       label: 'Requests',
                       value: '$requests',
-                      accent: AppColors.blue,
+                      accent: AppColors.neon,
                       onTap: onRequestsTap,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     _MetricTile(
                       label: 'Collabs',
                       value: '$collabs',
-                      accent: AppColors.pink,
+                      accent: AppColors.neon,
                       onTap: onCollabsTap,
                     ),
                   ],
@@ -849,9 +679,9 @@ class _MetricTile extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.9),
-        border: _uniformBorder(accent),
+        border: uniformBorder(accent),
         borderRadius: BorderRadius.circular(20),
-        boxShadow: _neoShadows(
+        boxShadow: neoShadows(
           accent,
           alpha: 0.12,
           offset: 3,
@@ -913,7 +743,7 @@ class _SectionHeading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           child: Column(
@@ -922,6 +752,7 @@ class _SectionHeading extends StatelessWidget {
               Text(
                 title,
                 style: AppTypography.displaySM.copyWith(
+                  color: AppColors.creatorDark,
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -935,15 +766,35 @@ class _SectionHeading extends StatelessWidget {
             ],
           ),
         ),
-        TextButton(
-          onPressed: onTap,
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.pink,
-            textStyle: AppTypography.labelSM.copyWith(
-              fontWeight: FontWeight.w800,
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: AppColors.creatorDark.withValues(alpha: 0.14)),
+          ),
+          child: TextButton(
+            onPressed: onTap,
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.creatorDark,
+              backgroundColor: Colors.transparent,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: 6,
+              ),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            child: Text(
+              actionLabel,
+              style: AppTypography.labelSM.copyWith(
+                color: AppColors.creatorDark,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
-          child: Text(actionLabel),
         ),
       ],
     );
@@ -964,16 +815,14 @@ class _MinimalCampaignCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final deliverables = campaign.deliverables.take(2).join(' / ');
-    final locationCopy = campaign.targetCity ??
-        campaign.targetState ??
-        'Pan India';
+    final locationCopy = campaign.targetCity ?? campaign.targetState ?? 'Pan India';
 
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
         width: 296,
-        child: _GlassPanel(
-          accentColor: _collabTypeAccent(campaign.collabType),
+        child: _CreatorCardShell(
+          accent: _collabTypeAccent(campaign.collabType),
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -981,98 +830,81 @@ class _MinimalCampaignCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 42,
+                    height: 42,
                     decoration: BoxDecoration(
-                      color: _avatarColor(campaign.brandInitial),
-                      borderRadius: BorderRadius.circular(14),
+                      color: AppColors.lightBg,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.creatorDark.withValues(alpha: 0.14),
+                      ),
                     ),
                     alignment: Alignment.center,
                     child: Text(
                       campaign.brandInitial,
                       style: AppTypography.labelMD.copyWith(
-                        color: AppColors.white,
+                        color: AppColors.creatorDark,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
-                    child: Text(
-                      'Brand in ${campaign.brandCategory}',
-                      style: AppTypography.labelMD.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          campaign.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.labelLG.copyWith(
+                            color: AppColors.creatorDark,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          locationCopy,
+                          style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                        ),
+                      ],
                     ),
-                  ),
-                  _InlineTonePill(
-                    label: _deadlineLabel(campaign.deadline),
-                    accent: AppColors.ink,
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.lg),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${Formatters.currencyFromINR(campaign.minBudget)} - '
-                      '${Formatters.currencyFromINR(campaign.maxBudget)}',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.displaySM.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  _InlineTonePill(
-                    label: _collabTypeLabel(campaign.collabType),
-                    accent: _collabTypeAccent(campaign.collabType),
-                  ),
-                ],
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                '${Formatters.currencyFromINR(campaign.minBudget)} - ${Formatters.currencyFromINR(campaign.maxBudget)}',
+                style: AppTypography.displaySM.copyWith(
+                  color: AppColors.creatorDark,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
-              const SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: 4),
               Text(
                 deliverables.isEmpty ? 'Deliverables shared on brief' : deliverables,
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.bodySM.copyWith(
                   color: AppColors.muted,
                 ),
               ),
               const Spacer(),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  _InlineTonePill(
-                    label: locationCopy,
-                    accent: AppColors.blue,
-                  ),
-                  if (hasBid)
-                    _InlineTonePill(
-                      label: 'Bid sent',
-                      accent: AppColors.pink,
-                    ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
               Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      '${campaign.bidCount} bids so far',
-                      style: AppTypography.bodyXS.copyWith(
-                        color: AppColors.muted,
-                      ),
-                    ),
+                  _InlineTonePill(
+                    label: hasBid ? 'Bid sent' : _collabTypeLabel(campaign.collabType),
+                    accent: AppColors.neon,
                   ),
-                  _GlassButton(
+                  const Spacer(),
+                  Text(
+                    '${campaign.bidCount} bids',
+                    style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  _CardActionButton(
                     label: hasBid ? 'View' : 'Bid now',
-                    accent: hasBid ? AppColors.blue : AppColors.neon,
-                    onTap: onTap,
+                    onPressed: onTap,
                   ),
                 ],
               ),
@@ -1097,8 +929,8 @@ class _RequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _GlassPanel(
-      accentColor: AppColors.pink,
+    return _CreatorCardShell(
+      accent: AppColors.neon,
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1162,16 +994,19 @@ class _RequestCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
-              _GlassButton(
+              _InlineTonePill(
+                label: 'Request',
+                accent: AppColors.neon,
+              ),
+              const Spacer(),
+              _CardActionButton(
                 label: 'View',
-                accent: AppColors.ink,
-                onTap: onView,
+                onPressed: onView,
               ),
               const SizedBox(width: AppSpacing.sm),
-              _GlassButton(
+              _CardActionButton(
                 label: 'Accept',
-                accent: AppColors.neon,
-                onTap: onAccept,
+                onPressed: onAccept,
               ),
             ],
           ),
@@ -1194,8 +1029,8 @@ class _CollabTrackerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: _GlassPanel(
-        accentColor: _collabStatusAccent(collab.status),
+      child: _CreatorCardShell(
+        accent: _collabStatusAccent(collab.status),
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1223,16 +1058,16 @@ class _CollabTrackerCard extends StatelessWidget {
                 fontWeight: FontWeight.w900,
               ),
             ),
-            const SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               'Brief / Draft / Approved / Posted',
               style: AppTypography.bodyXS.copyWith(
                 color: AppColors.muted,
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
             _ProgressRail(currentStep: collab.currentStep),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
                 Expanded(
@@ -1243,10 +1078,9 @@ class _CollabTrackerCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                _GlassButton(
+                _CardActionButton(
                   label: 'Continue',
-                  accent: AppColors.pink,
-                  onTap: onTap,
+                  onPressed: onTap,
                 ),
               ],
             ),
@@ -1296,6 +1130,81 @@ class _ProgressRail extends StatelessWidget {
   }
 }
 
+class _CreatorCardShell extends StatelessWidget {
+  const _CreatorCardShell({
+    required this.child,
+    required this.accent,
+    this.padding = const EdgeInsets.all(AppSpacing.lg),
+  });
+
+  final Widget child;
+  final Color accent;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppColors.lightBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+          BoxShadow(
+            color: accent.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class _CardActionButton extends StatelessWidget {
+  const _CardActionButton({
+    required this.label,
+    required this.onPressed,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.creatorDark,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          ),
+          child: Text(
+            label,
+            style: AppTypography.labelSM.copyWith(
+              color: AppColors.white,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _GlassButton extends StatelessWidget {
   const _GlassButton({
     required this.label,
@@ -1324,13 +1233,9 @@ class _GlassButton extends StatelessWidget {
               color: accent.withValues(
                 alpha: accent == AppColors.ink ? 0.08 : 0.16,
               ),
-              border: _uniformBorder(
-                accent,
-                width: 0.95,
-                // emphasisWidth: 1.45,
-              ),
+              border: uniformBorder(accent, width: 0.95),
               borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-              boxShadow: _neoShadows(
+              boxShadow: neoShadows(
                 accent,
                 alpha: 0.18,
                 offset: 3,
@@ -1373,11 +1278,9 @@ class _InlineTonePill extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: accent.withValues(alpha: onDark ? 0.24 : 0.12),
-          border: _uniformBorder(
-            accent,
-          ),
+          border: uniformBorder(accent),
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          boxShadow: _neoShadows(
+          boxShadow: neoShadows(
             accent,
             alpha: onDark ? 0.14 : 0.1,
             offset: 2.5,
@@ -1396,22 +1299,7 @@ class _InlineTonePill extends StatelessWidget {
   }
 }
 
-List<BoxShadow> _sheetShadows() {
-  return [
-    BoxShadow(
-      color: AppColors.blue.withValues(alpha: 0.14),
-      offset: const Offset(6, 6),
-      blurRadius: 0,
-    ),
-    BoxShadow(
-      color: Colors.black.withValues(alpha: 0.05),
-      blurRadius: 18,
-      offset: const Offset(0, 10),
-    ),
-  ];
-}
-
-Border _uniformBorder(
+Border uniformBorder(
   Color accent, {
   double width = 1.5,
 }) {
@@ -1421,7 +1309,7 @@ Border _uniformBorder(
   );
 }
 
-List<BoxShadow> _neoShadows(
+List<BoxShadow> neoShadows(
   Color accent, {
   double alpha = 0.16,
   double offset = 4,
@@ -1455,11 +1343,11 @@ String _collabTypeLabel(CampaignCollabType type) {
 Color _collabTypeAccent(CampaignCollabType type) {
   switch (type) {
     case CampaignCollabType.paid:
-      return AppColors.pink;
+      return AppColors.neon;
     case CampaignCollabType.barter:
-      return AppColors.blue;
+      return AppColors.creatorDark;
     case CampaignCollabType.hybrid:
-      return AppColors.purple;
+      return AppColors.creatorDark;
   }
 }
 
@@ -1477,11 +1365,11 @@ String _collabStatusLabel(String status) {
 Color _collabStatusAccent(String status) {
   switch (status.toLowerCase()) {
     case 'in_progress':
-      return AppColors.blue;
+      return AppColors.creatorDark;
     case 'active':
       return AppColors.neon;
     default:
-      return AppColors.pink;
+      return AppColors.creatorDark;
   }
 }
 
@@ -1496,13 +1384,6 @@ String _deadlineLabel(DateTime deadline) {
 }
 
 Color _avatarColor(String initial) {
-  const palette = [
-    AppColors.pink,
-    AppColors.blue,
-    AppColors.purple,
-    AppColors.orange,
-  ];
-
-  if (initial.isEmpty) return palette.first;
-  return palette[initial.codeUnitAt(0) % palette.length];
+  return AppColors.creatorDark;
 }
+

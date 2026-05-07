@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
+ï»¿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
+import '../shared/widgets/creator_design_system.dart';
 import '../../chat/chat_screen.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
@@ -15,7 +15,6 @@ import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
-import '../../../widgets/cards/bc_card.dart';
 import '../../../widgets/bc_portal_top_bar.dart';
 
 class CreatorCollabsScreen extends ConsumerWidget {
@@ -80,8 +79,8 @@ class _CollabCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BCCard(
-      shadow: AppShadows.neon,
+    return GlassPanel(
+      accentColor: AppColors.neon,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -115,7 +114,7 @@ class _CollabCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           const Text(
-            'Brief  ·  Draft  ·  Approved  ·  Posted',
+            'Brief  Â·  Draft  Â·  Approved  Â·  Posted',
             style: AppTypography.bodyXS,
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -188,3 +187,5 @@ String _collabTypeLabel(CampaignCollabType type) {
       return 'Hybrid';
   }
 }
+
+
