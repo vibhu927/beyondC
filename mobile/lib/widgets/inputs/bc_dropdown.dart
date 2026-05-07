@@ -12,6 +12,8 @@ class BCDropdown extends StatefulWidget {
   final String? hint;
   final ValueChanged<String?>? onChanged;
   final String? Function(String?)? validator;
+  final BorderRadius? borderRadius;
+  final bool showShadow;
 
   const BCDropdown({
     super.key,
@@ -21,6 +23,8 @@ class BCDropdown extends StatefulWidget {
     this.hint,
     this.onChanged,
     this.validator,
+    this.borderRadius,
+    this.showShadow = true,
   });
 
   @override
@@ -53,7 +57,9 @@ class _BCDropdownState extends State<BCDropdown> {
     final textColor = isDark ? AppColors.darkText : AppColors.lightText;
     final mutedColor = isDark ? AppColors.darkMuted : AppColors.lightMuted;
     final surfaceColor = Theme.of(context).colorScheme.surface;
-    final borderColor = isDark ? AppColors.darkBorder : AppColors.lightBorder;
+    const borderColor = Colors.black;
+    final radius =
+        widget.borderRadius ?? BorderRadius.circular(AppSpacing.radiusMD);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,71 +71,88 @@ class _BCDropdownState extends State<BCDropdown> {
           ),
         ),
         const SizedBox(height: 8),
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          decoration: BoxDecoration(
-            color: surfaceColor,
-            border: Border.all(
-              color: borderColor,
-              width: AppSpacing.borderWidth,
+        DropdownButtonFormField<String>(
+          initialValue: widget.value,
+          focusNode: _focusNode,
+          isExpanded: true,
+          decoration: InputDecoration(
+            hintText: widget.hint,
+            hintStyle: AppTypography.bodyMD.copyWith(
+              color: mutedColor,
             ),
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
-            boxShadow: _isFocused ? AppShadows.neon : AppShadows.ink,
+            filled: true,
+            fillColor: surfaceColor,
+            enabledBorder: OutlineInputBorder(
+              borderRadius: radius,
+              borderSide: BorderSide(
+                color: borderColor,
+                width: AppSpacing.borderWidth,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: radius,
+              borderSide: BorderSide(
+                color: borderColor,
+                width: AppSpacing.borderWidth,
+              ),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: radius,
+              borderSide: BorderSide(
+                color: borderColor,
+                width: AppSpacing.borderWidth,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: radius,
+              borderSide: BorderSide(
+                color: borderColor,
+                width: AppSpacing.borderWidth,
+              ),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 16,
+            ),
+            isDense: true,
           ),
-          child: DropdownButtonFormField<String>(
-            initialValue: widget.value,
-            focusNode: _focusNode,
-            isExpanded: true,
-            decoration: InputDecoration(
-              hintText: widget.hint,
-              hintStyle: AppTypography.bodyMD.copyWith(
-                color: mutedColor,
+          style: AppTypography.bodyMD.copyWith(
+            color: textColor,
+          ),
+          icon: Icon(
+            Symbols.keyboard_arrow_down,
+            color: textColor,
+          ),
+          dropdownColor: surfaceColor,
+          items: widget.items.map((String item) {
+            return DropdownMenuItem<String>(
+              value: item,
+              child: Text(
+                item,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              isDense: true,
-            ),
-            style: AppTypography.bodyMD.copyWith(
-              color: textColor,
-            ),
-            icon: Icon(
-              Symbols.keyboard_arrow_down,
-              color: textColor,
-            ),
-            dropdownColor: surfaceColor,
-            items: widget.items.map((String item) {
-              return DropdownMenuItem<String>(
-                value: item,
-                child: Text(
-                  item,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              );
-            }).toList(),
-            selectedItemBuilder: (context) {
-              return widget.items
-                  .map(
-                    (item) => Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        item,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.bodyMD.copyWith(
-                          color: textColor,
-                        ),
+            );
+          }).toList(),
+          selectedItemBuilder: (context) {
+            return widget.items
+                .map(
+                  (item) => Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      item,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.bodyMD.copyWith(
+                        color: textColor,
                       ),
                     ),
-                  )
-                  .toList();
-            },
-            onChanged: widget.onChanged,
-            validator: widget.validator,
-          ),
+                  ),
+                )
+                .toList();
+          },
+          onChanged: widget.onChanged,
+          validator: widget.validator,
         ),
       ],
     );

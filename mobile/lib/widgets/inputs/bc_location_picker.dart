@@ -14,6 +14,7 @@ class BCLocationPicker extends ConsumerStatefulWidget {
     required this.onChanged,
     this.required = false,
     this.label = 'Location',
+    this.inputBorderRadius,
   });
 
   final String? initialState;
@@ -21,6 +22,7 @@ class BCLocationPicker extends ConsumerStatefulWidget {
   final void Function(String state, String city) onChanged;
   final bool required;
   final String label;
+  final BorderRadius? inputBorderRadius;
 
   @override
   ConsumerState<BCLocationPicker> createState() => _BCLocationPickerState();
@@ -109,6 +111,7 @@ class _BCLocationPickerState extends ConsumerState<BCLocationPicker> {
                 value: _selectedState,
                 hint: 'Select state',
                 items: IndiaLocations.states,
+                borderRadius: widget.inputBorderRadius,
                 validator: widget.required
                     ? (value) =>
                         (value == null || value.trim().isEmpty) ? 'State is required' : null
@@ -129,6 +132,7 @@ class _BCLocationPickerState extends ConsumerState<BCLocationPicker> {
                 value: _selectedCity,
                 hint: _selectedState == null ? 'Select state first' : 'Select city',
                 items: cityItems,
+                borderRadius: widget.inputBorderRadius,
                 validator: widget.required
                     ? (value) {
                         if (_selectedState == null || _selectedState!.isEmpty) {
@@ -161,6 +165,7 @@ class _BCLocationPickerState extends ConsumerState<BCLocationPicker> {
             label: 'Enter city${widget.required ? ' *' : ''}',
             hint: 'Type your city',
             controller: _otherCityController,
+            borderRadius: widget.inputBorderRadius,
             onChanged: (_) => _emitIfReady(),
             validator: widget.required
                 ? (value) =>

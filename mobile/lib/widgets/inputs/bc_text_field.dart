@@ -15,6 +15,7 @@ class BCTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final bool enabled;
+  final BorderRadius? borderRadius;
 
   const BCTextField({
     super.key,
@@ -29,6 +30,7 @@ class BCTextField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.enabled = true,
+    this.borderRadius,
   });
 
   @override
@@ -60,6 +62,26 @@ class BCTextField extends StatelessWidget {
             hintText: hint,
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
+            border: OutlineInputBorder(
+              borderRadius:
+                  borderRadius ?? BorderRadius.circular(AppSpacing.radiusMD),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius:
+                  borderRadius ?? BorderRadius.circular(AppSpacing.radiusMD),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius:
+                  borderRadius ?? BorderRadius.circular(AppSpacing.radiusMD),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius:
+                  borderRadius ?? BorderRadius.circular(AppSpacing.radiusMD),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius:
+                  borderRadius ?? BorderRadius.circular(AppSpacing.radiusMD),
+            ),
           ),
         ),
       ],

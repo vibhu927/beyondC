@@ -175,7 +175,7 @@ class BrandRepository {
         return CreatorDiscovery.fromJson({
           'id': _string(item['id']) ?? '',
           'firstName': _resolveCreatorFirstName(item),
-          'avatarUrl': _string(item['avatar_url']),
+          'avatarUrl': _resolveCreatorAvatarUrl(item),
           'state': _string(item['state']),
           'city': _string(item['city']),
           'niches': _stringList(item['niches'] ?? item['niche']),
@@ -424,7 +424,7 @@ class BrandRepository {
           CreatorDiscovery.fromJson({
             'id': _string(data['id']) ?? '',
             'firstName': _resolveCreatorFirstName(data, profile: profile),
-            'avatarUrl': _string(profile['avatar_url']),
+            'avatarUrl': _resolveCreatorAvatarUrl(data, profile: profile),
             'state': _string(profile['state']),
             'city': _string(profile['city']),
             'niches': _stringList(data['niche']),
@@ -473,8 +473,7 @@ class BrandRepository {
     return CreatorDiscovery.fromJson({
       'id': _string(item['id']) ?? '',
       'firstName': _resolveCreatorFirstName(item, profile: profile),
-      'avatarUrl':
-          _string(item['avatar_url']) ?? _string(profile['avatar_url']),
+      'avatarUrl': _resolveCreatorAvatarUrl(item, profile: profile),
       'niches': _stringList(item['niches'] ?? item['niche']),
       'contentTypes': _stringList(item['platforms'] ?? item['content_type']),
       'tier': _string(item['tier']) ?? 'micro',
@@ -499,15 +498,38 @@ class BrandRepository {
 
     final firstName = _normalizedName(_string(item['first_name'])) ??
         _normalizedName(_string(sourceProfile['first_name'])) ??
+        _normalizedName(_firstToken(_string(item['name']))) ??
+        _normalizedName(_firstToken(_string(sourceProfile['name']))) ??
         _normalizedName(_firstToken(_string(item['display_name']))) ??
         _normalizedName(_firstToken(_string(sourceProfile['display_name']))) ??
         _normalizedName(_firstToken(_string(item['full_name']))) ??
         _normalizedName(_firstToken(_string(sourceProfile['full_name']))) ??
+        _normalizedName(_firstToken(_string(item['creator_name']))) ??
+        _normalizedName(_firstToken(_string(sourceProfile['creator_name']))) ??
         _normalizedName(_firstToken(_string(item['creator_full_name']))) ??
         _normalizedName(_firstToken(_string(item['username']))) ??
         _normalizedName(_firstToken(_string(item['instagram_username'])));
 
     return firstName ?? 'Creator';
+  }
+
+  String? _resolveCreatorAvatarUrl(
+    Map<String, dynamic> item, {
+    Map<String, dynamic>? profile,
+  }) {
+    final sourceProfile = profile ?? _firstMap(item['profile']);
+    return _string(item['avatar_url']) ??
+        _string(item['avatarUrl']) ??
+        _string(item['profile_image_url']) ??
+        _string(item['profile_photo_url']) ??
+        _string(item['photo_url']) ??
+        _string(item['image_url']) ??
+        _string(sourceProfile['avatar_url']) ??
+        _string(sourceProfile['avatarUrl']) ??
+        _string(sourceProfile['profile_image_url']) ??
+        _string(sourceProfile['profile_photo_url']) ??
+        _string(sourceProfile['photo_url']) ??
+        _string(sourceProfile['image_url']);
   }
 
   String? _normalizedName(String? value) {

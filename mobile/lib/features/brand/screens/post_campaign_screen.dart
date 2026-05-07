@@ -10,9 +10,9 @@ import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../providers/brand_provider.dart';
+import '../../../widgets/brand_page_top_header.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
-import '../../../widgets/bc_glass_header_bar.dart';
 import '../../../widgets/inputs/bc_dropdown.dart';
 import '../../../widgets/inputs/bc_location_picker.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
@@ -27,6 +27,9 @@ class PostCampaignScreen extends ConsumerStatefulWidget {
 }
 
 class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
+  static final BorderRadius _pillFieldRadius =
+      BorderRadius.circular(AppSpacing.radiusFull);
+
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _minBudgetController = TextEditingController();
@@ -77,6 +80,31 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
       initialDate: DateTime.now().add(const Duration(days: 7)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) {
+        final baseTheme = Theme.of(context);
+        return Theme(
+          data: baseTheme.copyWith(
+            colorScheme: baseTheme.colorScheme.copyWith(
+              primary: AppColors.brandPrimary,
+              onPrimary: AppColors.brandDark,
+              secondary: AppColors.brandPrimary,
+              onSecondary: AppColors.brandDark,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.brandDark,
+              ),
+            ),
+            datePickerTheme: const DatePickerThemeData(
+              headerBackgroundColor: AppColors.brandPrimary,
+              headerForegroundColor: AppColors.brandDark,
+              todayForegroundColor: WidgetStatePropertyAll(AppColors.brandDark),
+              dayForegroundColor: WidgetStatePropertyAll(AppColors.brandDark),
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
 
     if (picked == null) return;
@@ -174,8 +202,9 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
   }
 
   String? _validateStepOne() {
-    if (_titleController.text.trim().isEmpty)
+    if (_titleController.text.trim().isEmpty) {
       return 'Campaign title is required.';
+    }
     if (_category == null || _category!.trim().isEmpty) {
       return 'Please select a niche/category.';
     }
@@ -212,8 +241,9 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
     if (_deadline == null) return 'Deadline is required.';
 
     final slots = int.tryParse(_slotsController.text.trim());
-    if (slots == null || slots <= 0)
+    if (slots == null || slots <= 0) {
       return 'Slots available must be at least 1.';
+    }
 
     return null;
   }
@@ -226,38 +256,66 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top + 14;
+
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            BCGlassHeaderBar(
-              title: 'Post Campaign',
-              onBack: () => context.pop(),
+      body: Stack(
+        children: [
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(color: AppColors.lightBg),
             ),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenPadding,
-                  AppSpacing.lg,
-                  AppSpacing.screenPadding,
-                  AppSpacing.huge,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _StepIndicator(
-                        currentStep: _step == _PostStep.campaignInfo ? 0 : 1),
-                    const SizedBox(height: AppSpacing.xl),
-                    if (_step == _PostStep.campaignInfo)
-                      _buildCampaignInfoStep(),
-                    if (_step == _PostStep.targetCreator)
-                      _buildTargetCreatorStep(),
-                  ],
+          ),
+          Positioned(
+            top: -46,
+            right: -32,
+            child: _GlowOrb(
+              size: 136,
+              color: AppColors.brandPrimary.withValues(alpha: 0.08),
+            ),
+          ),
+          Positioned(
+            top: 220,
+            left: -44,
+            child: _GlowOrb(
+              size: 112,
+              color: AppColors.brandDark.withValues(alpha: 0.08),
+            ),
+          ),
+          ListView(
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screenPadding,
+              topInset,
+              AppSpacing.screenPadding,
+              AppSpacing.huge,
+            ),
+            children: [
+              BrandPageTopHeader(
+                showBrandIdentity: false,
+                showBackButton: true,
+                onBack: () => context.pop(),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                'Post Campaign',
+                style: AppTypography.displaySM.copyWith(
+                  color: AppColors.brandDark,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
-            ),
-          ],
-        ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                'Create a high-conversion brief and target the right creators.',
+                style: AppTypography.bodySM.copyWith(color: AppColors.muted),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              _StepIndicator(currentStep: _step == _PostStep.campaignInfo ? 0 : 1),
+              const SizedBox(height: AppSpacing.xl),
+              if (_step == _PostStep.campaignInfo) _buildCampaignInfoStep(),
+              if (_step == _PostStep.targetCreator) _buildTargetCreatorStep(),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -270,6 +328,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           label: 'Campaign Title',
           hint: 'Summer Fitness Campaign',
           controller: _titleController,
+          borderRadius: _pillFieldRadius,
         ),
         const SizedBox(height: AppSpacing.lg),
         BCTextField(
@@ -277,6 +336,8 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           hint: 'Explain campaign objective and tone',
           maxLines: 3,
           controller: _descriptionController,
+          borderRadius:  BorderRadius.circular(AppSpacing.radiusLG),
+          
         ),
         const SizedBox(height: AppSpacing.lg),
         BCDropdown(
@@ -284,6 +345,8 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           hint: 'Select category',
           value: _category,
           items: _niches,
+          borderRadius: _pillFieldRadius,
+          showShadow: false,
           onChanged: (value) => setState(() => _category = value),
         ),
         const SizedBox(height: AppSpacing.lg),
@@ -293,6 +356,20 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           children: [
             Switch(
               value: _panIndia,
+              activeTrackColor: AppColors.brandPrimary,
+              inactiveTrackColor: AppColors.white,
+              thumbColor: WidgetStateProperty.resolveWith<Color?>((states) {
+                if (states.contains(WidgetState.selected)) {
+                  return AppColors.white;
+                }
+                return AppColors.ink;
+              }),
+              trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
+                (_) => AppColors.ink,
+              ),
+              trackOutlineWidth: WidgetStateProperty.resolveWith<double?>(
+                (_) => 1.6,
+              ),
               onChanged: (value) {
                 setState(() {
                   _panIndia = value;
@@ -313,6 +390,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
             required: true,
             initialState: _targetState,
             initialCity: _targetCity,
+            inputBorderRadius: _pillFieldRadius,
             onChanged: (state, city) {
               setState(() {
                 _targetState = state;
@@ -328,9 +406,9 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           spacing: AppSpacing.sm,
           runSpacing: AppSpacing.sm,
           children: [
-            _collabPill(CampaignCollabType.paid, '💵 Paid'),
-            _collabPill(CampaignCollabType.barter, '📦 Barter'),
-            _collabPill(CampaignCollabType.hybrid, '🤝 Hybrid'),
+            _collabPill(CampaignCollabType.paid, 'Paid'),
+            _collabPill(CampaignCollabType.barter, 'Barter'),
+            _collabPill(CampaignCollabType.hybrid, 'Hybrid'),
           ],
         ),
         if (_showBudgetFields) ...[
@@ -339,19 +417,21 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
             children: [
               Expanded(
                 child: BCTextField(
-                  label: 'Budget Min (₹)',
+                  label: 'Budget Min (INR)',
                   hint: '1500',
                   keyboardType: TextInputType.number,
                   controller: _minBudgetController,
+                  borderRadius: _pillFieldRadius,
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: BCTextField(
-                  label: 'Budget Max (₹)',
+                  label: 'Budget Max (INR)',
                   hint: '5000',
                   keyboardType: TextInputType.number,
                   controller: _maxBudgetController,
+                  borderRadius: _pillFieldRadius,
                 ),
               ),
             ],
@@ -364,13 +444,15 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
             hint: 'Describe what is being shipped to creators',
             maxLines: 4,
             controller: _productDetailsController,
+            borderRadius: _pillFieldRadius,
           ),
           const SizedBox(height: AppSpacing.lg),
           BCTextField(
-            label: 'Product Value (₹)',
+            label: 'Product Value (INR)',
             hint: '2500',
             keyboardType: TextInputType.number,
             controller: _productValueController,
+            borderRadius: _pillFieldRadius,
           ),
         ],
         const SizedBox(height: AppSpacing.lg),
@@ -379,6 +461,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           hint: '2 Reels, 3 Stories, 1 YouTube Short',
           maxLines: 3,
           controller: _deliverablesController,
+          borderRadius:  BorderRadius.circular(AppSpacing.radiusLG),
         ),
         const SizedBox(height: AppSpacing.lg),
         BCTextField(
@@ -386,6 +469,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           hint: 'Usage guidelines, hooks, CTA, deadlines, restrictions',
           maxLines: 3,
           controller: _requirementsController,
+          borderRadius:  BorderRadius.circular(AppSpacing.radiusLG),
         ),
         const SizedBox(height: AppSpacing.lg),
         GestureDetector(
@@ -395,7 +479,11 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
               label: 'Deadline',
               hint: 'Select date',
               controller: _deadlineController,
-              suffixIcon: const Icon(Symbols.calendar_today_rounded),
+              borderRadius: _pillFieldRadius,
+              suffixIcon: const Icon(
+                Symbols.calendar_today_rounded,
+                color: AppColors.brandDark,
+              ),
             ),
           ),
         ),
@@ -405,10 +493,11 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           hint: '3',
           keyboardType: TextInputType.number,
           controller: _slotsController,
+          borderRadius: _pillFieldRadius,
         ),
         const SizedBox(height: AppSpacing.xl),
-        BCPrimaryButton.pink(
-          label: 'Next →',
+        _BrandPillButton(
+          label: 'Next',
           onPressed: _goToStepTwo,
         ),
       ],
@@ -468,6 +557,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           hint: '10000',
           keyboardType: TextInputType.number,
           controller: _minFollowersController,
+          borderRadius: _pillFieldRadius,
         ),
         const SizedBox(height: AppSpacing.lg),
         BCCard(
@@ -484,7 +574,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
               Text('Type: ${_collabText(_collabType)}',
                   style: AppTypography.bodySM),
               Text(
-                'Budget: ${_showBudgetFields ? '₹${_minBudgetController.text.trim()} - ₹${_maxBudgetController.text.trim()}' : 'Barter only'}',
+                'Budget: ${_showBudgetFields ? 'INR ${_minBudgetController.text.trim()} - INR ${_maxBudgetController.text.trim()}' : 'Barter only'}',
                 style: AppTypography.bodySM,
               ),
               Text(
@@ -504,13 +594,13 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
         ),
         const SizedBox(height: AppSpacing.xl),
         BCPrimaryButton.pink(
-          label: 'Post Campaign →',
+          label: 'Post Campaign ->',
           onPressed: _isSubmitting ? null : _postCampaign,
           isLoading: _isSubmitting,
         ),
         const SizedBox(height: AppSpacing.sm),
         Text(
-          '⚡ Campaign posting is free. Credit is deducted only on accepted match.',
+          'Campaign posting is free. Credit is deducted only on accepted match.',
           style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
         ),
         const SizedBox(height: AppSpacing.sm),
@@ -519,7 +609,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           child: TextButton(
             onPressed: () => setState(() => _step = _PostStep.campaignInfo),
             style: TextButton.styleFrom(foregroundColor: AppColors.pink),
-            child: const Text('← Back to Campaign Info'),
+            child: const Text('<- Back to Campaign Info'),
           ),
         ),
       ],
@@ -578,6 +668,46 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
   }
 }
 
+class _BrandPillButton extends StatelessWidget {
+  const _BrandPillButton({
+    required this.label,
+    required this.onPressed,
+  });
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        onTap: onPressed,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.brandDark,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: AppTypography.labelSM.copyWith(
+              color: AppColors.white,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _StepIndicator extends StatelessWidget {
   const _StepIndicator({required this.currentStep});
 
@@ -613,6 +743,33 @@ class _StepIndicator extends StatelessWidget {
   }
 }
 
+class _GlowOrb extends StatelessWidget {
+  const _GlowOrb({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: color,
+              blurRadius: size * 0.55,
+              spreadRadius: size * 0.04,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 String _collabText(CampaignCollabType type) {
   switch (type) {
     case CampaignCollabType.paid:
@@ -635,4 +792,3 @@ const _niches = [
   'Comedy',
   'Lifestyle',
 ];
-

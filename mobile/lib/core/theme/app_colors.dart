@@ -65,4 +65,19 @@ class AppColors {
   static const Color statusActive = Color(0xFF22C55E);
   static const Color statusRejected = Color(0xFFEF4444);
   static const Color statusCompleted = Color(0xFF3D5BFF);
+
+  // Glass treatment for brand-primary status badges.
+  static const LinearGradient brandPrimaryGlassGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color.fromARGB(238, 255, 255, 255),
+      Color.fromARGB(191, 255, 212, 228),
+      Color.fromARGB(179, 251, 22, 102),
+    ],
+    stops: [0.0, 0.52, 1.0],
+  );
+
+  static const Color brandPrimaryGlassBorder = Color.fromARGB(92, 251, 22, 102);
+  static const Color brandPrimaryGlassShadow = Color.fromARGB(38, 251, 22, 102);
 }

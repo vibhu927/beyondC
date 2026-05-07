@@ -4,7 +4,6 @@ import 'package:shimmer/shimmer.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
@@ -15,7 +14,6 @@ import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/brand_page_top_header.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
-import '../../../widgets/cards/bc_card.dart';
 import '../../chat/chat_screen.dart';
 
 class BrandRequestsScreen extends ConsumerStatefulWidget {
@@ -195,8 +193,13 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
         return AlertDialog(
           backgroundColor: Colors.transparent,
           contentPadding: EdgeInsets.zero,
-          content: BCCard(
-            shadow: AppShadows.ink,
+          content: Container(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: AppColors.lightBorder),
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,16 +214,16 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: BCPrimaryButton.pink(
-                        label: 'Cancel',
-                        onPressed: () => Navigator.of(dialogContext).pop(true),
+                      child: _DialogActionPill(
+                        label: 'No',
+                        onPressed: () => Navigator.of(dialogContext).pop(false),
                       ),
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
-                      child: BCPrimaryButton.dark(
-                        label: 'Keep',
-                        onPressed: () => Navigator.of(dialogContext).pop(false),
+                      child: _DialogActionPill(
+                        label: 'Yes',
+                        onPressed: () => Navigator.of(dialogContext).pop(true),
                       ),
                     ),
                   ],
@@ -357,6 +360,42 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DialogActionPill extends StatelessWidget {
+  const _DialogActionPill({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.brandDark,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: AppTypography.labelSM.copyWith(
+              color: AppColors.white,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ),
       ),
     );
@@ -510,9 +549,23 @@ class _RequestStatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
       decoration: BoxDecoration(
-        color: isPrimary ? AppColors.brandPrimary : AppColors.brandDark.withValues(alpha: 0.08),
+        color: isPrimary ? null : AppColors.brandDark.withValues(alpha: 0.08),
+        gradient: isPrimary ? AppColors.brandPrimaryGlassGradient : null,
         borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-        border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.16)),
+        border: Border.all(
+          color: isPrimary
+              ? AppColors.brandPrimaryGlassBorder
+              : AppColors.brandDark.withValues(alpha: 0.16),
+        ),
+        boxShadow: isPrimary
+            ? [
+                const BoxShadow(
+                  color: AppColors.brandPrimaryGlassShadow,
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ]
+            : null,
       ),
       child: Text(
         label,

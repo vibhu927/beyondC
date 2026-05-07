@@ -11,10 +11,12 @@ import '../../chat/chat_screen.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
+import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../../../widgets/bc_portal_top_bar.dart';
 
 class CreatorCollabsScreen extends ConsumerWidget {
   const CreatorCollabsScreen({super.key});
@@ -24,43 +26,47 @@ class CreatorCollabsScreen extends ConsumerWidget {
     final collabsAsync = ref.watch(creatorCollabsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        surfaceTintColor: Colors.transparent,
-        title: const Text('Your Collabs', style: AppTypography.displaySM),
+      extendBody: true,
+      appBar: const BCPortalTopBar(),
+      bottomNavigationBar: const BCBottomNav(
+        role: BCPortalRole.creator,
+        currentIndex: 2,
       ),
-      body: RefreshIndicator(
-        color: AppColors.neon,
-        onRefresh: () => ref.read(creatorCollabsProvider.notifier).refresh(),
-        child: collabsAsync.when(
-          loading: () => const Center(child: BCAppLoader()),
-          error: (error, _) => BCErrorState(
-            message: error.toString(),
-            onRetry: () => ref.read(creatorCollabsProvider.notifier).refresh(),
-          ),
-          data: (collabs) {
-            if (collabs.isEmpty) {
-              return const BCEmptyState(
-                emoji: 'ðŸ¤',
-                message: 'No active collabs yet. Start bidding on campaigns.',
-              );
-            }
+      body: BCPageSwipeArea(
+        role: BCPortalRole.creator,
+        currentIndex: 2,
+        child: RefreshIndicator(
+          color: AppColors.neon,
+          onRefresh: () => ref.read(creatorCollabsProvider.notifier).refresh(),
+          child: collabsAsync.when(
+            loading: () => const Center(child: BCAppLoader()),
+            error: (error, _) => BCErrorState(
+              message: error.toString(),
+              onRetry: () => ref.read(creatorCollabsProvider.notifier).refresh(),
+            ),
+            data: (collabs) {
+              if (collabs.isEmpty) {
+                return const BCEmptyState(
+                  emoji: '??',
+                  message: 'No active collabs yet. Start bidding on campaigns.',
+                );
+              }
 
-            return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenPadding,
-                AppSpacing.lg,
-                AppSpacing.screenPadding,
-                AppSpacing.huge,
-              ),
-              itemCount: collabs.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.md),
-              itemBuilder: (context, index) =>
-                  _CollabCard(collab: collabs[index]),
-            );
-          },
+              return ListView.separated(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenPadding,
+                  AppSpacing.lg,
+                  AppSpacing.screenPadding,
+                  AppSpacing.huge,
+                ),
+                itemCount: collabs.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: AppSpacing.md),
+                itemBuilder: (context, index) =>
+                    _CollabCard(collab: collabs[index]),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -109,7 +115,7 @@ class _CollabCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.md),
           const Text(
-            'Brief  Â·  Draft  Â·  Approved  Â·  Posted',
+            'Brief  ·  Draft  ·  Approved  ·  Posted',
             style: AppTypography.bodyXS,
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -140,7 +146,7 @@ class _CollabCard extends StatelessWidget {
           Align(
             alignment: Alignment.centerRight,
             child: BCPrimaryButton.dark(
-              label: 'Open Chat â†’',
+              label: 'Open Chat ?',
               isFullWidth: false,
               onPressed: () => openChatDrawer(context, collab.id),
             ),

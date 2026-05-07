@@ -13,9 +13,11 @@ import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
+import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/cards/bc_card.dart';
+import '../../../widgets/bc_portal_top_bar.dart';
 
 class CreatorRequestsScreen extends ConsumerWidget {
   const CreatorRequestsScreen({super.key});
@@ -25,45 +27,49 @@ class CreatorRequestsScreen extends ConsumerWidget {
     final requestsAsync = ref.watch(requestsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        surfaceTintColor: Colors.transparent,
-        title: const Text('Brand Requests', style: AppTypography.displaySM),
+      extendBody: true,
+      appBar: const BCPortalTopBar(),
+      bottomNavigationBar: const BCBottomNav(
+        role: BCPortalRole.creator,
+        currentIndex: 3,
       ),
-      body: RefreshIndicator(
-        color: AppColors.neon,
-        onRefresh: () => ref.read(requestsProvider.notifier).refresh(),
-        child: requestsAsync.when(
-          loading: () => const Center(child: BCAppLoader()),
-          error: (error, _) => BCErrorState(
-            message: error.toString(),
-            onRetry: () => ref.read(requestsProvider.notifier).refresh(),
-          ),
-          data: (requests) {
-            if (requests.isEmpty) {
-              return const BCEmptyState(
-                emoji: '📭',
-                message: 'No requests yet. Brands will reach out soon.',
-              );
-            }
+      body: BCPageSwipeArea(
+        role: BCPortalRole.creator,
+        currentIndex: 3,
+        child: RefreshIndicator(
+          color: AppColors.neon,
+          onRefresh: () => ref.read(requestsProvider.notifier).refresh(),
+          child: requestsAsync.when(
+            loading: () => const Center(child: BCAppLoader()),
+            error: (error, _) => BCErrorState(
+              message: error.toString(),
+              onRetry: () => ref.read(requestsProvider.notifier).refresh(),
+            ),
+            data: (requests) {
+              if (requests.isEmpty) {
+                return const BCEmptyState(
+                  emoji: '??',
+                  message: 'No requests yet. Brands will reach out soon.',
+                );
+              }
 
-            return ListView.separated(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenPadding,
-                AppSpacing.lg,
-                AppSpacing.screenPadding,
-                AppSpacing.huge,
-              ),
-              itemCount: requests.length,
-              separatorBuilder: (_, __) =>
-                  const SizedBox(height: AppSpacing.md),
-              itemBuilder: (context, index) {
-                final request = requests[index];
-                return _RequestCard(request: request);
-              },
-            );
-          },
+              return ListView.separated(
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.screenPadding,
+                  AppSpacing.lg,
+                  AppSpacing.screenPadding,
+                  AppSpacing.huge,
+                ),
+                itemCount: requests.length,
+                separatorBuilder: (_, __) =>
+                    const SizedBox(height: AppSpacing.md),
+                itemBuilder: (context, index) {
+                  final request = requests[index];
+                  return _RequestCard(request: request);
+                },
+              );
+            },
+          ),
         ),
       ),
     );

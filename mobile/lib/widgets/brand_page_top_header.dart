@@ -13,7 +13,16 @@ import '../features/chat/chat_modal.dart';
 import '../features/shared/widgets/notifications_modal.dart';
 
 class BrandPageTopHeader extends ConsumerWidget {
-  const BrandPageTopHeader({super.key});
+  const BrandPageTopHeader({
+    super.key,
+    this.showBrandIdentity = true,
+    this.showBackButton = false,
+    this.onBack,
+  });
+
+  final bool showBrandIdentity;
+  final bool showBackButton;
+  final VoidCallback? onBack;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,44 +44,56 @@ class BrandPageTopHeader extends ConsumerWidget {
 
     return Row(
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.16)),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            avatarLabel,
-            style: AppTypography.labelLG.copyWith(
-              color: AppColors.brandDark,
-              fontWeight: FontWeight.w900,
+        if (showBrandIdentity) ...[
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.16)),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              avatarLabel,
+              style: AppTypography.labelLG.copyWith(
+                color: AppColors.brandDark,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Good morning,', style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
-              const SizedBox(height: 2),
-              Text(
-                brandName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.displaySM.copyWith(
-                  color: AppColors.brandDark,
-                  fontWeight: FontWeight.w900,
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Good morning,', style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
+                const SizedBox(height: 2),
+                Text(
+                  brandName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.displaySM.copyWith(
+                    color: AppColors.brandDark,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(category, style: AppTypography.bodyXS.copyWith(color: AppColors.muted)),
-            ],
+                const SizedBox(height: 2),
+                Text(category, style: AppTypography.bodyXS.copyWith(color: AppColors.muted)),
+              ],
+            ),
           ),
-        ),
+        ] else if (showBackButton) ...[
+          _HeaderIcon(
+            icon: Symbols.arrow_back_rounded,
+            count: 0,
+            onTap: onBack ?? () => Navigator.of(context).maybePop(),
+            tooltip: 'Back',
+          ),
+          const Spacer(),
+        ] else ...[
+          const Spacer(),
+        ],
         _HeaderIcon(
           icon: Symbols.notifications_rounded,
           count: unreadNotifications,

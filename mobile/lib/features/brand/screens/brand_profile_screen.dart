@@ -169,12 +169,26 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
           builder: (context, controller) {
             return StatefulBuilder(
               builder: (context, setSheetState) {
-                return _SheetShell(
+                return _ModernSheetShell(
                   child: ListView(
                     controller: controller,
                     padding: const EdgeInsets.all(AppSpacing.xl),
                     children: [
-                      const Text('Edit Profile', style: AppTypography.displaySM),
+                      Row(
+                        children: [
+                          const Expanded(
+                            child: Text('Edit Profile', style: AppTypography.displaySM),
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: IconButton.styleFrom(
+                              backgroundColor: AppColors.lightBg,
+                              minimumSize: const Size(36, 36),
+                            ),
+                            icon: const Icon(Icons.close_rounded, color: AppColors.brandDark, size: 18),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: AppSpacing.lg),
                       BCTextField(label: 'Brand Name', controller: brandNameController),
                       const SizedBox(height: AppSpacing.lg),
@@ -199,36 +213,47 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                         required: true,
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      BCPrimaryButton(
+                      _SheetActionButton(
                         label: 'Upload Logo',
                         onPressed: () async {
                           final url = await _pickAndUploadLogo();
                           if (url != null) setSheetState(() => avatarUrl = url);
                         },
-                        backgroundColor: AppColors.brandDark,
-                        textColor: AppColors.white,
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      BCPrimaryButton.neon(
-                        label: 'Save',
-                        onPressed: () async {
-                          await ref.read(brandProfileProvider.notifier).updateProfile({
-                            'brand_name': brandNameController.text.trim(),
-                            'brand_category': category,
-                            'website': websiteController.text.trim(),
-                            'description': descriptionController.text.trim(),
-                            'state': selectedState,
-                            'city': selectedCity,
-                            if ((avatarUrl ?? '').isNotEmpty) ...{
-                              'logo_url': avatarUrl,
-                              'avatar_url': avatarUrl,
-                            },
-                          });
-                          if (mounted) setState(() => _avatarUrl = avatarUrl);
-                          await _refresh();
-                          if (!context.mounted) return;
-                          Navigator.of(context).pop();
-                        },
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _SheetActionButton(
+                              label: 'Cancel',
+                              onPressed: () => Navigator.of(context).pop(),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: _SheetActionButton(
+                              label: 'Save',
+                              onPressed: () async {
+                                await ref.read(brandProfileProvider.notifier).updateProfile({
+                                  'brand_name': brandNameController.text.trim(),
+                                  'brand_category': category,
+                                  'website': websiteController.text.trim(),
+                                  'description': descriptionController.text.trim(),
+                                  'state': selectedState,
+                                  'city': selectedCity,
+                                  if ((avatarUrl ?? '').isNotEmpty) ...{
+                                    'logo_url': avatarUrl,
+                                    'avatar_url': avatarUrl,
+                                  },
+                                });
+                                if (mounted) setState(() => _avatarUrl = avatarUrl);
+                                await _refresh();
+                                if (!context.mounted) return;
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -585,18 +610,17 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                                       ),
                                     ),
                               const SizedBox(height: AppSpacing.md),
-                              BCPrimaryButton(
+                              _ProfileActionButton(
                                 label: 'Settings',
+                                icon: Icons.settings_rounded,
                                 onPressed: () => context.push(RouteNames.settings),
-                                backgroundColor: AppColors.brandDark,
-                                textColor: AppColors.white,
                               ),
                               const SizedBox(height: AppSpacing.sm),
-                              BCPrimaryButton(
+                              _ProfileActionButton(
                                 label: 'Logout',
+                                icon: Icons.logout_rounded,
                                 onPressed: _logout,
                                 backgroundColor: AppColors.error,
-                                textColor: AppColors.white,
                               ),
                             ],
                           ),
@@ -794,6 +818,107 @@ class _SheetShell extends StatelessWidget {
         border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.14)),
       ),
       child: child,
+    );
+  }
+}
+
+class _ModernSheetShell extends StatelessWidget {
+  const _ModernSheetShell({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border.all(color: AppColors.lightBorder),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _SheetActionButton extends StatelessWidget {
+  const _SheetActionButton({required this.label, required this.onPressed});
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.sm,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.brandDark,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: AppTypography.labelSM.copyWith(
+              color: AppColors.white,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileActionButton extends StatelessWidget {
+  const _ProfileActionButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+    this.backgroundColor = AppColors.brandDark,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+  final Color backgroundColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        onTap: onPressed,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: AppSpacing.md,
+          ),
+          decoration: BoxDecoration(
+            color: backgroundColor,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: AppColors.white, size: 18),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                label,
+                style: AppTypography.labelSM.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -20,10 +20,6 @@ import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
-import '../../../widgets/bc_portal_top_bar.dart';
-import '../../shared/widgets/home_carousel_strip.dart';
-import '../../shared/widgets/home_content_sheet.dart';
-import '../shared/widgets/creator_design_system.dart';
 
 class CreatorHomeScreen extends ConsumerStatefulWidget {
   const CreatorHomeScreen({super.key});
@@ -33,9 +29,6 @@ class CreatorHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
-  static const double _carouselHeight = 212;
-  static const double _sheetTopInset = _carouselHeight + 16;
-
   bool _isConnectingInstagram = false;
 
   @override
@@ -109,7 +102,6 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
 
     return Scaffold(
       extendBody: true,
-      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.creator,
         currentIndex: 0,
@@ -131,274 +123,400 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
             ),
             data: (home) {
               final profile = home.profile;
-              final hasCarousel = home.carouselItems.isNotEmpty;
-              final navClearance = MediaQuery.of(context).padding.bottom + 84;
+              final navClearance = MediaQuery.of(context).padding.bottom + 104;
 
               return Stack(
                 children: [
                   const Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Color(0xFFE1E8F4),
-                            Color(0xFFE9EFF8),
-                            Color(0xFFF5F7FB),
-                          ],
-                        ),
+                        color: AppColors.lightBg,
                       ),
                     ),
                   ),
-                  if (hasCarousel)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          bottomLeft: Radius.circular(36),
-                          bottomRight: Radius.circular(36),
-                        ),
-                        child: SizedBox(
-                          height: _carouselHeight,
-                          child: Stack(
-                            fit: StackFit.expand,
-                            children: [
-                              HomeCarouselStrip(
-                                items: home.carouselItems,
-                                height: _carouselHeight,
-                              ),
-                              const DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Color(0x12000000),
-                                      Color(0x52000000),
-                                      Color(0xCC0D0D0D),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+                  // Carousel intentionally disabled for now per product direction.
+                  // if (home.carouselItems.isNotEmpty) {
+                  //   HomeCarouselStrip(...)
+                  // }
                   Positioned(
-                    top: hasCarousel ? 18 : 40,
+                    top: -46,
                     right: -54,
                     child: _AmbientGlow(
-                      size: 164,
-                      color: AppColors.neon.withValues(alpha: 0.16),
+                      size: 136,
+                      color: AppColors.creatorPrimary.withValues(alpha: 0.12),
                     ),
                   ),
                   Positioned(
-                    top: hasCarousel ? 144 : 188,
+                    top: 220,
                     left: -42,
                     child: _AmbientGlow(
-                      size: 126,
-                      color: AppColors.pink.withValues(alpha: 0.14),
+                      size: 112,
+                      color: AppColors.creatorDark.withValues(alpha: 0.1),
                     ),
                   ),
-                  CustomScrollView(
+                  ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: SizedBox(
-                          height: hasCarousel
-                              ? _sheetTopInset
-                              : AppSpacing.xl,
-                        ),
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.screenPadding,
+                      MediaQuery.of(context).padding.top + 14,
+                      AppSpacing.screenPadding,
+                      AppSpacing.huge + navClearance,
+                    ),
+                    children: [
+                      _CreatorTopHeader(
+                        name: profile.firstName,
+                        notificationsCount: 0,
+                        onNotificationsTap: () => context.push(RouteNames.notifications),
+                        onProfileTap: () => context.push(RouteNames.creatorProfile),
                       ),
-                      SliverToBoxAdapter(
-                        child: HomeContentSheet(
-                          backgroundColor: const Color(0xFFE7EDF7),
-                          borderColor: AppColors.ink.withValues(alpha: 0.14),
-                          boxShadow: _sheetShadows(),
-                          padding: EdgeInsets.fromLTRB(
-                            AppSpacing.screenPadding,
-                            AppSpacing.xl,
-                            AppSpacing.screenPadding,
-                            AppSpacing.huge + navClearance,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                            if (!profile.instagramVerified) ...[
-                                _InstagramConnectBanner(
-                                  isLoading: _isConnectingInstagram,
-                                  onConnect: _connectInstagram,
+                      const SizedBox(height: AppSpacing.lg),
+                      _CreatorQuickActions(
+                        onCampaignsTap: () => context.push(RouteNames.creatorCampaigns),
+                        onBidsTap: () => context.push(RouteNames.myBids),
+                        onRequestsTap: () => context.push(RouteNames.creatorRequests),
+                        onCollabsTap: () => context.push(RouteNames.creatorCollabs),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      if (!profile.instagramVerified)
+                        _InstagramConnectBanner(
+                          isLoading: _isConnectingInstagram,
+                          onConnect: _connectInstagram,
+                        ),
+                      const SizedBox(height: AppSpacing.xxxl),
+                      _SectionHeading(
+                        title: 'Your Active Collabs',
+                        subtitle: 'Keep momentum moving this week',
+                        actionLabel: 'See all',
+                        onTap: () => context.push(RouteNames.creatorCollabs),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      if (home.activeCollabs.isEmpty)
+                        const BCEmptyState(
+                          emoji: ' ',
+                          message:
+                              'No active collabs yet. Start bidding on campaigns.',
+                        )
+                      else
+                        Column(
+                          children: home.activeCollabs
+                              .take(2)
+                              .map((collab) => Padding(
+                                    padding: const EdgeInsets.only(
+                                      bottom: AppSpacing.md,
+                                    ),
+                                    child: _CollabTrackerCard(
+                                      collab: collab,
+                                      onTap: () =>
+                                          context.push(RouteNames.creatorCollabs),
+                                    ),
+                                  ))
+                              .toList(),
+                        ),
+                      const SizedBox(height: AppSpacing.xxxl),
+                      _SectionHeading(
+                        title: 'New Campaigns',
+                        subtitle: 'Fresh briefs that match your vibe',
+                        actionLabel: 'See all',
+                        onTap: () => context.push(RouteNames.creatorCampaigns),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      SizedBox(
+                        height: 252,
+                        child: home.campaigns.isEmpty
+                            ? const BCEmptyState(
+                                emoji: ' ',
+                                message: 'No active campaigns right now.',
+                              )
+                            : ListView.separated(
+                                clipBehavior: Clip.none,
+                                padding: const EdgeInsets.only(
+                                  right: AppSpacing.sm,
+                                  bottom: 8,
                                 ),
-                                const SizedBox(height: AppSpacing.lg),
-                              ],
-                              _CreatorSnapshotCard(
-                                walletBalance:
-                                    Formatters.currency(home.wallet.balance),
-                                followers:
-                                    Formatters.followerCount(profile.followersCount),
-                                activeBids: home.activeBidsCount,
-                                requests: home.requests.length,
-                                collabs: home.activeCollabs.length,
-                                onWalletTap: () =>
-                                    context.push(RouteNames.creatorWallet),
-                                onRequestsTap: () =>
+                                scrollDirection: Axis.horizontal,
+                                itemCount: home.campaigns.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(width: AppSpacing.md),
+                                itemBuilder: (context, index) {
+                                  final campaign = home.campaigns[index];
+                                  return _MinimalCampaignCard(
+                                    campaign: campaign,
+                                    hasBid: home.hasBidForCampaign(campaign.id),
+                                    onTap: () => context.push(
+                                      RouteNames.campaignDetail
+                                          .replaceFirst(':id', campaign.id),
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                      const SizedBox(height: AppSpacing.xxxl),
+                      _SectionHeading(
+                        title: 'Brand Requests',
+                        subtitle:
+                            'Direct asks from brands that already want you',
+                        actionLabel: 'See all',
+                        onTap: () => context.push(RouteNames.creatorRequests),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      if (home.requests.isEmpty)
+                        const BCEmptyState(
+                          emoji: ' ',
+                          message:
+                              'No requests yet. Brands will reach out soon.',
+                        )
+                      else
+                        Column(
+                          children: home.requests.take(3).map((request) {
+                            return Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: AppSpacing.md,
+                              ),
+                              child: _RequestCard(
+                                request: request,
+                                onView: () =>
                                     context.push(RouteNames.creatorRequests),
-                                onCollabsTap: () =>
-                                    context.push(RouteNames.creatorCollabs),
-                              ),
-                              const SizedBox(height: AppSpacing.xxxl),
-                              _SectionHeading(
-                                title: 'New Campaigns',
-                                subtitle: 'Fresh briefs that match your vibe',
-                                actionLabel: 'See all',
-                                onTap: () =>
-                                    context.push(RouteNames.creatorCampaigns),
-                              ),
-                              const SizedBox(height: AppSpacing.lg),
-                              SizedBox(
-                                height: 252,
-                                child: home.campaigns.isEmpty
-                                    ? const BCEmptyState(
-                                        emoji: ' ',
-                                        message:
-                                            'No active campaigns right now.',
-                                      )
-                                    : ListView.separated(
-                                        clipBehavior: Clip.none,
-                                        padding: const EdgeInsets.only(
-                                          right: AppSpacing.sm,
-                                          bottom: 8,
-                                        ),
-                                        scrollDirection: Axis.horizontal,
-                                        itemCount: home.campaigns.length,
-                                        separatorBuilder: (_, __) =>
-                                            const SizedBox(width: AppSpacing.md),
-                                        itemBuilder: (context, index) {
-                                          final campaign = home.campaigns[index];
-                                          return _MinimalCampaignCard(
-                                            campaign: campaign,
-                                            hasBid: home.hasBidForCampaign(
-                                              campaign.id,
-                                            ),
-                                            onTap: () => context.push(
-                                              RouteNames.campaignDetail
-                                                  .replaceFirst(
-                                                ':id',
-                                                campaign.id,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                              ),
-                              const SizedBox(height: AppSpacing.xxxl),
-                              _SectionHeading(
-                                title: 'Brand Requests',
-                                subtitle:
-                                    'Direct asks from brands that already want you',
-                                actionLabel: 'See all',
-                                onTap: () =>
-                                    context.push(RouteNames.creatorRequests),
-                              ),
-                              const SizedBox(height: AppSpacing.lg),
-                              if (home.requests.isEmpty)
-                                const BCEmptyState(
-                                  emoji: ' ',
-                                  message:
-                                      'No requests yet. Brands will reach out soon.',
-                                )
-                              else
-                                Column(
-                                  children: home.requests.take(3).map((request) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                        bottom: AppSpacing.md,
-                                      ),
-                                      child: _RequestCard(
-                                        request: request,
-                                        onView: () => context.push(
-                                          RouteNames.creatorRequests,
-                                        ),
-                                        onAccept: () async {
-                                          try {
-                                            await ref
-                                                .read(
-                                                  creatorActionsProvider.notifier,
-                                                )
-                                                .respondToRequest(
-                                                  requestId: request.id,
-                                                  action: 'accept',
-                                                );
-                                            if (!context.mounted) return;
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content:
-                                                    Text('Request accepted.'),
-                                              ),
-                                            );
-                                          } catch (_) {
-                                            if (!context.mounted) return;
-                                            ScaffoldMessenger.of(context)
-                                                .showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Could not accept request.',
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                        },
+                                onAccept: () async {
+                                  try {
+                                    await ref
+                                        .read(creatorActionsProvider.notifier)
+                                        .respondToRequest(
+                                          requestId: request.id,
+                                          action: 'accept',
+                                        );
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Request accepted.'),
                                       ),
                                     );
-                                  }).toList(),
-                                ),
-                              const SizedBox(height: AppSpacing.xxxl),
-                              _SectionHeading(
-                                title: 'Your Active Collabs',
-                                subtitle: 'Keep momentum moving this week',
-                                actionLabel: 'See all',
-                                onTap: () =>
-                                    context.push(RouteNames.creatorCollabs),
+                                  } catch (_) {
+                                    if (!context.mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Could not accept request.',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
                               ),
-                              const SizedBox(height: AppSpacing.lg),
-                              if (home.activeCollabs.isEmpty)
-                                const BCEmptyState(
-                                  emoji: ' ',
-                                  message:
-                                      'No active collabs yet. Start bidding on campaigns.',
-                                )
-                              else
-                                Column(
-                                  children: home.activeCollabs
-                                      .take(2)
-                                      .map((collab) => Padding(
-                                            padding: const EdgeInsets.only(
-                                              bottom: AppSpacing.md,
-                                            ),
-                                            child: _CollabTrackerCard(
-                                              collab: collab,
-                                              onTap: () => context.push(
-                                                RouteNames.creatorCollabs,
-                                              ),
-                                            ),
-                                          ))
-                                      .toList(),
-                                ),
-                            ],
-                          ),
+                            );
+                          }).toList(),
                         ),
-                      ),
                     ],
                   ),
                 ],
               );
             },
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CreatorTopHeader extends StatelessWidget {
+  const _CreatorTopHeader({
+    required this.name,
+    required this.notificationsCount,
+    required this.onNotificationsTap,
+    required this.onProfileTap,
+  });
+
+  final String name;
+  final int notificationsCount;
+  final VoidCallback onNotificationsTap;
+  final VoidCallback onProfileTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final firstName = name.trim().isEmpty ? 'Creator' : name.trim();
+    final avatarLabel = firstName.substring(0, 1).toUpperCase();
+
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: onProfileTap,
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.creatorDark.withValues(alpha: 0.16)),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              avatarLabel,
+              style: AppTypography.labelLG.copyWith(
+                color: AppColors.creatorDark,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Good to see you,',
+                style: AppTypography.bodySM.copyWith(color: AppColors.muted),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                firstName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.displaySM.copyWith(
+                  color: AppColors.creatorDark,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Stack(
+          clipBehavior: Clip.none,
+          children: [
+            GestureDetector(
+              onTap: onNotificationsTap,
+              child: Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.creatorDark.withValues(alpha: 0.14)),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(Symbols.notifications_rounded, color: AppColors.creatorDark),
+              ),
+            ),
+            if (notificationsCount > 0)
+              Positioned(
+                right: -2,
+                top: -2,
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    gradient: AppColors.brandPrimaryGlassGradient,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: AppColors.white, width: 1.5),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _CreatorQuickActions extends StatelessWidget {
+  const _CreatorQuickActions({
+    required this.onCampaignsTap,
+    required this.onBidsTap,
+    required this.onRequestsTap,
+    required this.onCollabsTap,
+  });
+
+  final VoidCallback onCampaignsTap;
+  final VoidCallback onBidsTap;
+  final VoidCallback onRequestsTap;
+  final VoidCallback onCollabsTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 104,
+      child: Row(
+        children: [
+          Expanded(
+            child: _QuickActionTile(
+              icon: Symbols.campaign_rounded,
+              label: 'Campaigns',
+              onTap: onCampaignsTap,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: _QuickActionTile(
+              icon: Symbols.gavel_rounded,
+              label: 'My Bids',
+              onTap: onBidsTap,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: _QuickActionTile(
+              icon: Symbols.mail_rounded,
+              label: 'Requests',
+              onTap: onRequestsTap,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: _QuickActionTile(
+              icon: Symbols.handshake_rounded,
+              label: 'Collabs',
+              onTap: onCollabsTap,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickActionTile extends StatelessWidget {
+  const _QuickActionTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.white.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: AppColors.creatorDark.withValues(alpha: 0.14)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 14,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: AppColors.creatorDark, size: 20),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.labelXS.copyWith(
+                color: AppColors.creatorDark,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -482,7 +600,7 @@ class _InstagramConnectBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassPanel(
+    return _GlassPanel(
       accentColor: AppColors.pink,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -533,7 +651,7 @@ class _InstagramConnectBanner extends StatelessWidget {
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
-          GlassButton(
+          _GlassButton(
             label: isLoading ? 'Connecting' : 'Connect',
             accent: AppColors.pink,
             onTap: isLoading ? null : onConnect,
@@ -854,7 +972,7 @@ class _MinimalCampaignCard extends StatelessWidget {
       onTap: onTap,
       child: SizedBox(
         width: 296,
-        child: GlassPanel(
+        child: _GlassPanel(
           accentColor: _collabTypeAccent(campaign.collabType),
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
@@ -887,7 +1005,7 @@ class _MinimalCampaignCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  InlineTonePill(
+                  _InlineTonePill(
                     label: _deadlineLabel(campaign.deadline),
                     accent: AppColors.ink,
                   ),
@@ -909,7 +1027,7 @@ class _MinimalCampaignCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  InlineTonePill(
+                  _InlineTonePill(
                     label: _collabTypeLabel(campaign.collabType),
                     accent: _collabTypeAccent(campaign.collabType),
                   ),
@@ -929,12 +1047,12 @@ class _MinimalCampaignCard extends StatelessWidget {
                 spacing: AppSpacing.sm,
                 runSpacing: AppSpacing.sm,
                 children: [
-                  InlineTonePill(
+                  _InlineTonePill(
                     label: locationCopy,
                     accent: AppColors.blue,
                   ),
                   if (hasBid)
-                    InlineTonePill(
+                    _InlineTonePill(
                       label: 'Bid sent',
                       accent: AppColors.pink,
                     ),
@@ -951,7 +1069,7 @@ class _MinimalCampaignCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  GlassButton(
+                  _GlassButton(
                     label: hasBid ? 'View' : 'Bid now',
                     accent: hasBid ? AppColors.blue : AppColors.neon,
                     onTap: onTap,
@@ -979,7 +1097,7 @@ class _RequestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassPanel(
+    return _GlassPanel(
       accentColor: AppColors.pink,
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
@@ -1031,11 +1149,11 @@ class _RequestCard extends StatelessWidget {
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.sm,
             children: [
-              InlineTonePill(
+              _InlineTonePill(
                 label: Formatters.currencyFromINR(request.budget),
                 accent: AppColors.neon,
               ),
-              InlineTonePill(
+              _InlineTonePill(
                 label: _collabTypeLabel(request.collabType),
                 accent: _collabTypeAccent(request.collabType),
               ),
@@ -1044,13 +1162,13 @@ class _RequestCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
-              GlassButton(
+              _GlassButton(
                 label: 'View',
                 accent: AppColors.ink,
                 onTap: onView,
               ),
               const SizedBox(width: AppSpacing.sm),
-              GlassButton(
+              _GlassButton(
                 label: 'Accept',
                 accent: AppColors.neon,
                 onTap: onAccept,
@@ -1076,7 +1194,7 @@ class _CollabTrackerCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: GlassPanel(
+      child: _GlassPanel(
         accentColor: _collabStatusAccent(collab.status),
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
@@ -1092,7 +1210,7 @@ class _CollabTrackerCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                InlineTonePill(
+                _InlineTonePill(
                   label: _collabStatusLabel(collab.status),
                   accent: _collabStatusAccent(collab.status),
                 ),
@@ -1125,7 +1243,7 @@ class _CollabTrackerCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                GlassButton(
+                _GlassButton(
                   label: 'Continue',
                   accent: AppColors.pink,
                   onTap: onTap,

@@ -935,10 +935,24 @@ class _StatusPill extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: isActive
-            ? AppColors.brandPrimary
+            ? null
             : AppColors.brandDark.withValues(alpha: 0.08),
+        gradient: isActive ? AppColors.brandPrimaryGlassGradient : null,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.16)),
+        border: Border.all(
+          color: isActive
+              ? AppColors.brandPrimaryGlassBorder
+              : AppColors.brandDark.withValues(alpha: 0.16),
+        ),
+        boxShadow: isActive
+            ? [
+                const BoxShadow(
+                  color: AppColors.brandPrimaryGlassShadow,
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                ),
+              ]
+            : null,
       ),
       child: Text(
         label,
