@@ -40,7 +40,7 @@ class BCPortalTopBar extends ConsumerWidget implements PreferredSizeWidget {
       surfaceTintColor: Colors.transparent,
       shape: const Border(bottom: BorderSide(color: Colors.transparent, width: 0)),
       flexibleSpace: const ColoredBox(color: AppColors.lightBg),
-      systemOverlayStyle: SystemUiOverlayStyle(
+      systemOverlayStyle: const SystemUiOverlayStyle(
         statusBarColor: AppColors.lightBg,
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,

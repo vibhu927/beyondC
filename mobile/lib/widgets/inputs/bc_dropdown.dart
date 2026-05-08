@@ -84,28 +84,28 @@ class _BCDropdownState extends State<BCDropdown> {
             fillColor: surfaceColor,
             enabledBorder: OutlineInputBorder(
               borderRadius: radius,
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: borderColor,
                 width: AppSpacing.borderWidth,
               ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: radius,
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: borderColor,
                 width: AppSpacing.borderWidth,
               ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: radius,
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: borderColor,
                 width: AppSpacing.borderWidth,
               ),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: radius,
-              borderSide: BorderSide(
+              borderSide: const BorderSide(
                 color: borderColor,
                 width: AppSpacing.borderWidth,
               ),

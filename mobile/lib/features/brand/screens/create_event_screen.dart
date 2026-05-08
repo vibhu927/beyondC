@@ -213,7 +213,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                         ),
                         Switch(
                           value: _isVirtual,
-                          activeColor: AppColors.brandPrimary,
+                          activeThumbColor: AppColors.brandPrimary,
                           onChanged: (value) =>
                               setState(() => _isVirtual = value),
                         ),

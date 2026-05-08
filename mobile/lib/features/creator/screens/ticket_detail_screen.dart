@@ -177,7 +177,7 @@ class TicketDetailScreen extends ConsumerWidget {
                                           border: Border.all(
                                               color: AppColors.ink, width: 1),
                                         ),
-                                        child: Text(
+                                        child: const Text(
                                           'Creator',
                                           style: AppTypography.labelXS,
                                         ),
@@ -200,7 +200,7 @@ class TicketDetailScreen extends ConsumerWidget {
                               ],
                             ),
                             const SizedBox(height: AppSpacing.sm),
-                            Text(
+                            const Text(
                               'Show this at the entrance',
                               textAlign: TextAlign.center,
                               style: AppTypography.bodyXS,

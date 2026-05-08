@@ -20,7 +20,7 @@ class AgencyCreatorsScreen extends ConsumerWidget {
         child: Column(
           children: [
             Row(children: [
-              Expanded(child: Text('Partnered', style: AppTypography.displaySM)),
+              const Expanded(child: Text('Partnered', style: AppTypography.displaySM)),
               TextButton(onPressed: () {}, child: const Text('Invite')),
             ]),
             const SizedBox(height: AppSpacing.md),

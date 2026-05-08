@@ -16,7 +16,7 @@ class AgencyDiscoverScreen extends ConsumerWidget {
         padding: const EdgeInsets.all(AppSpacing.screenPadding),
         child: Column(
           children: [
-            Text('Find Creators & Brands', style: AppTypography.displaySM),
+            const Text('Find Creators & Brands', style: AppTypography.displaySM),
             const SizedBox(height: AppSpacing.md),
             Expanded(
               child: ListView.separated(

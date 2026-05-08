@@ -350,7 +350,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           onChanged: (value) => setState(() => _category = value),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text('Target Location', style: AppTypography.labelMD),
+        const Text('Target Location', style: AppTypography.labelMD),
         const SizedBox(height: AppSpacing.sm),
         Row(
           children: [
@@ -400,7 +400,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
           ),
         ],
         const SizedBox(height: AppSpacing.lg),
-        Text('Collab Type', style: AppTypography.labelMD),
+        const Text('Collab Type', style: AppTypography.labelMD),
         const SizedBox(height: AppSpacing.sm),
         Wrap(
           spacing: AppSpacing.sm,
@@ -508,7 +508,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Target Tier', style: AppTypography.labelMD),
+        const Text('Target Tier', style: AppTypography.labelMD),
         const SizedBox(height: AppSpacing.sm),
         Wrap(
           spacing: AppSpacing.sm,
@@ -530,7 +530,7 @@ class _PostCampaignScreenState extends ConsumerState<PostCampaignScreen> {
               .toList(),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text('Target Niche', style: AppTypography.labelMD),
+        const Text('Target Niche', style: AppTypography.labelMD),
         const SizedBox(height: AppSpacing.sm),
         Wrap(
           spacing: AppSpacing.sm,

@@ -4,13 +4,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/brand_provider.dart';
-import '../../../widgets/buttons/bc_primary_button.dart';
-import '../../../widgets/cards/bc_card.dart';
 
 class CreatorDetailBottomSheet extends ConsumerWidget {
   const CreatorDetailBottomSheet({

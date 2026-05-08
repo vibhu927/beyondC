@@ -5,7 +5,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 
 class AmbientGlow extends StatelessWidget {
-  const AmbientGlow({
+  const AmbientGlow({super.key, 
     required this.size,
     required this.color,
   });
@@ -35,7 +35,7 @@ class AmbientGlow extends StatelessWidget {
 }
 
 class GlassPanel extends StatelessWidget {
-  const GlassPanel({
+  const GlassPanel({super.key, 
     required this.child,
     this.padding = const EdgeInsets.all(18),
     this.radius = 28,
@@ -71,17 +71,15 @@ class GlassPanel extends StatelessWidget {
 }
 
 class GlassButton extends StatelessWidget {
-  const GlassButton({
+  const GlassButton({super.key, 
     required this.label,
     required this.accent,
     required this.onTap,
-    this.textColor,
   });
 
   final String label;
   final Color accent;
   final VoidCallback? onTap;
-  final Color? textColor;
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +113,7 @@ class GlassButton extends StatelessWidget {
             child: Text(
               label,
               style: AppTypography.labelSM.copyWith(
-                color: textColor ?? (accent == AppColors.neon ? AppColors.ink : accent),
+                color: accent == AppColors.neon ? AppColors.ink : accent,
                 fontWeight: FontWeight.w900,
               ),
             ),
@@ -127,7 +125,7 @@ class GlassButton extends StatelessWidget {
 }
 
 class InlineTonePill extends StatelessWidget {
-  const InlineTonePill({
+  const InlineTonePill({super.key, 
     required this.label,
     required this.accent,
     this.onDark = false,
