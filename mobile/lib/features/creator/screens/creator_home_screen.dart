@@ -419,6 +419,72 @@ class _QuickActionTile extends StatelessWidget {
   }
 }
 
+class _AmbientGlow extends StatelessWidget {
+  const _AmbientGlow({
+    required this.size,
+    required this.color,
+  });
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: color,
+              blurRadius: size * 0.7,
+              spreadRadius: size * 0.08,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GlassPanel extends StatelessWidget {
+  const _GlassPanel({
+    required this.child,
+    this.padding = const EdgeInsets.all(18),
+    this.radius = AppSpacing.radiusLG,
+    this.backgroundColor,
+    this.accentColor = AppColors.blue,
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+  final double radius;
+  final Color? backgroundColor;
+  final Color accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: backgroundColor ?? Colors.white.withValues(alpha: 0.9),
+            border: _uniformBorder(accentColor),
+            borderRadius: BorderRadius.circular(radius),
+            boxShadow: _neoShadows(accentColor),
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+}
+
 class _InstagramConnectBanner extends StatelessWidget {
   const _InstagramConnectBanner({
     required this.onConnect,
@@ -430,8 +496,10 @@ class _InstagramConnectBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _CreatorCardShell(
-      accent: AppColors.neon,
+    return _GlassPanel(
+      accentColor: AppColors.pink,
+      radius: 22,
+      backgroundColor: AppColors.white.withValues(alpha: 0.88),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.md,
@@ -903,6 +971,28 @@ class _MinimalCampaignCard extends StatelessWidget {
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   _CardActionButton(
+                    label: locationCopy,
+                    accent: AppColors.blue,
+                  ),
+                  if (hasBid)
+                    const _InlineTonePill(
+                      label: 'Bid sent',
+                      accent: AppColors.pink,
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '${campaign.bidCount} bids so far',
+                      style: AppTypography.bodyXS.copyWith(
+                        color: AppColors.muted,
+                      ),
+                    ),
+                  ),
+                  _GlassButton(
                     label: hasBid ? 'View' : 'Bid now',
                     onPressed: onTap,
                   ),

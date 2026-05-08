@@ -490,7 +490,7 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                                   children: [
                                     Row(
                                       children: [
-                                        _CircleIconChip(icon: Icons.business_center_rounded),
+                                        const _CircleIconChip(icon: Icons.business_center_rounded),
                                         const SizedBox(width: AppSpacing.sm),
                                         Text(
                                           'About',
@@ -529,7 +529,7 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                                 onTap: () => context.push(RouteNames.brandCredits),
                                 child: Row(
                                   children: [
-                                    _CircleIconChip(icon: Icons.account_balance_wallet_rounded),
+                                    const _CircleIconChip(icon: Icons.account_balance_wallet_rounded),
                                     const SizedBox(width: AppSpacing.sm),
                                     Text(
                                       'Credits',
@@ -575,7 +575,7 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                                         child: BCCard(
                                           child: Row(
                                             children: [
-                                              _CircleIconChip(icon: Icons.campaign_rounded),
+                                              const _CircleIconChip(icon: Icons.campaign_rounded),
                                               const SizedBox(width: AppSpacing.sm),
                                               Expanded(
                                                 child: Text(item.title, style: AppTypography.labelMD),
@@ -688,8 +688,8 @@ class _CircleIconChip extends StatelessWidget {
     return Container(
       width: 40,
       height: 40,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF6F8F2),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF6F8F2),
         shape: BoxShape.circle,
       ),
       child: Icon(icon, color: AppColors.brandDark, size: 20),
@@ -754,7 +754,7 @@ class _CompletedCollabTile extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              BCBadge(label: 'Completed', variant: BCBadgeVariant.neon),
+              const BCBadge(label: 'Completed', variant: BCBadgeVariant.neon),
               const SizedBox(height: 4),
               Text(
                 'Completed',

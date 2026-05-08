@@ -358,8 +358,9 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                                           requestId: request.id,
                                                           action: 'accept',
                                                         );
-                                                    if (!context.mounted)
+                                                    if (!context.mounted) {
                                                       return;
+                                                    }
                                                     ScaffoldMessenger.of(
                                                             context)
                                                         .showSnackBar(
@@ -369,8 +370,9 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                                       ),
                                                     );
                                                   } catch (_) {
-                                                    if (!context.mounted)
+                                                    if (!context.mounted) {
                                                       return;
+                                                    }
                                                     ScaffoldMessenger.of(
                                                             context)
                                                         .showSnackBar(

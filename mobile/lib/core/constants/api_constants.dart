@@ -48,7 +48,7 @@ class ApiConstants {
   );
 
   // Local backend for physical device on same LAN.
-  static const String localDeviceApiBaseUrl = 'http://192.168.1.7:3000/api';
+  static const String localDeviceApiBaseUrl = 'http://192.168.1.14:3000/api';
 
   // Android emulator loopback to host machine backend.
   static const String localEmulatorApiBaseUrl = 'http://10.0.2.2:3000/api';

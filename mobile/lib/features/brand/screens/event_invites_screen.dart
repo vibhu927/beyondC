@@ -137,7 +137,7 @@ class _EventInvitesScreenState extends ConsumerState<EventInvitesScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${DateFormat('d MMM yyyy, h:mm a').format(event.dateTime)}',
+                  DateFormat('d MMM yyyy, h:mm a').format(event.dateTime),
                   style: AppTypography.labelMD,
                 ),
                 const SizedBox(height: AppSpacing.xs),
@@ -337,7 +337,7 @@ class _InviteTab extends StatelessWidget {
                                 .copyWith(color: AppColors.muted),
                           ),
                           const SizedBox(height: AppSpacing.xs),
-                          Text(
+                          const Text(
                             '2 credits per invite',
                             style: AppTypography.bodyXS,
                           ),

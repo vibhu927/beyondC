@@ -104,19 +104,22 @@ class BeyondCApp extends ConsumerWidget {
       themeMode: themeMode,
       routerConfig: router,
       builder: (context, child) {
+        final isIOS = defaultTargetPlatform == TargetPlatform.iOS;
         return AnnotatedRegion<SystemUiOverlayStyle>(
-          value: const SystemUiOverlayStyle(
+          value: SystemUiOverlayStyle(
             statusBarColor: AppColors.ink,
-            statusBarIconBrightness: Brightness.light,
-            statusBarBrightness: Brightness.dark,
-            systemNavigationBarColor: Color(0xE6121A25),
+            statusBarIconBrightness:
+                isIOS ? Brightness.dark : Brightness.light,
+            statusBarBrightness:
+                isIOS ? Brightness.light : Brightness.dark,
+            systemNavigationBarColor: const Color(0xE6121A25),
             systemNavigationBarIconBrightness: Brightness.light,
-            systemNavigationBarDividerColor: Color(0x00000000),
+            systemNavigationBarDividerColor: const Color(0x00000000),
             systemNavigationBarContrastEnforced: false,
           ),
           child: _BackPressExitScope(
             child: SafeArea(
-              top: true,
+              top: false,
               bottom: false,
               child: Stack(
                 children: [

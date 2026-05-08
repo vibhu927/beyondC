@@ -81,12 +81,12 @@ class AgencyRepository {
       return payload;
     }
 
-    final profile = Map<String, dynamic>.from(profileRaw as Map);
+    final profile = Map<String, dynamic>.from(profileRaw);
     final agencyRaw = profile['agency'];
 
     Map<String, dynamic> agency = const <String, dynamic>{};
     if (agencyRaw is Map) {
-      agency = Map<String, dynamic>.from(agencyRaw as Map);
+      agency = Map<String, dynamic>.from(agencyRaw);
     } else if (agencyRaw is List &&
         agencyRaw.isNotEmpty &&
         agencyRaw.first is Map) {

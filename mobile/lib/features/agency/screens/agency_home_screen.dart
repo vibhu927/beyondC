@@ -64,7 +64,7 @@ class _AgencyHomeScreenState extends ConsumerState<AgencyHomeScreen> {
             controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
-              SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.lg)),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
                 sliver: SliverList(
@@ -91,7 +91,7 @@ class _AgencyHomeScreenState extends ConsumerState<AgencyHomeScreen> {
 }
 
 class _GreetingSection extends StatelessWidget {
-  const _GreetingSection({this.agencyState, super.key});
+  const _GreetingSection({this.agencyState});
   final Map<String, dynamic>? agencyState;
 
   @override
@@ -193,8 +193,8 @@ class _PartneredCreatorsSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: Text('Partnered Creators', style: AppTypography.displaySM)),
-            TextButton(onPressed: () => context.push(RouteNames.agencyRoster), child: Text('See all →')),
+            const Expanded(child: Text('Partnered Creators', style: AppTypography.displaySM)),
+            TextButton(onPressed: () => context.push(RouteNames.agencyRoster), child: const Text('See all →')),
           ],
         ),
         SizedBox(
@@ -215,7 +215,7 @@ class _PartneredCreatorsSection extends StatelessWidget {
 class _RecentActivitySection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Recent Activity', style: AppTypography.displaySM), const SizedBox(height: AppSpacing.md), const BCCard(child: SizedBox(height: 120, child: Center(child: Text('Activity feed placeholder'))))]);
+    return const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text('Recent Activity', style: AppTypography.displaySM), SizedBox(height: AppSpacing.md), BCCard(child: SizedBox(height: 120, child: Center(child: Text('Activity feed placeholder'))))]);
   }
 }
 

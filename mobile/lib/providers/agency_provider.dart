@@ -111,11 +111,11 @@ class AgencyDiscoveryNotifier extends AsyncNotifier<AgencyDiscoveryState> {
         filters: const AgencyDiscoveryFilters(),
       );
     } catch (_) {
-      return AgencyDiscoveryState(
-        agencies: const <Map<String, dynamic>>[],
+      return const AgencyDiscoveryState(
+        agencies: <Map<String, dynamic>>[],
         page: 1,
         hasMore: false,
-        filters: const AgencyDiscoveryFilters(),
+        filters: AgencyDiscoveryFilters(),
       );
     }
   }

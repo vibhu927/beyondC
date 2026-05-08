@@ -9,7 +9,6 @@ import '../../features/auth/screens/signup_screen.dart';
 import '../../features/auth/screens/login_screen.dart';
 import '../../features/auth/screens/forgot_password_screen.dart';
 import '../../features/brand/screens/brand_home_screen.dart';
-import '../../features/brand/screens/brand_campaigns_screen.dart';
 import '../../features/brand/screens/post_campaign_screen.dart';
 import '../../features/brand/screens/campaign_bids_screen.dart';
 import '../../features/brand/screens/creator_discovery_screen.dart';
@@ -25,9 +24,9 @@ import '../../features/agency/screens/agency_roster_screen.dart';
 import '../../features/brand/screens/brand_requests_screen.dart';
 import '../../features/brand/screens/credits_screen.dart';
 import '../../features/brand/screens/brand_collabs_screen.dart';
+import '../../features/brand/screens/brand_campaigns_screen.dart';
 import '../../features/creator/screens/creator_home_screen.dart';
 import '../../features/creator/screens/creator_requests_screen.dart';
-import '../../features/creator/screens/creator_collabs_screen.dart';
 import '../../features/creator/screens/creator_events_screen.dart';
 import '../../features/creator/screens/campaigns_screen.dart';
 import '../../features/creator/screens/campaign_detail_screen.dart';
@@ -184,7 +183,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.creatorCollabs,
-        builder: (c, s) => const CreatorCollabsScreen(),
+        builder: (c, s) => const PlaceholderScreen('Creator Collabs'),
       ),
       GoRoute(
         path: RouteNames.creatorEvents,

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -170,11 +171,15 @@ class _BCBottomNavState extends State<BCBottomNav> {
     final items = _itemsFor(widget.role);
     final roleDark = _roleDark(widget.role);
     final rolePrimary = _rolePrimary(widget.role);
+    final isIOS = defaultTargetPlatform == TargetPlatform.iOS;
+    final outerBottomPadding = isIOS ? 8.0 : 10.0;
+    final innerBottomPadding = isIOS ? 8.0 : 10.0;
 
     return SafeArea(
       top: false,
+      bottom: !isIOS,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 10),
+        padding: EdgeInsets.only(bottom: outerBottomPadding),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth * 0.85;
@@ -191,7 +196,7 @@ class _BCBottomNavState extends State<BCBottomNav> {
             return Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+                padding: EdgeInsets.only(bottom: innerBottomPadding),
                 child: SizedBox(
                   width: width,
                   child: GestureDetector(
