@@ -15,7 +15,7 @@ import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
-import '../../../widgets/bc_portal_top_bar.dart';
+import '../../../widgets/creator_page_top_header.dart';
 
 class CreatorCollabsScreen extends ConsumerWidget {
   const CreatorCollabsScreen({super.key});
@@ -26,7 +26,6 @@ class CreatorCollabsScreen extends ConsumerWidget {
 
     return Scaffold(
       extendBody: true,
-      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.creator,
         currentIndex: 2,
@@ -44,25 +43,37 @@ class CreatorCollabsScreen extends ConsumerWidget {
               onRetry: () => ref.read(creatorCollabsProvider.notifier).refresh(),
             ),
             data: (collabs) {
-              if (collabs.isEmpty) {
-                return const BCEmptyState(
-                  emoji: '??',
-                  message: 'No active collabs yet. Start bidding on campaigns.',
-                );
-              }
-
-              return ListView.separated(
-                padding: const EdgeInsets.fromLTRB(
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(
                   AppSpacing.screenPadding,
-                  AppSpacing.lg,
+                  MediaQuery.of(context).padding.top + 14,
                   AppSpacing.screenPadding,
                   AppSpacing.huge,
                 ),
-                itemCount: collabs.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: AppSpacing.md),
-                itemBuilder: (context, index) =>
-                    _CollabCard(collab: collabs[index]),
+                children: [
+                  const CreatorPageTopHeader(),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (collabs.isEmpty)
+                    const BCEmptyState(
+                      emoji: '??',
+                      message:
+                          'No active collabs yet. Start bidding on campaigns.',
+                    )
+                  else
+                    ...collabs.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final collab = entry.value;
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: index == collabs.length - 1
+                              ? 0
+                              : AppSpacing.md,
+                        ),
+                        child: _CollabCard(collab: collab),
+                      );
+                    }),
+                ],
               );
             },
           ),
@@ -187,5 +198,4 @@ String _collabTypeLabel(CampaignCollabType type) {
       return 'Hybrid';
   }
 }
-
 

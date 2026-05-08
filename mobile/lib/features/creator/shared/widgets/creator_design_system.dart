@@ -75,11 +75,13 @@ class GlassButton extends StatelessWidget {
     required this.label,
     required this.accent,
     required this.onTap,
+    this.textColor,
   });
 
   final String label;
   final Color accent;
   final VoidCallback? onTap;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +115,7 @@ class GlassButton extends StatelessWidget {
             child: Text(
               label,
               style: AppTypography.labelSM.copyWith(
-                color: accent == AppColors.neon ? AppColors.ink : accent,
+                color: textColor ?? (accent == AppColors.neon ? AppColors.ink : accent),
                 fontWeight: FontWeight.w900,
               ),
             ),

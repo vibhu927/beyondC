@@ -11,10 +11,9 @@ import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_bottom_nav.dart';
-import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
-import '../../shared/widgets/home_content_sheet.dart';
+import '../../../widgets/creator_page_top_header.dart';
 import '../shared/widgets/creator_design_system.dart';
 
 enum _BidFilter { all, active, matched, closed }
@@ -47,11 +46,13 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
     final bidsAsync = ref.watch(myBidsProvider);
     final actionState = ref.watch(creatorActionsProvider);
     final isActionRunning = actionState.isLoading;
-    final navClearance = MediaQuery.of(context).padding.bottom + 84;
+    final topInset = MediaQuery.of(context).padding.top + 14;
+    const headerHeight = 48.0;
+    const headerGap = 34.0;
+    final sheetTop = topInset + headerHeight + headerGap;
 
     return Scaffold(
       extendBody: true,
-      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.creator,
         currentIndex: 2,
@@ -68,10 +69,11 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0xFFE1E8F4),
-                      Color(0xFFE9EFF8),
-                      Color(0xFFF5F7FB),
+                      AppColors.lightBg,
+                      Color(0xFFE1EBCF),
+                            Color(0xFFD2DEBF),
                     ],
+                    stops: [0.0, 0.55, 1.0],
                   ),
                 ),
               ),
@@ -92,158 +94,190 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
                 color: AppColors.pink.withValues(alpha: 0.14),
               ),
             ),
+            Positioned(
+              top: topInset,
+              left: AppSpacing.screenPadding,
+              right: AppSpacing.screenPadding,
+              child: const CreatorPageTopHeader(),
+            ),
             Positioned.fill(
-              child: HomeContentSheet(
-                backgroundColor: const Color(0xFFE7EDF7),
-                borderColor: Colors.transparent,
-                borderRadius: BorderRadius.zero,
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenPadding,
-                  AppSpacing.xl,
-                  AppSpacing.screenPadding,
-                  AppSpacing.xl,
+              child: bidsAsync.when(
+                loading: () => const _MyBidsLoadingView(),
+                error: (error, _) => BCErrorState(
+                  message: error.toString(),
+                  onRetry: _refresh,
                 ),
-                child: bidsAsync.when(
-                  loading: () => const _MyBidsLoadingView(),
-                  error: (error, _) => BCErrorState(
-                    message: error.toString(),
-                    onRetry: _refresh,
-                  ),
-                  data: (bids) {
-                    final filtered = _applyFilter(bids, _activeFilter);
-                    final activeCount = bids.where(_isActiveBid).length;
-                    final matchedCount = bids.where(_isMatchedBid).length;
-                    final closedCount = bids.where(_isClosedBid).length;
+                data: (bids) {
+                  final filtered = _applyFilter(bids, _activeFilter);
+                  final activeCount = bids.where(_isActiveBid).length;
+                  final matchedCount = bids.where(_isMatchedBid).length;
+                  final closedCount = bids.where(_isClosedBid).length;
 
-                    return RefreshIndicator(
-                      color: AppColors.neon,
-                      onRefresh: _refresh,
-                      child: ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.only(bottom: navClearance),
-                        children: [
-                          const Text('My Bids', style: AppTypography.displaySM),
-                          const SizedBox(height: AppSpacing.sm),
-                          Text(
-                            'Track every submitted bid and manage status quickly.',
-                            style: AppTypography.bodySM.copyWith(
-                              color: AppColors.muted,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          SizedBox(
-                            height: 86,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: _StatPill(
-                                    label: 'All',
-                                    value: bids.length.toString(),
-                                    accent: AppColors.ink,
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.sm),
-                                Expanded(
-                                  child: _StatPill(
-                                    label: 'Active',
-                                    value: activeCount.toString(),
-                                    accent: AppColors.neon,
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.sm),
-                                Expanded(
-                                  child: _StatPill(
-                                    label: 'Matched',
-                                    value: matchedCount.toString(),
-                                    accent: AppColors.success,
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.sm),
-                                Expanded(
-                                  child: _StatPill(
-                                    label: 'Closed',
-                                    value: closedCount.toString(),
-                                    accent: AppColors.purple,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: [
-                                _filterChip('All', _BidFilter.all),
-                                const SizedBox(width: AppSpacing.sm),
-                                _filterChip('Active', _BidFilter.active),
-                                const SizedBox(width: AppSpacing.sm),
-                                _filterChip('Matched', _BidFilter.matched),
-                                const SizedBox(width: AppSpacing.sm),
-                                _filterChip('Closed', _BidFilter.closed),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          if (filtered.isEmpty)
-                            const BCEmptyState(
-                              emoji: '🧾',
-                              message: 'No bids found for this filter.',
-                            )
-                          else
-                            Column(
-                              children: [
-                                for (final bid in filtered)
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      bottom: AppSpacing.lg,
-                                    ),
-                                    child: _BidCard(
-                                      bid: bid,
-                                      isActionRunning: isActionRunning,
-                                      onViewCampaign: () {
-                                        context.push(
-                                          RouteNames.campaignDetail.replaceFirst(
-                                            ':id',
-                                            bid.campaignId,
-                                          ),
-                                        );
-                                      },
-                                      onWithdraw: _canWithdraw(bid)
-                                          ? () async {
-                                              try {
-                                                await ref
-                                                    .read(creatorActionsProvider
-                                                        .notifier)
-                                                    .withdrawBid(bid.id);
-                                                if (!context.mounted) return;
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  const SnackBar(
-                                                    content:
-                                                        Text('Bid withdrawn.'),
-                                                  ),
-                                                );
-                                              } catch (e) {
-                                                if (!context.mounted) return;
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(e.toString()),
-                                                  ),
-                                                );
-                                              }
-                                            }
-                                          : null,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                        ],
+                  return RefreshIndicator(
+                    color: AppColors.neon,
+                    onRefresh: _refresh,
+                    child: ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.fromLTRB(
+                        0,
+                        sheetTop,
+                        0,
+                        0,
                       ),
-                    );
-                  },
-                ),
+                      children: [
+                        Container(
+                          decoration: const BoxDecoration(
+                            color: AppColors.lightBg,
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(30),
+                            ),
+                            border: Border(
+                              top: BorderSide(
+                                color: AppColors.creatorDark,
+                                width: 2.2,
+                              ),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.screenPadding,
+                              AppSpacing.lg,
+                              AppSpacing.screenPadding,
+                              AppSpacing.xl + 84,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                 Text('My Bids',  
+                                style: AppTypography.displaySM.copyWith(
+                                  color: AppColors.creatorDark,
+                                  fontWeight: FontWeight.w900,
+                                 ),
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                Text(
+                                  'Track every submitted bid and manage status quickly.',
+                                  style: AppTypography.bodySM.copyWith(
+                                    color: AppColors.muted,
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.lg),
+                                SizedBox(
+                                  height: 86,
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: _StatPill(
+                                          label: 'All',
+                                          value: bids.length.toString(),
+                                          accent: AppColors.ink,
+                                        ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      Expanded(
+                                        child: _StatPill(
+                                          label: 'Active',
+                                          value: activeCount.toString(),
+                                          accent: AppColors.neon,
+                                        ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      Expanded(
+                                        child: _StatPill(
+                                          label: 'Matched',
+                                          value: matchedCount.toString(),
+                                          accent: AppColors.creatorDark,
+                                        ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      Expanded(
+                                        child: _StatPill(
+                                          label: 'Closed',
+                                          value: closedCount.toString(),
+                                          accent: AppColors.creatorDark,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.lg),
+                                SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: Row(
+                                    children: [
+                                      _filterChip('All', _BidFilter.all),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      _filterChip('Active', _BidFilter.active),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      _filterChip('Matched', _BidFilter.matched),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      _filterChip('Closed', _BidFilter.closed),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: AppSpacing.lg),
+                                if (filtered.isEmpty)
+                                  const BCEmptyState(
+                                    emoji: '🧾',
+                                    message: 'No bids found for this filter.',
+                                  )
+                                else
+                                  Column(
+                                    children: [
+                                      for (final bid in filtered)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: AppSpacing.lg,
+                                          ),
+                                          child: _BidCard(
+                                            bid: bid,
+                                            isActionRunning: isActionRunning,
+                                            onViewCampaign: () {
+                                              context.push(
+                                                RouteNames.campaignDetail
+                                                    .replaceFirst(':id', bid.campaignId),
+                                              );
+                                            },
+                                            onWithdraw: _canWithdraw(bid)
+                                                ? () async {
+                                                    try {
+                                                      await ref
+                                                          .read(
+                                                            creatorActionsProvider
+                                                                .notifier,
+                                                          )
+                                                          .withdrawBid(bid.id);
+                                                      if (!context.mounted) return;
+                                                      ScaffoldMessenger.of(context)
+                                                          .showSnackBar(
+                                                        const SnackBar(
+                                                          content:
+                                                              Text('Bid withdrawn.'),
+                                                        ),
+                                                      );
+                                                    } catch (e) {
+                                                      if (!context.mounted) return;
+                                                      ScaffoldMessenger.of(context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(e.toString()),
+                                                        ),
+                                                      );
+                                                    }
+                                                  }
+                                                : null,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -297,24 +331,27 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
         ),
         decoration: BoxDecoration(
           color: isActive
-              ? AppColors.ink.withValues(alpha: 0.9)
-              : Colors.white.withValues(alpha: 0.88),
+              ? AppColors.creatorDark.withValues(alpha: 0.92)
+              : Colors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          border: uniformBorder(
-            isActive ? AppColors.ink : AppColors.blue,
+          border: Border.all(
+            color: isActive
+                ? AppColors.creatorDark.withValues(alpha: 0.35)
+                : AppColors.creatorDark.withValues(alpha: 0.14),
             width: 1.1,
           ),
-          boxShadow: neoShadows(
-            isActive ? AppColors.ink : AppColors.blue,
-            alpha: 0.12,
-            offset: 2.5,
-            blurRadius: 10,
-          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Text(
           label,
           style: AppTypography.labelSM.copyWith(
-            color: isActive ? AppColors.neon : AppColors.ink,
+            color: isActive ? AppColors.neon : AppColors.creatorDark,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -337,7 +374,7 @@ class _StatPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassPanel(
-      accentColor: accent,
+      accentColor: AppColors.creatorDark,
       padding: const EdgeInsets.symmetric(
         horizontal: 2,
         vertical: 2,
@@ -351,7 +388,7 @@ class _StatPill extends StatelessWidget {
               fit: BoxFit.scaleDown,
               child: InlineTonePill(
                 label: label,
-                accent: accent,
+                accent: AppColors.creatorDark,
               ),
             ),
           ),
@@ -392,8 +429,23 @@ class _BidCard extends StatelessWidget {
     final campaign = bid.campaign;
     final createdAt = bid.createdAt;
 
-    return GlassPanel(
-      accentColor: _statusAccent(bid.status),
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppColors.creatorDark.withValues(alpha: 0.14),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -407,6 +459,7 @@ class _BidCard extends StatelessWidget {
                     Text(
                       campaign?.title ?? 'Campaign',
                       style: AppTypography.labelLG.copyWith(
+                        color: AppColors.creatorDark,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -430,13 +483,13 @@ class _BidCard extends StatelessWidget {
                 InlineTonePill(
                   label:
                       '${Formatters.currencyFromINR(campaign.minBudget)} - ${Formatters.currencyFromINR(campaign.maxBudget)}',
-                  accent: AppColors.blue,
+                  accent: AppColors.creatorDark,
                 ),
               if (campaign != null) const SizedBox(width: AppSpacing.sm),
               if (createdAt != null)
                 InlineTonePill(
                   label: Formatters.timeAgo(createdAt),
-                  accent: AppColors.pink,
+                  accent: AppColors.creatorDark,
                 ),
             ],
           ),
@@ -450,23 +503,94 @@ class _BidCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              GlassButton(
-                label: 'View Campaign',
-                accent: AppColors.ink,
-                onTap: onViewCampaign,
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: onViewCampaign,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.creatorDark,
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusFull,
+                        ),
+                        border: Border.all(
+                          color: AppColors.creatorDark.withValues(alpha: 0.55),
+                          width: 1.0,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.creatorDark.withValues(alpha: 0.2),
+                            offset: const Offset(3, 3),
+                            blurRadius: 0,
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        'View Campaign',
+                        style: AppTypography.labelSM.copyWith(
+                          color: AppColors.neon,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (onWithdraw != null) ...[
+                    const SizedBox(width: AppSpacing.sm),
+                    GestureDetector(
+                      onTap: isActionRunning ? null : onWithdraw,
+                      child: Opacity(
+                        opacity: isActionRunning ? 0.5 : 1,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.sm,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.creatorDark,
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusFull,
+                            ),
+                            border: Border.all(
+                              color:
+                                  AppColors.creatorDark.withValues(alpha: 0.55),
+                              width: 1.0,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    AppColors.creatorDark.withValues(alpha: 0.2),
+                                offset: const Offset(3, 3),
+                                blurRadius: 0,
+                              ),
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 12,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            isActionRunning ? 'Please wait...' : 'Withdraw',
+                            style: AppTypography.labelSM.copyWith(
+                              color: AppColors.neon,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
-              if (onWithdraw != null) ...[
-                const SizedBox(width: AppSpacing.sm),
-                GlassButton(
-                  label: isActionRunning ? 'Please wait...' : 'Withdraw',
-                  accent: AppColors.neon,
-                  onTap: isActionRunning ? null : onWithdraw,
-                ),
-              ],
-            ],
-          ),
         ],
       ),
     );
@@ -486,9 +610,35 @@ class _StatusBadge extends StatelessWidget {
         ? 'Unknown'
         : '${label[0].toUpperCase()}${label.substring(1)}';
 
+    final isAccepted = normalized == 'accepted';
+
+    if (isAccepted) {
+      return Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: 6,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.creatorDark,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          border: Border.all(
+            color: AppColors.creatorDark.withValues(alpha: 0.55),
+            width: 1.0,
+          ),
+        ),
+        child: Text(
+          pretty,
+          style: AppTypography.labelXS.copyWith(
+            color: AppColors.neon,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      );
+    }
+
     return InlineTonePill(
       label: pretty,
-      accent: _statusAccent(status),
+      accent: AppColors.creatorDark,
     );
   }
 }
@@ -503,20 +653,5 @@ class _MyBidsLoadingView extends StatelessWidget {
 }
 
 Color _statusAccent(String status) {
-  switch (status.toLowerCase()) {
-    case 'pending':
-      return AppColors.orange;
-    case 'accepted':
-      return AppColors.success;
-    case 'in_progress':
-      return AppColors.blue;
-    case 'completed':
-      return AppColors.purple;
-    case 'rejected':
-      return AppColors.error;
-    case 'withdrawn':
-      return AppColors.ink;
-    default:
-      return AppColors.blue;
-  }
+  return AppColors.creatorDark;
 }

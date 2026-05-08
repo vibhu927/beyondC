@@ -16,7 +16,7 @@ import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
-import '../../../widgets/bc_portal_top_bar.dart';
+import '../../../widgets/creator_page_top_header.dart';
 
 class CreatorRequestsScreen extends ConsumerWidget {
   const CreatorRequestsScreen({super.key});
@@ -27,7 +27,6 @@ class CreatorRequestsScreen extends ConsumerWidget {
 
     return Scaffold(
       extendBody: true,
-      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.creator,
         currentIndex: 3,
@@ -45,27 +44,36 @@ class CreatorRequestsScreen extends ConsumerWidget {
               onRetry: () => ref.read(requestsProvider.notifier).refresh(),
             ),
             data: (requests) {
-              if (requests.isEmpty) {
-                return const BCEmptyState(
-                  emoji: '??',
-                  message: 'No requests yet. Brands will reach out soon.',
-                );
-              }
-
-              return ListView.separated(
-                padding: const EdgeInsets.fromLTRB(
+              return ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(
                   AppSpacing.screenPadding,
-                  AppSpacing.lg,
+                  MediaQuery.of(context).padding.top + 14,
                   AppSpacing.screenPadding,
                   AppSpacing.huge,
                 ),
-                itemCount: requests.length,
-                separatorBuilder: (_, __) =>
-                    const SizedBox(height: AppSpacing.md),
-                itemBuilder: (context, index) {
-                  final request = requests[index];
-                  return _RequestCard(request: request);
-                },
+                children: [
+                  const CreatorPageTopHeader(),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (requests.isEmpty)
+                    const BCEmptyState(
+                      emoji: '??',
+                      message: 'No requests yet. Brands will reach out soon.',
+                    )
+                  else
+                    ...requests.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final request = entry.value;
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: index == requests.length - 1
+                              ? 0
+                              : AppSpacing.md,
+                        ),
+                        child: _RequestCard(request: request),
+                      );
+                    }),
+                ],
               );
             },
           ),

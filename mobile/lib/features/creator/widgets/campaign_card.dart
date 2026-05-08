@@ -33,9 +33,23 @@ class CampaignCard extends StatelessWidget {
       width: width,
       child: GestureDetector(
         onTap: onTap,
-        child: GlassPanel(
-          accentColor: _collabAccent(campaign.collabType),
+        child: Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: AppColors.white.withValues(alpha: 0.9),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: AppColors.creatorDark.withValues(alpha: 0.14),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 14,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -48,7 +62,10 @@ class CampaignCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: _avatarColor(campaign.brandInitial),
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.ink, width: 1.4),
+                      border: Border.all(
+                        color: AppColors.creatorDark.withValues(alpha: 0.2),
+                        width: 1.4,
+                      ),
                     ),
                     alignment: Alignment.center,
                     child: Text(
@@ -65,13 +82,14 @@ class CampaignCard extends StatelessWidget {
                         Text(
                           'Brand in ${campaign.brandCategory}',
                           style: AppTypography.labelMD.copyWith(
+                            color: AppColors.creatorDark,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.xs),
                         InlineTonePill(
                           label: _deadlineLabel(campaign.deadline),
-                          accent: AppColors.ink,
+                          accent: AppColors.creatorDark,
                         ),
                       ],
                     ),
@@ -85,13 +103,14 @@ class CampaignCard extends StatelessWidget {
                     child: Text(
                       '${Formatters.currencyFromINR(campaign.minBudget)}–${Formatters.currencyFromINR(campaign.maxBudget)}',
                       style: AppTypography.displaySM.copyWith(
+                        color: AppColors.creatorDark,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
                   InlineTonePill(
                     label: _collabLabel(campaign.collabType),
-                    accent: _collabAccent(campaign.collabType),
+                    accent: AppColors.creatorDark,
                   ),
                 ],
               ),
@@ -103,12 +122,12 @@ class CampaignCard extends StatelessWidget {
                   for (final deliverable in visibleDeliverables)
                     InlineTonePill(
                       label: deliverable,
-                      accent: AppColors.blue,
+                      accent: AppColors.creatorDark,
                     ),
                   if (extraCount > 0)
                     InlineTonePill(
                       label: '+$extraCount more',
-                      accent: AppColors.purple,
+                      accent: AppColors.creatorDark,
                     ),
                 ],
               ),
@@ -118,7 +137,9 @@ class CampaignCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       '${campaign.bidCount} bids so far',
-                      style: AppTypography.bodyXS,
+                      style: AppTypography.bodyXS.copyWith(
+                        color: AppColors.muted,
+                      ),
                     ),
                   ),
                   InlineTonePill(
@@ -127,13 +148,46 @@ class CampaignCard extends StatelessWidget {
                         : campaign.targetState != null
                             ? '📍 ${campaign.targetState}'
                             : '🌏 Pan India',
-                    accent: AppColors.orange,
+                    accent: AppColors.creatorDark,
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  GlassButton(
-                    label: 'Bid Now',
-                    accent: AppColors.neon,
+                  GestureDetector(
                     onTap: onTap,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                        vertical: AppSpacing.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.creatorDark,
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusFull,
+                        ),
+                        border: Border.all(
+                          color: AppColors.creatorDark.withValues(alpha: 0.55),
+                          width: 1.0,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.creatorDark.withValues(alpha: 0.2),
+                            offset: const Offset(3, 3),
+                            blurRadius: 0,
+                          ),
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        'Bid Now',
+                        style: AppTypography.labelSM.copyWith(
+                          color: AppColors.neon,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

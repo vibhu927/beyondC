@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/constants/india_locations.dart';
 import '../../../core/router/route_names.dart';
@@ -10,14 +11,13 @@ import '../../../core/theme/app_typography.dart';
 import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_bottom_nav.dart';
-import '../../../widgets/bc_portal_top_bar.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
+import '../../../widgets/creator_page_top_header.dart';
 import '../../../widgets/buttons/bc_back_button.dart';
 import '../../../widgets/inputs/bc_dropdown.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 import '../widgets/campaign_card.dart';
-import '../../shared/widgets/home_content_sheet.dart';
 import '../shared/widgets/creator_design_system.dart';
 
 enum _CampaignSort { newest, budgetAsc, budgetDesc }
@@ -430,10 +430,13 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
   Widget build(BuildContext context) {
     final campaignsAsync = ref.watch(creatorCampaignsProvider);
     final navClearance = MediaQuery.of(context).padding.bottom + 84;
+    final topInset = MediaQuery.of(context).padding.top + 14;
+    const headerHeight = 48.0;
+    const headerGap = 34.0;
+    final sheetTop = topInset + headerHeight + headerGap;
 
     return Scaffold(
       extendBody: true,
-      appBar: const BCPortalTopBar(),
       bottomNavigationBar: const BCBottomNav(
         role: BCPortalRole.creator,
         currentIndex: 1,
@@ -447,13 +450,14 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFFE1E8F4),
-                      Color(0xFFE9EFF8),
-                      Color(0xFFF5F7FB),
+                      AppColors.lightBg,
+                      Color(0xFFE1EBCF),
+                            Color(0xFFD2DEBF),
                     ],
+                    stops: [0.0, 0.55, 1.0],
                   ),
                 ),
               ),
@@ -474,163 +478,246 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                 color: AppColors.pink.withValues(alpha: 0.14),
               ),
             ),
+            Positioned(
+              top: topInset,
+              left: AppSpacing.screenPadding,
+              right: AppSpacing.screenPadding,
+              child: const CreatorPageTopHeader(),
+            ),
             Positioned.fill(
-              child: HomeContentSheet(
-                backgroundColor: const Color(0xFFE7EDF7),
-                borderColor: Colors.transparent,
-                borderRadius: BorderRadius.zero,
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.screenPadding,
-                  AppSpacing.xl,
-                  AppSpacing.screenPadding,
-                  AppSpacing.xl,
-                ),
-                child: RefreshIndicator(
+              child: RefreshIndicator(
                   color: AppColors.neon,
                   onRefresh: _refresh,
                   child: ListView(
                     controller: _scrollController,
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.only(bottom: navClearance),
+                    padding: EdgeInsets.fromLTRB(
+                      0,
+                      sheetTop,
+                      0,
+                      0,
+                    ),
                     children: [
-                      const Text(
-                        'Campaigns',
-                        style: AppTypography.displaySM,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        'Find briefs that match your style and goals.',
-                        style: AppTypography.bodySM.copyWith(
-                          color: AppColors.muted,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      SizedBox(
-                        height: 40,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _campaignFilterChips.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(width: AppSpacing.sm),
-                          itemBuilder: (context, index) {
-                            final chip = _campaignFilterChips[index];
-                            final isActive = chip == _activeChip;
-                            return _NeoPill(
-                              label: chip,
-                              isActive: isActive,
-                              onTap: () async {
-                                setState(() {
-                                  _activeChip = chip;
-                                });
-                                await _applyServerFilters();
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: [
-                            const Text('Sort by:', style: AppTypography.labelMD),
-                            const SizedBox(width: AppSpacing.sm),
-                            _SortPill(
-                              label: 'Newest',
-                              isActive: _activeSort == _CampaignSort.newest,
-                              onTap: () =>
-                                  setState(() => _activeSort = _CampaignSort.newest),
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-                            _SortPill(
-                              label: 'Budget ↑',
-                              isActive: _activeSort == _CampaignSort.budgetAsc,
-                              onTap: () =>
-                                  setState(() => _activeSort = _CampaignSort.budgetAsc),
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-                            _SortPill(
-                              label: 'Budget ↓',
-                              isActive: _activeSort == _CampaignSort.budgetDesc,
-                              onTap: () => setState(
-                                () => _activeSort = _CampaignSort.budgetDesc,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      campaignsAsync.when(
-                        loading: () => Column(
-                          children: List.generate(
-                            4,
-                            (index) => const Padding(
-                              padding: EdgeInsets.only(bottom: AppSpacing.md),
-                              child: SizedBox(
-                                height: 220,
-                                child: CampaignCardSkeleton(width: double.infinity),
-                              ),
+                      Container(
+                        decoration: const BoxDecoration(
+                          color: AppColors.lightBg,
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(30),
+                          ),
+                          border: Border(
+                            top: BorderSide(
+                              color: AppColors.creatorDark,
+                              width: 2.2,
                             ),
                           ),
                         ),
-                        error: (error, _) => BCErrorState(
-                          message: error.toString(),
-                          onRetry: _refresh,
-                        ),
-                        data: (state) {
-                          final visibleCampaigns =
-                              _applyLocalFilters(state.campaigns);
-                          if (visibleCampaigns.isEmpty) {
-                            return const BCEmptyState(
-                              emoji: '🔍',
-                              message: 'No campaigns match your filters.',
-                            );
-                          }
-
-                          return Column(
+                        child: Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            AppSpacing.screenPadding,
+                            AppSpacing.lg,
+                            AppSpacing.screenPadding,
+                            AppSpacing.xl + navClearance,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              for (final campaign in visibleCampaigns)
-                                Padding(
-                                  padding:
-                                      const EdgeInsets.only(bottom: AppSpacing.md),
-                                  child: SizedBox(
-                                    height: 220,
-                                    child: CampaignCard(
-                                      width: double.infinity,
-                                      campaign: campaign,
-                                      onTap: () => context.push(
-                                        RouteNames.campaignDetail
-                                            .replaceFirst(':id', campaign.id),
+                              Text(
+                                'Campaigns',
+                                style: AppTypography.displaySM.copyWith(
+                                  color: AppColors.creatorDark,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              Text(
+                                'Find briefs that match your style and goals.',
+                                style: AppTypography.bodySM.copyWith(
+                                  color: AppColors.muted,
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.lg),
+                              SizedBox(
+                                height: 40,
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _campaignFilterChips.length,
+                                  separatorBuilder: (_, __) =>
+                                      const SizedBox(width: AppSpacing.sm),
+                                  itemBuilder: (context, index) {
+                                    final chip = _campaignFilterChips[index];
+                                    final isActive = chip == _activeChip;
+                                    return _NeoPill(
+                                      label: chip,
+                                      isActive: isActive,
+                                      onTap: () async {
+                                        setState(() {
+                                          _activeChip = chip;
+                                        });
+                                        await _applyServerFilters();
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.lg),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      'Sort by:',
+                                      style: AppTypography.labelMD.copyWith(
+                                        color: AppColors.creatorDark,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.sm),
+                                    _SortPill(
+                                      label: 'Newest',
+                                      isActive: _activeSort == _CampaignSort.newest,
+                                      onTap: () => setState(
+                                        () => _activeSort = _CampaignSort.newest,
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    _SortPill(
+                                      label: 'Budget ↑',
+                                      isActive: _activeSort == _CampaignSort.budgetAsc,
+                                      onTap: () => setState(
+                                        () => _activeSort = _CampaignSort.budgetAsc,
+                                      ),
+                                    ),
+                                    const SizedBox(width: AppSpacing.xs),
+                                    _SortPill(
+                                      label: 'Budget ↓',
+                                      isActive: _activeSort == _CampaignSort.budgetDesc,
+                                      onTap: () => setState(
+                                        () => _activeSort = _CampaignSort.budgetDesc,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.lg),
+                              campaignsAsync.when(
+                                loading: () => Column(
+                                  children: List.generate(
+                                    4,
+                                    (index) => const Padding(
+                                      padding: EdgeInsets.only(bottom: AppSpacing.md),
+                                      child: SizedBox(
+                                        height: 220,
+                                        child:
+                                            CampaignCardSkeleton(width: double.infinity),
                                       ),
                                     ),
                                   ),
                                 ),
-                              if (state.isLoadingMore)
-                                const Padding(
-                                  padding:
-                                      EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                      color: AppColors.ink,
-                                    ),
-                                  ),
+                                error: (error, _) => BCErrorState(
+                                  message: error.toString(),
+                                  onRetry: _refresh,
                                 ),
+                                data: (state) {
+                                  final visibleCampaigns =
+                                      _applyLocalFilters(state.campaigns);
+                                  if (visibleCampaigns.isEmpty) {
+                                    return const BCEmptyState(
+                                      emoji: '🔍',
+                                      message: 'No campaigns match your filters.',
+                                    );
+                                  }
+
+                                  return Column(
+                                    children: [
+                                      for (final campaign in visibleCampaigns)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: AppSpacing.md,
+                                          ),
+                                          child: SizedBox(
+                                            height: 220,
+                                            child: CampaignCard(
+                                              width: double.infinity,
+                                              campaign: campaign,
+                                              onTap: () => context.push(
+                                                RouteNames.campaignDetail
+                                                    .replaceFirst(':id', campaign.id),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      if (state.isLoadingMore)
+                                        const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                            vertical: AppSpacing.lg,
+                                          ),
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              color: AppColors.ink,
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
                             ],
-                          );
-                        },
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
-              ),
             ),
             Positioned(
               left: AppSpacing.screenPadding,
-              bottom: MediaQuery.of(context).padding.bottom + AppSpacing.lg,
-              child: GlassButton(
-                label: 'Filters',
-                accent: AppColors.pink,
+              bottom: MediaQuery.of(context).padding.bottom + 70,
+              child: GestureDetector(
                 onTap: _openFiltersSheet,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.creatorDark.withValues(alpha: 0.92),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                    border: Border.all(
+                      color: AppColors.creatorDark.withValues(alpha: 0.45),
+                      width: 1.1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.creatorDark.withValues(alpha: 0.2),
+                        offset: const Offset(3, 3),
+                        blurRadius: 0,
+                      ),
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 14,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Symbols.tune_rounded,
+                        size: 18,
+                        color: AppColors.neon,
+                      ),
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(
+                        'Filters',
+                        style: AppTypography.labelSM.copyWith(
+                          color: AppColors.neon,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
@@ -663,24 +750,27 @@ class _NeoPill extends StatelessWidget {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isActive
-              ? AppColors.ink.withValues(alpha: 0.9)
-              : Colors.white.withValues(alpha: 0.88),
+              ? AppColors.creatorDark.withValues(alpha: 0.92)
+              : Colors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          border: uniformBorder(
-            isActive ? AppColors.ink : AppColors.blue,
+          border: Border.all(
+            color: isActive
+                ? AppColors.creatorDark.withValues(alpha: 0.35)
+                : AppColors.creatorDark.withValues(alpha: 0.14),
             width: 1.1,
           ),
-          boxShadow: neoShadows(
-            isActive ? AppColors.ink : AppColors.blue,
-            alpha: 0.12,
-            offset: 2.5,
-            blurRadius: 10,
-          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Text(
           label,
           style: AppTypography.labelSM.copyWith(
-            color: isActive ? AppColors.neon : AppColors.ink,
+            color: isActive ? AppColors.neon : AppColors.creatorDark,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -711,24 +801,27 @@ class _SortPill extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: isActive
-              ? AppColors.ink.withValues(alpha: 0.9)
-              : Colors.white.withValues(alpha: 0.88),
+              ? AppColors.creatorDark.withValues(alpha: 0.92)
+              : Colors.white.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-          border: uniformBorder(
-            isActive ? AppColors.ink : AppColors.purple,
+          border: Border.all(
+            color: isActive
+                ? AppColors.creatorDark.withValues(alpha: 0.35)
+                : AppColors.creatorDark.withValues(alpha: 0.14),
             width: 1.0,
           ),
-          boxShadow: neoShadows(
-            isActive ? AppColors.ink : AppColors.purple,
-            alpha: 0.1,
-            offset: 2.5,
-            blurRadius: 9,
-          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
         child: Text(
           label,
           style: AppTypography.labelSM.copyWith(
-            color: isActive ? AppColors.neon : AppColors.ink,
+            color: isActive ? AppColors.neon : AppColors.creatorDark,
             fontWeight: FontWeight.w800,
           ),
         ),
