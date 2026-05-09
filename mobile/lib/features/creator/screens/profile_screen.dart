@@ -157,9 +157,9 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(AppSpacing.radiusLG),
                     ),
-                    border: const Border(
-                      top: BorderSide(color: AppColors.ink, width: 2),
-                    ),
+border: const Border(
+                              top: BorderSide(color: AppColors.creatorDark, width: 2.2),
+                            ),
                   ),
                   child: ListView(
                     controller: controller,
@@ -215,8 +215,8 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                             color: AppColors.darkSurface,
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppColors.neon,
-                              width: 2,
+                              color: AppColors.darkGreen,
+                              width: 2.5,
                             ),
                           ),
                           alignment: Alignment.center,
@@ -361,9 +361,9 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(AppSpacing.radiusLG),
                     ),
-                    border: const Border(
-                      top: BorderSide(color: AppColors.ink, width: 2),
-                    ),
+border: const Border(
+                              top: BorderSide(color: AppColors.creatorDark, width: 2.2),
+                            ),
                   ),
                   child: ListView(
                     controller: controller,
@@ -1081,7 +1081,8 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                   child: GlassButton(
                                     label: 'Edit collab fee',
                                     accent: AppColors.creatorDark,
-                                    textColor: AppColors.neon,
+                                    textColor: AppColors.white,
+                                    solidBackground: true,
                                     onTap: () => _openEditPricingSheet(profile),
                                   ),
                                 ),
@@ -1200,7 +1201,8 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                                 GlassButton(
                                   label: 'Top up',
                                   accent: AppColors.creatorDark,
-                                  textColor: AppColors.neon,
+                                  textColor: AppColors.white,
+                                  solidBackground: true,
                                   onTap: () =>
                                       context.push(RouteNames.creatorWallet),
                                 ),
@@ -1210,40 +1212,30 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                           const SizedBox(height: AppSpacing.xl),
                           GlassPanel(
                             accentColor: AppColors.creatorDark,
-                            child: LayoutBuilder(
-                              builder: (context, constraints) {
-                                final isNarrow = constraints.maxWidth < 380;
-                                final settingsButton = GlassButton(
-                                  label: 'Settings',
-                                  accent: AppColors.creatorDark,
-                                  textColor: AppColors.neon,
-                                  onTap: () => context.push(RouteNames.settings),
-                                );
-                                final logoutButton = GlassButton(
-                                  label: 'Logout',
-                                  accent: AppColors.creatorDark,
-                                  textColor: AppColors.neon,
-                                  onTap: _logout,
-                                );
-
-                                if (isNarrow) {
-                                  return Column(
-                                    children: [
-                                      settingsButton,
-                                      const SizedBox(height: AppSpacing.md),
-                                      logoutButton,
-                                    ],
-                                  );
-                                }
-
-                                return Row(
-                                  children: [
-                                    Expanded(child: settingsButton),
-                                    const SizedBox(width: AppSpacing.md),
-                                    Expanded(child: logoutButton),
-                                  ],
-                                );
-                              },
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: GlassButton(
+                                    label: 'Settings',
+                                    accent: AppColors.creatorDark,
+                                    textColor: AppColors.white,
+                                    solidBackground: true,
+                                    icon: Icons.settings_rounded,
+                                    onTap: () => context.push(RouteNames.settings),
+                                  ),
+                                ),
+                                const SizedBox(width: AppSpacing.md),
+                                Expanded(
+                                  child: GlassButton(
+                                    label: 'Logout',
+                                    accent: AppColors.creatorDark,
+                                    textColor: AppColors.white,
+                                    solidBackground: true,
+                                    icon: Icons.logout_rounded,
+                                    onTap: _logout,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -1431,7 +1423,8 @@ class _InstagramStatsCard extends StatelessWidget {
             child: GlassButton(
               label: 'Refresh Stats',
               accent: AppColors.creatorDark,
-              textColor: AppColors.neon,
+              textColor: AppColors.white,
+              solidBackground: true,
               onTap: onRefreshStats,
             ),
           ),

@@ -285,7 +285,7 @@ class _CampaignCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '$location • $createdAt',
+                      '$location â€¢ $createdAt',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
@@ -319,7 +319,7 @@ class _CampaignCard extends StatelessWidget {
               ),
               const Spacer(),
               Text(
-                '${campaign.bidCount} bids • ${campaign.slotsFilled}/${campaign.slotsTotal} slots',
+                '${campaign.bidCount} bids â€¢ ${campaign.slotsFilled}/${campaign.slotsTotal} slots',
                 style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
               ),
             ],

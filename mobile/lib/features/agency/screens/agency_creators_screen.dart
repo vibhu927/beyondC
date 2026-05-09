@@ -6,7 +6,6 @@ import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../widgets/cards/bc_card.dart';
-import '../../../widgets/badges/bc_badge.dart';
 
 class AgencyCreatorsScreen extends ConsumerWidget {
   const AgencyCreatorsScreen({super.key});

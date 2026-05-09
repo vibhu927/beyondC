@@ -272,20 +272,64 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Don't have account
-                Center(
-                  child: TextButton(
-                    onPressed: isLoading
-                        ? null
-                        : () {
-                            context.push(RouteNames.roleSelect);
-                          },
-                    child: Text(
-                      'Don\'t have an account? Sign up',
-                      style: AppTypography.buttonMD.copyWith(
+                // Don't have account - Sign up
+                GestureDetector(
+                  onTap: isLoading
+                      ? null
+                      : () {
+                          context.push(RouteNames.roleSelect);
+                        },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.md,
+                      horizontal: AppSpacing.lg,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMD),
+                      border: Border.all(
                         color: AppColors.ink,
-                        decoration: TextDecoration.underline,
+                        width: AppSpacing.borderWidth,
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.purple,
+                          blurRadius: 0,
+                          offset: const Offset(4, 4),
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 12,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Don\'t have an account? Sign up',
+                            style: AppTypography.buttonMD.copyWith(
+                              color: AppColors.ink,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: AppColors.purple,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: AppColors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

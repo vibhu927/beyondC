@@ -31,11 +31,12 @@ import '../../features/creator/screens/creator_events_screen.dart';
 import '../../features/creator/screens/campaigns_screen.dart';
 import '../../features/creator/screens/campaign_detail_screen.dart';
 import '../../features/creator/screens/my_bids_screen.dart';
+import '../../features/creator/screens/collabs_screen.dart';
+import '../../features/creator/screens/collab_detail_screen.dart';
 import '../../features/creator/screens/my_tickets_screen.dart';
 import '../../features/creator/screens/profile_screen.dart';
 import '../../features/creator/screens/ticket_detail_screen.dart';
 import '../../features/creator/screens/wallet_screen.dart';
-import '../../features/shared/screens/collab_detail_screen.dart';
 import '../../features/shared/screens/milestone_screen.dart';
 import '../../features/shared/screens/notifications_screen.dart';
 import '../../features/shared/screens/partner_profile_screen.dart';
@@ -183,7 +184,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.creatorCollabs,
-        builder: (c, s) => const PlaceholderScreen('Creator Collabs'),
+        builder: (c, s) => const CreatorCollabsScreen(),
       ),
       GoRoute(
         path: RouteNames.creatorEvents,
@@ -218,7 +219,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.brandCampaigns,
-        pageBuilder: (c, s) => const NoTransitionPage(
+        pageBuilder: (c, s) => NoTransitionPage(
           child: BrandCampaignsScreen(),
         ),
       ),
@@ -315,7 +316,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.collabDetail,
         builder: (c, s) =>
-            CollabDetailScreen(collabId: s.pathParameters['id']!),
+            CreatorCollabDetailScreen(collabId: s.pathParameters['id']!),
       ),
       GoRoute(
         path: RouteNames.collabMilestones,

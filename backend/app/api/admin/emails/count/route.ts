@@ -4,6 +4,8 @@ import { apiError, apiSuccess } from '@/lib/admin/api'
 import { requireAdminApiContext } from '@/lib/admin/auth'
 import { createServiceClient } from '@/lib/supabase/service'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   const auth = await requireAdminApiContext(request)
   if (!auth.ok) return apiError(auth.error, auth.status)

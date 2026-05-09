@@ -116,7 +116,9 @@ class _ProfilePostsTabState extends State<ProfilePostsTab> {
             child: widget.canManage
                 ? GlassButton(
                     label: _isUploading ? 'Uploading...' : 'Upload media',
-                    accent: AppColors.blue,
+                    accent: AppColors.creatorDark,
+                    textColor: AppColors.white,
+                    solidBackground: true,
                     onTap: _canUpload ? _handleUpload : null,
                   )
                 : Text(
@@ -207,7 +209,9 @@ class _ProfilePostsTabState extends State<ProfilePostsTab> {
             bottom: navClearance,
             child: GlassButton(
               label: _isUploading ? 'Uploading...' : 'Upload media',
-              accent: AppColors.blue,
+              accent: AppColors.creatorDark,
+              textColor: AppColors.white,
+              solidBackground: true,
               onTap: _isUploading ? null : _handleUpload,
             ),
           ),

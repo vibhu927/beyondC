@@ -12,13 +12,21 @@ class CollabRepository {
   Dio get _dio => _apiService.client;
 
   Future<Collab> getCollab(String collabId) async {
+    // Prefer creator-scoped endpoint first; fallback to shared endpoint.
     try {
-      final response = await _dio.get('/collabs/$collabId');
+      final response = await _dio.get('/creator/collabs/$collabId');
       final root = _asMap(response.data);
       final collabRaw = _extractCollabMap(root);
       return _collabFromApi(collabRaw, fallbackId: collabId);
-    } on DioException catch (e) {
-      throw Exception(ApiErrorHandler.parseError(e));
+    } on DioException catch (_) {
+      try {
+        final response = await _dio.get('/collabs/$collabId');
+        final root = _asMap(response.data);
+        final collabRaw = _extractCollabMap(root);
+        return _collabFromApi(collabRaw, fallbackId: collabId);
+      } on DioException catch (e) {
+        throw Exception(ApiErrorHandler.parseError(e));
+      }
     }
   }
 

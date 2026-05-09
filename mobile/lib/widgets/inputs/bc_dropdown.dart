@@ -3,7 +3,6 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/app_spacing.dart';
-import '../../core/theme/app_shadows.dart';
 
 class BCDropdown extends StatefulWidget {
   final String label;

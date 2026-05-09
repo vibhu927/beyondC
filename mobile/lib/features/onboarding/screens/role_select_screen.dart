@@ -34,7 +34,7 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: const Color(0xFFF5F5F0),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
@@ -223,7 +223,7 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'Agency / Manager 🏢',
+                                'Agency / Manager 🤝',
                                 style: AppTypography.displaySM.copyWith(
                                   color: AppColors.ink,
                                   fontWeight: FontWeight.w700,
@@ -237,18 +237,18 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                                 ),
                               ),
                               const SizedBox(height: 16),
-                              const Row(
+                              const Wrap(
+                                spacing: AppSpacing.sm,
+                                runSpacing: AppSpacing.sm,
                                 children: [
                                   BCBadge(
                                     label: 'Talent Manager',
                                     variant: BCBadgeVariant.outline,
                                   ),
-                                  SizedBox(width: AppSpacing.sm),
                                   BCBadge(
                                     label: 'Creator Agency',
                                     variant: BCBadgeVariant.outline,
                                   ),
-                                  SizedBox(width: AppSpacing.sm),
                                   BCBadge(
                                     label: 'MCN',
                                     variant: BCBadgeVariant.outline,
@@ -260,7 +260,7 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                         ),
                         const SizedBox(width: 16),
                         const Text(
-                          '🏢',
+                          '🤝',
                           style: TextStyle(fontSize: 48),
                         ),
                       ],
@@ -268,18 +268,81 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                   ),
                 ),
               ),
-              // Already have account
-              Center(
-                child: TextButton(
-                  onPressed: () {
-                    context.push(RouteNames.login);
-                  },
-                  child: Text(
-                    'Already have an account? Log in',
-                    style: AppTypography.buttonMD.copyWith(
-                      color: AppColors.ink,
-                      decoration: TextDecoration.underline,
+              const SizedBox(height: 32),
+              // Or Divider
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 1,
+                      color: AppColors.ink.withValues(alpha: 0.15),
                     ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'or',
+                      style: AppTypography.bodySM.copyWith(
+                        color: AppColors.muted,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Container(
+                      height: 1,
+                      color: AppColors.ink.withValues(alpha: 0.15),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // Login Card
+              GestureDetector(
+                onTap: () => context.push(RouteNames.login),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppSpacing.md,
+                    horizontal: AppSpacing.lg,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: AppColors.ink, width: 1.2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 14,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Already have an account? Log in',
+                          style: AppTypography.labelMD.copyWith(
+                            color: AppColors.purple,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: AppColors.purple,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward_rounded,
+                          color: AppColors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

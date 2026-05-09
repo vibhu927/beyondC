@@ -240,7 +240,10 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                                           child: _CollabTrackerCard(
                                             collab: collab,
                                             onTap: () =>
-                                                context.push(RouteNames.creatorCollabs),
+                                                context.push(
+                                                  RouteNames.collabDetail
+                                                      .replaceFirst(':id', collab.id),
+                                                ),
                                           ),
                                         ))
                                     .toList(),

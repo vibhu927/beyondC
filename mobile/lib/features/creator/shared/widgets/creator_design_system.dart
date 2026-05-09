@@ -71,18 +71,27 @@ class GlassPanel extends StatelessWidget {
 }
 
 class GlassButton extends StatelessWidget {
-  const GlassButton({super.key, 
+  const GlassButton({
+    super.key, 
     required this.label,
     required this.accent,
+    this.textColor,
+    this.solidBackground = false,
+    this.icon,
     required this.onTap,
   });
 
   final String label;
   final Color accent;
+  final Color? textColor;
+  final bool solidBackground;
+  final IconData? icon;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveTextColor = textColor ?? (accent == AppColors.neon ? AppColors.ink : accent);
+    final backgroundColor = solidBackground ? accent.withValues(alpha: 1.0) : accent.withValues(alpha: accent == AppColors.ink ? 0.08 : 0.16);
     return GestureDetector(
       onTap: onTap,
       child: Opacity(
@@ -95,27 +104,39 @@ class GlassButton extends StatelessWidget {
               vertical: AppSpacing.sm,
             ),
             decoration: BoxDecoration(
-              color: accent.withValues(
-                alpha: accent == AppColors.ink ? 0.08 : 0.16,
-              ),
+              color: backgroundColor,
               border: uniformBorder(
                 accent,
                 width: 0.95,
               ),
               borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-              boxShadow: neoShadows(
+              boxShadow: solidBackground ? null : neoShadows(
                 accent,
                 alpha: 0.18,
                 offset: 3,
                 blurRadius: 10,
               ),
             ),
-            child: Text(
-              label,
-              style: AppTypography.labelSM.copyWith(
-                color: accent == AppColors.neon ? AppColors.ink : accent,
-                fontWeight: FontWeight.w900,
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  label,
+                  style: AppTypography.labelSM.copyWith(
+                    color: effectiveTextColor,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                if (icon != null) ...[
+                  const Spacer(),
+                  Icon(
+                    icon,
+                    size: 18,
+                    color: effectiveTextColor,
+                  ),
+                ],
+              ],
             ),
           ),
         ),

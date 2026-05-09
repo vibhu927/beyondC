@@ -12,6 +12,14 @@ import '../providers/notification_provider.dart';
 import '../features/chat/chat_modal.dart';
 import '../features/shared/widgets/notifications_modal.dart';
 
+String _getGreeting() {
+  final hour = DateTime.now().hour;
+  if (hour < 12) return 'Good morning';
+  if (hour < 16) return 'Good afternoon';
+  if (hour < 19) return 'Good evening';
+  return 'Good night';
+}
+
 class CreatorPageTopHeader extends ConsumerWidget {
   const CreatorPageTopHeader({super.key});
 
@@ -59,7 +67,7 @@ class CreatorPageTopHeader extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Good morning,', style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
+              Text('${_getGreeting()},', style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
               const SizedBox(height: 2),
               Text(
                 displayName,

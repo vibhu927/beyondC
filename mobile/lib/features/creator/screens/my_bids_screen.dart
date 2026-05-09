@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
@@ -163,55 +164,44 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
                                 ),
                                 const SizedBox(height: AppSpacing.lg),
                                 SizedBox(
-                                  height: 86,
+                                  height: 104,
                                   child: Row(
                                     children: [
                                       Expanded(
-                                        child: _StatPill(
+                                        child: _QuickActionTile(
+                                          icon: Symbols.dashboard_rounded,
                                           label: 'All',
-                                          value: bids.length.toString(),
-                                          accent: AppColors.ink,
+                                          isSelected: _activeFilter == _BidFilter.all,
+                                          onTap: () => setState(() => _activeFilter = _BidFilter.all),
                                         ),
                                       ),
                                       const SizedBox(width: AppSpacing.sm),
                                       Expanded(
-                                        child: _StatPill(
+                                        child: _QuickActionTile(
+                                          icon: Symbols.pending_rounded,
                                           label: 'Active',
-                                          value: activeCount.toString(),
-                                          accent: AppColors.neon,
+                                          isSelected: _activeFilter == _BidFilter.active,
+                                          onTap: () => setState(() => _activeFilter = _BidFilter.active),
                                         ),
                                       ),
                                       const SizedBox(width: AppSpacing.sm),
                                       Expanded(
-                                        child: _StatPill(
+                                        child: _QuickActionTile(
+                                          icon: Symbols.check_circle_rounded,
                                           label: 'Matched',
-                                          value: matchedCount.toString(),
-                                          accent: AppColors.creatorDark,
+                                          isSelected: _activeFilter == _BidFilter.matched,
+                                          onTap: () => setState(() => _activeFilter = _BidFilter.matched),
                                         ),
                                       ),
                                       const SizedBox(width: AppSpacing.sm),
                                       Expanded(
-                                        child: _StatPill(
+                                        child: _QuickActionTile(
+                                          icon: Symbols.cancel_rounded,
                                           label: 'Closed',
-                                          value: closedCount.toString(),
-                                          accent: AppColors.creatorDark,
+                                          isSelected: _activeFilter == _BidFilter.closed,
+                                          onTap: () => setState(() => _activeFilter = _BidFilter.closed),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.lg),
-                                SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: Row(
-                                    children: [
-                                      _filterChip('All', _BidFilter.all),
-                                      const SizedBox(width: AppSpacing.sm),
-                                      _filterChip('Active', _BidFilter.active),
-                                      const SizedBox(width: AppSpacing.sm),
-                                      _filterChip('Matched', _BidFilter.matched),
-                                      const SizedBox(width: AppSpacing.sm),
-                                      _filterChip('Closed', _BidFilter.closed),
                                     ],
                                   ),
                                 ),
@@ -319,41 +309,64 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
   bool _canWithdraw(Bid bid) {
     return bid.status.toLowerCase() == 'pending';
   }
+}
 
-  Widget _filterChip(String label, _BidFilter filter) {
-    final isActive = _activeFilter == filter;
+class _QuickActionTile extends StatelessWidget {
+  const _QuickActionTile({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isSelected = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => setState(() => _activeFilter = filter),
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         decoration: BoxDecoration(
-          color: isActive
-              ? AppColors.creatorDark.withValues(alpha: 0.92)
-              : Colors.white.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          color: isSelected
+              ? AppColors.creatorDark
+              : AppColors.white.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(22),
           border: Border.all(
-            color: isActive
-                ? AppColors.creatorDark.withValues(alpha: 0.35)
+            color: isSelected
+                ? AppColors.creatorDark
                 : AppColors.creatorDark.withValues(alpha: 0.14),
-            width: 1.1,
           ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 12,
+              blurRadius: 14,
               offset: const Offset(0, 8),
             ),
           ],
         ),
-        child: Text(
-          label,
-          style: AppTypography.labelSM.copyWith(
-            color: isActive ? AppColors.neon : AppColors.creatorDark,
-            fontWeight: FontWeight.w800,
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppColors.neon : AppColors.creatorDark,
+              size: 20,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.labelXS.copyWith(
+                color: isSelected ? AppColors.neon : AppColors.creatorDark,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ],
         ),
       ),
     );
