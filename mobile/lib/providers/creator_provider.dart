@@ -551,6 +551,23 @@ final creatorCollabsProvider =
   CreatorCollabsNotifier.new,
 );
 
+class CreatorCompletedCollabsNotifier extends AsyncNotifier<List<Collab>> {
+  @override
+  Future<List<Collab>> build() async {
+    return ref.read(creatorRepositoryProvider).fetchCreatorCompletedCollabs();
+  }
+
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
+  }
+}
+
+final creatorCompletedCollabsProvider =
+    AsyncNotifierProvider<CreatorCompletedCollabsNotifier, List<Collab>>(
+  CreatorCompletedCollabsNotifier.new,
+);
+
 final walletProvider = AsyncNotifierProvider<WalletNotifier, WalletData>(
   WalletNotifier.new,
 );

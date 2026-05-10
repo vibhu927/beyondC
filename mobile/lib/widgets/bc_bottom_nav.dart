@@ -114,8 +114,9 @@ List<String> _routesFor(BCPortalRole role) {
     case BCPortalRole.agency:
       return const [
         RouteNames.agencyHome,
-        RouteNames.agencyCreators,
         RouteNames.agencyDiscover,
+        RouteNames.agencyPitches,
+        RouteNames.agencyPartnered,
         RouteNames.agencyProfile,
       ];
   }
@@ -332,9 +333,10 @@ class _BCBottomNavState extends State<BCBottomNav> {
       case BCPortalRole.agency:
         return [
           _NavItem(icon: Icons.home_rounded, label: 'Home', route: routes[0]),
-          _NavItem(icon: Icons.group_rounded, label: 'My Creators', route: routes[1]),
-          _NavItem(icon: Icons.explore_rounded, label: 'Discover', route: routes[2]),
-          _NavItem(icon: Icons.person_rounded, label: 'Profile', route: routes[3]),
+          _NavItem(icon: Icons.explore_rounded, label: 'Discover', route: routes[1]),
+          _NavItem(icon: Icons.send_rounded, label: 'Pitches', route: routes[2]),
+          _NavItem(icon: Icons.group_rounded, label: 'Partnered', route: routes[3]),
+          _NavItem(icon: Icons.person_rounded, label: 'Profile', route: routes[4]),
         ];
     }
   }

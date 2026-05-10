@@ -22,12 +22,12 @@ class AppColors {
   static const Color orange = Color(0xFFFF6B00);
 
   // Role palettes
-  static const Color creatorPrimary = neon;
-  static const Color creatorDark = darkGreen;
-  static const Color brandPrimary = Color.fromARGB(255, 251, 22, 102);
-  static const Color brandDark = Color.fromARGB(255, 109, 17, 54);
+  static const Color creatorPrimary = Color.fromARGB(255, 218, 246, 79);
+  static const Color creatorDark = Color.fromARGB(255, 11, 68, 44);
+  static const Color brandPrimary = Color.fromARGB(255, 228, 69, 125);
+  static const Color brandDark = Color.fromARGB(255, 100, 11, 47);
   static const Color agencyPrimary = Color.fromARGB(255, 120, 200, 255);
-  static const Color agencyDark = Color.fromARGB(255, 61, 91, 255);
+  static const Color agencyDark = Color.fromARGB(255, 19, 39, 154);
 
   // LIGHT MODE
   static const Color lightBg = offWhite;

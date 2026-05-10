@@ -17,7 +17,7 @@ import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/creator_page_top_header.dart';
 import '../shared/widgets/creator_design_system.dart';
 
-enum _BidFilter { all, active, matched, closed }
+enum _BidFilter { all, active, matched, completed }
 
 class MyBidsScreen extends ConsumerStatefulWidget {
   const MyBidsScreen({super.key});
@@ -45,6 +45,7 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
   @override
   Widget build(BuildContext context) {
     final bidsAsync = ref.watch(myBidsProvider);
+    final completedCollabsAsync = ref.watch(creatorCompletedCollabsProvider);
     final actionState = ref.watch(creatorActionsProvider);
     final isActionRunning = actionState.isLoading;
     final topInset = MediaQuery.of(context).padding.top + 14;
@@ -127,6 +128,9 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
                       ),
                       children: [
                         Container(
+                          constraints: BoxConstraints(
+                            minHeight: MediaQuery.of(context).size.height - sheetTop,
+                          ),
                           decoration: const BoxDecoration(
                             color: AppColors.lightBg,
                             borderRadius: BorderRadius.vertical(
@@ -148,6 +152,7 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
                               children: [
                                  Text('My Bids',  
                                 style: AppTypography.displaySM.copyWith(
@@ -196,22 +201,100 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
                                       const SizedBox(width: AppSpacing.sm),
                                       Expanded(
                                         child: _QuickActionTile(
-                                          icon: Symbols.cancel_rounded,
-                                          label: 'Closed',
-                                          isSelected: _activeFilter == _BidFilter.closed,
-                                          onTap: () => setState(() => _activeFilter = _BidFilter.closed),
+                                          icon: Symbols.check_circle_rounded,
+                                          label: 'Completed',
+                                          isSelected: _activeFilter == _BidFilter.completed,
+                                          onTap: () => setState(() => _activeFilter = _BidFilter.completed),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
                                 const SizedBox(height: AppSpacing.lg),
-                                if (filtered.isEmpty)
-                                  const BCEmptyState(
-                                    emoji: '🧾',
-                                    message: 'No bids found for this filter.',
-                                  )
-                                else
+                                Builder(
+                                  builder: (context) {
+                                    final completedCollabs = completedCollabsAsync.valueOrNull ?? [];
+                                    final isEmpty = filtered.isEmpty && completedCollabs.isEmpty;
+                                    
+                                    if (isEmpty) {
+                                      return const BCEmptyState(
+                                        emoji: '🧾',
+                                        message: 'No bids found for this filter.',
+                                      );
+                                    }
+                                    
+                                    return Column(
+                                      children: [
+                                        if (_activeFilter == _BidFilter.all || _activeFilter == _BidFilter.completed)
+                                          ...completedCollabs.map((collab) => Padding(
+                                            padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                                            child: _BidCard(
+                                              bid: Bid(
+                                                id: collab.id,
+                                                campaignId: collab.id,
+                                                status: collab.status,
+                                                createdAt: collab.createdAt,
+                                                message: collab.collabType.name,
+                                                campaign: Campaign(
+                                                  id: collab.id,
+                                                  title: '${collab.brandCategory} Campaign',
+                                                  brandCategory: collab.brandCategory,
+                                                  minBudget: collab.agreedAmountPaise,
+                                                  maxBudget: collab.agreedAmountPaise,
+                                                  deadline: collab.completedAt ?? DateTime.now(),
+                                                ),
+                                              ),
+                                              isActionRunning: isActionRunning,
+                                              onViewCampaign: () {
+                                                context.push('/creator/collabs/${collab.id}');
+                                              },
+                                            ),
+                                          )),
+                                        ...filtered.map((bid) => Padding(
+                                          padding: const EdgeInsets.only(bottom: AppSpacing.lg),
+                                          child: _BidCard(
+                                            bid: bid,
+                                            isActionRunning: isActionRunning,
+                                            onViewCampaign: () {
+                                              context.push(
+                                                RouteNames.campaignDetail
+                                                    .replaceFirst(':id', bid.campaignId),
+                                              );
+                                            },
+                                            onWithdraw: _canWithdraw(bid)
+                                                ? () async {
+                                                    try {
+                                                      await ref
+                                                          .read(
+                                                            creatorActionsProvider
+                                                                .notifier,
+                                                          )
+                                                          .withdrawBid(bid.id);
+                                                      if (!context.mounted) return;
+                                                      ScaffoldMessenger.of(context)
+                                                          .showSnackBar(
+                                                        const SnackBar(
+                                                          content:
+                                                              Text('Bid withdrawn.'),
+                                                        ),
+                                                      );
+                                                    } catch (e) {
+                                                      if (!context.mounted) return;
+                                                      ScaffoldMessenger.of(context)
+                                                          .showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(e.toString()),
+                                                        ),
+                                                      );
+                                                    }
+                                                  }
+                                                : null,
+                                          ),
+                                        )),
+                                      ],
+                                    );
+                                  },
+                                ),
                                   Column(
                                     children: [
                                       for (final bid in filtered)
@@ -284,7 +367,7 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
         return bids.where(_isActiveBid).toList();
       case _BidFilter.matched:
         return bids.where(_isMatchedBid).toList();
-      case _BidFilter.closed:
+      case _BidFilter.completed:
         return bids.where(_isClosedBid).toList();
     }
   }

@@ -9,7 +9,6 @@ import '../../../data/models/creator_models.dart';
 import '../shared/widgets/creator_design_system.dart';
 import '../../chat/chat_screen.dart';
 import '../../../providers/creator_provider.dart';
-import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
@@ -23,6 +22,11 @@ class CreatorCollabsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final collabsAsync = ref.watch(creatorCollabsProvider);
+    final navClearance = MediaQuery.of(context).padding.bottom + 84;
+    final topInset = MediaQuery.of(context).padding.top + 14;
+    const headerHeight = 48.0;
+    const headerGap = 34.0;
+    final sheetTop = topInset + headerHeight + headerGap;
 
     return Scaffold(
       extendBody: true,
@@ -33,50 +37,147 @@ class CreatorCollabsScreen extends ConsumerWidget {
       body: BCPageSwipeArea(
         role: BCPortalRole.creator,
         currentIndex: 2,
-        child: RefreshIndicator(
-          color: AppColors.neon,
-          onRefresh: () => ref.read(creatorCollabsProvider.notifier).refresh(),
-          child: collabsAsync.when(
-            loading: () => const Center(child: BCAppLoader()),
-            error: (error, _) => BCErrorState(
-              message: error.toString(),
-              onRetry: () => ref.read(creatorCollabsProvider.notifier).refresh(),
-            ),
-            data: (collabs) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.fromLTRB(
-                  AppSpacing.screenPadding,
-                  MediaQuery.of(context).padding.top + 14,
-                  AppSpacing.screenPadding,
-                  AppSpacing.huge,
+        child: Stack(
+          children: [
+            const Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.lightBg,
+                      Color(0xFFE1EBCF),
+                      Color(0xFFD2DEBF),
+                    ],
+                    stops: [0.0, 0.55, 1.0],
+                  ),
                 ),
-                children: [
-                  const CreatorPageTopHeader(),
-                  const SizedBox(height: AppSpacing.lg),
-                  if (collabs.isEmpty)
-                    const BCEmptyState(
-                      emoji: '??',
-                      message:
-                          'No active collabs yet. Start bidding on campaigns.',
-                    )
-                  else
-                    ...collabs.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final collab = entry.value;
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index == collabs.length - 1
-                              ? 0
-                              : AppSpacing.md,
+              ),
+            ),
+            Positioned(
+              top: 28,
+              right: -54,
+              child: AmbientGlow(
+                size: 164,
+                color: AppColors.neon.withValues(alpha: 0.16),
+              ),
+            ),
+            Positioned(
+              top: 164,
+              left: -42,
+              child: AmbientGlow(
+                size: 126,
+                color: AppColors.pink.withValues(alpha: 0.14),
+              ),
+            ),
+            Positioned(
+              top: topInset,
+              left: AppSpacing.screenPadding,
+              right: AppSpacing.screenPadding,
+              child: const CreatorPageTopHeader(),
+            ),
+            Positioned.fill(
+              child: RefreshIndicator(
+                color: AppColors.neon,
+                onRefresh: () => ref.read(creatorCollabsProvider.notifier).refresh(),
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.fromLTRB(
+                    0,
+                    sheetTop,
+                    0,
+                    0,
+                  ),
+                  children: [
+                    Container(
+                      decoration: const BoxDecoration(
+                        color: AppColors.lightBg,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(30),
                         ),
-                        child: _CollabCard(collab: collab),
-                      );
-                    }),
-                ],
-              );
-            },
-          ),
+                        border: Border(
+                          top: BorderSide(
+                            color: AppColors.creatorDark,
+                            width: 2.2,
+                          ),
+                        ),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          AppSpacing.screenPadding,
+                          AppSpacing.lg,
+                          AppSpacing.screenPadding,
+                          AppSpacing.xl + navClearance,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'My Collabs',
+                              style: AppTypography.displaySM.copyWith(
+                                color: AppColors.creatorDark,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              'Track and manage your collaborations.',
+                              style: AppTypography.bodySM.copyWith(
+                                color: AppColors.muted,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            collabsAsync.when(
+                              loading: () => Column(
+                                children: List.generate(
+                                  3,
+                                  (index) => const Padding(
+                                    padding: EdgeInsets.only(bottom: AppSpacing.md),
+                                    child: SizedBox(
+                                      height: 180,
+                                      child: _CollabCardSkeleton(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              error: (error, _) => BCErrorState(
+                                message: error.toString(),
+                                onRetry: () => ref.read(creatorCollabsProvider.notifier).refresh(),
+                              ),
+                              data: (collabs) {
+                                if (collabs.isEmpty) {
+                                  return const BCEmptyState(
+                                    emoji: '📋',
+                                    message:
+                                        'No active collabs yet. Start bidding on campaigns.',
+                                  );
+                                }
+                                return Column(
+                                  children: collabs.asMap().entries.map((entry) {
+                                    final index = entry.key;
+                                    final collab = entry.value;
+                                    return Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom: index == collabs.length - 1
+                                            ? 0
+                                            : AppSpacing.md,
+                                      ),
+                                      child: _CollabCard(collab: collab),
+                                    );
+                                  }).toList(),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -196,6 +297,104 @@ String _collabTypeLabel(CampaignCollabType type) {
       return 'Barter';
     case CampaignCollabType.hybrid:
       return 'Hybrid';
+  }
+}
+
+class _CollabCardSkeleton extends StatelessWidget {
+  const _CollabCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassPanel(
+      accentColor: AppColors.neon,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  height: 20,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBorder,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              Container(
+                height: 20,
+                width: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.lightBorder,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Container(
+                height: 24,
+                width: 80,
+                decoration: BoxDecoration(
+                  color: AppColors.lightBorder,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Container(
+                height: 24,
+                width: 60,
+                decoration: BoxDecoration(
+                  color: AppColors.lightBorder,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            height: 14,
+            width: 200,
+            decoration: BoxDecoration(
+              color: AppColors.lightBorder,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: List.generate(4, (index) {
+              return Padding(
+                padding: EdgeInsets.only(right: index == 3 ? 0 : AppSpacing.sm),
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBorder,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: AppColors.lightBorder, width: 2),
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Container(
+              height: 36,
+              width: 100,
+              decoration: BoxDecoration(
+                color: AppColors.creatorDark,
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

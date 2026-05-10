@@ -6,7 +6,14 @@ export async function GET(request: NextRequest) {
     const supabase = createClient()
     const { searchParams } = new URL(request.url)
     const statusFilter = (searchParams.get('status') ?? '').toLowerCase()
-    const statuses = statusFilter === 'completed' ? ['completed'] : ['active', 'in_progress']
+    let statuses: string[]
+    if (statusFilter === 'completed') {
+      statuses = ['completed']
+    } else if (statusFilter === 'all') {
+      statuses = ['active', 'in_progress', 'completed', 'cancelled']
+    } else {
+      statuses = ['active', 'in_progress']
+    }
 
     const {
       data: { user },

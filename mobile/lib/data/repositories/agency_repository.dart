@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../core/utils/api_error_handler.dart';
 import '../services/api_service.dart';
+import '../models/brand_models.dart';
 
 class AgencyRepository {
   AgencyRepository(this._api);
@@ -70,6 +71,52 @@ class AgencyRepository {
     try {
       final response = await _dio.get('/agency/bids');
       return response.data['bids'] as List<dynamic>;
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
+  Future<List<dynamic>> getBrands({Map<String, dynamic>? params}) async {
+    try {
+      final response = await _dio.get('/agency/brands', queryParameters: params);
+      return response.data['brands'] as List<dynamic>;
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
+  Future<void> createPitch(Map<String, dynamic> pitchData) async {
+    try {
+      await _dio.post('/agency/pitches', data: pitchData);
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
+  Future<RazorpayOrder> initiateCreditPurchase(String pack) async {
+    try {
+      final normalizedPack = pack == 'scale' ? 'pro' : pack;
+      final response = await _dio.post(
+        '/agency/credits',
+        data: {'pack': normalizedPack},
+      );
+      final root = response.data is Map ? response.data as Map<String, dynamic> : {};
+
+      return RazorpayOrder.fromJson({
+        'orderId': root['order_id'] ?? '',
+        'amount': root['amount'] ?? 0,
+        'currency': root['currency'] ?? 'INR',
+        'credits': root['credits'],
+        'keyId': root['key_id'],
+      });
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
+  Future<void> verifyCreditPurchase(Map<String, String> paymentData) async {
+    try {
+      await _dio.post('/agency/credits/verify', data: paymentData);
     } on DioException catch (e) {
       throw Exception(ApiErrorHandler.parseError(e));
     }

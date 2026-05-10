@@ -38,13 +38,17 @@ class RouteNames {
 
   // Agency Portal
   static const String agencyHome = '/agency/home';
-  static const String agencyCreators = '/agency/creators';
   static const String agencyDiscover = '/agency/discover';
   static const String agencyProfile = '/agency/profile';
   static const String agencyCredits = '/agency/credits';
-  static const String agencyRoster = '/agency/roster';
+  static const String agencyPartnered = '/agency/partnered';
   static const String agencyPitches = '/agency/pitches';
   static const String agencyBids = '/agency/bids';
+  static const String agencySettings = '/agency/settings';
+  static const String agencyDiscoverCreators = '/agency/discover/creators';
+  static const String agencyDiscoverBrands = '/agency/discover/brands';
+  static const String agencyPitchCreator = '/agency/pitch/creator';
+  static const String agencyPitchBrand = '/agency/pitch/brand';
 
   // Shared
   static const String notifications = '/notifications';

@@ -144,7 +144,7 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                     ),
                   ),
                   child: IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     icon: const Icon(
                       Icons.arrow_back,
                       color: AppColors.creatorDark,

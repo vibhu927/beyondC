@@ -65,9 +65,9 @@ export async function GET(
       collab: {
         ...collab,
         milestone_status: milestoneStatus,
-        brand_name: collab.brand?.brand_name ?? 'Brand',
-        brand_category: collab.brand?.brand_category ?? 'General',
-        campaign_title: collab.campaign?.title ?? 'Campaign',
+        brand_name: (collab.brand as any)?.[0]?.brand_name ?? 'Brand',
+        brand_category: (collab.brand as any)?.[0]?.brand_category ?? 'General',
+        campaign_title: (collab.campaign as any)?.[0]?.title ?? 'Campaign',
       },
     })
   } catch (error: any) {

@@ -17,10 +17,16 @@ import '../../features/brand/screens/create_event_screen.dart';
 import '../../features/brand/screens/event_invites_screen.dart';
 import '../../features/brand/screens/brand_profile_screen.dart';
 import '../../features/agency/screens/agency_home_screen.dart';
-import '../../features/agency/screens/agency_creators_screen.dart';
+import '../../features/agency/screens/agency_pitches_screen.dart';
 import '../../features/agency/screens/agency_discover_screen.dart';
 import '../../features/agency/screens/agency_profile_screen.dart';
-import '../../features/agency/screens/agency_roster_screen.dart';
+import '../../features/agency/screens/agency_partnered_screen.dart';
+import '../../features/agency/screens/agency_credits_screen.dart';
+import '../../features/agency/screens/agency_settings_screen.dart';
+import '../../features/agency/screens/agency_discover_creators_screen.dart';
+import '../../features/agency/screens/agency_discover_brands_screen.dart';
+import '../../features/agency/screens/agency_pitch_creator_screen.dart';
+import '../../features/agency/screens/agency_pitch_brand_screen.dart';
 import '../../features/brand/screens/brand_requests_screen.dart';
 import '../../features/brand/screens/credits_screen.dart';
 import '../../features/brand/screens/brand_collabs_screen.dart';
@@ -268,7 +274,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (c, s) => EventInvitesScreen(id: s.pathParameters['id']!),
       ),
 
-      // Agency Portal (placeholder screens until real screens are implemented)
+      // Agency Portal
       GoRoute(
         path: RouteNames.agencyHome,
         pageBuilder: (c, s) => const NoTransitionPage(
@@ -276,14 +282,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
-        path: RouteNames.agencyCreators,
+        path: RouteNames.agencyDiscover,
         pageBuilder: (c, s) => const NoTransitionPage(
-          child: AgencyCreatorsScreen(),
+          child: AgencyDiscoverScreen(),
         ),
       ),
       GoRoute(
-        path: RouteNames.agencyDiscover,
-        builder: (c, s) => const AgencyDiscoverScreen(),
+        path: RouteNames.agencyPitches,
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: AgencyPitchesScreen(),
+        ),
+      ),
+      GoRoute(
+        path: RouteNames.agencyPartnered,
+        pageBuilder: (c, s) => const NoTransitionPage(
+          child: AgencyPartneredScreen(),
+        ),
       ),
       GoRoute(
         path: RouteNames.agencyProfile,
@@ -293,19 +307,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.agencyCredits,
-        builder: (c, s) => const PlaceholderScreen('Agency Credits'),
+        builder: (c, s) => const AgencyCreditsScreen(),
       ),
       GoRoute(
-        path: RouteNames.agencyRoster,
-        builder: (c, s) => const AgencyRosterScreen(),
+        path: RouteNames.agencySettings,
+        builder: (c, s) => const AgencySettingsScreen(),
       ),
       GoRoute(
-        path: RouteNames.agencyPitches,
-        builder: (c, s) => const PlaceholderScreen('Agency Pitches'),
+        path: RouteNames.agencyDiscoverCreators,
+        builder: (c, s) => const AgencyDiscoverCreatorsScreen(),
       ),
       GoRoute(
-        path: RouteNames.agencyBids,
-        builder: (c, s) => const PlaceholderScreen('Agency Bids'),
+        path: RouteNames.agencyDiscoverBrands,
+        builder: (c, s) => const AgencyDiscoverBrandsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.agencyPitchCreator,
+        builder: (c, s) => AgencyPitchCreatorScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.agencyPitchBrand,
+        builder: (c, s) => const AgencyPitchBrandScreen(),
       ),
 
       // Shared

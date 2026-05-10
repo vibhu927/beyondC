@@ -76,7 +76,7 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                     ),
                   ),
                   child: IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
+                    onPressed: () => context.pop(),
                     icon: const Icon(
                       Icons.arrow_back,
                       color: AppColors.creatorDark,
@@ -219,7 +219,7 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                                   ),
                                 ),
                                 Text(
-                                  '₹${Formatters.currencyFromINR(collab.agreedAmountPaise ~/ 100)}',
+                                  Formatters.currencyFromINR(collab.agreedAmountPaise),
                                   style: AppTypography.displayMD.copyWith(
                                     color: AppColors.creatorDark,
                                     fontWeight: FontWeight.w900,

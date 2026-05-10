@@ -1180,7 +1180,7 @@ class _CollabTrackerCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              Formatters.currency(collab.amount),
+              Formatters.currencyFromINR(collab.amount),
               style: AppTypography.displaySM.copyWith(
                 fontWeight: FontWeight.w900,
               ),

@@ -12,21 +12,30 @@ class CollabRepository {
   Dio get _dio => _apiService.client;
 
   Future<Collab> getCollab(String collabId) async {
-    // Prefer creator-scoped endpoint first; fallback to shared endpoint.
+    // Try creator-scoped endpoint first
     try {
       final response = await _dio.get('/creator/collabs/$collabId');
       final root = _asMap(response.data);
       final collabRaw = _extractCollabMap(root);
       return _collabFromApi(collabRaw, fallbackId: collabId);
-    } on DioException catch (_) {
-      try {
-        final response = await _dio.get('/collabs/$collabId');
-        final root = _asMap(response.data);
-        final collabRaw = _extractCollabMap(root);
-        return _collabFromApi(collabRaw, fallbackId: collabId);
-      } on DioException catch (e) {
-        throw Exception(ApiErrorHandler.parseError(e));
-      }
+    } on DioException catch (_) {}
+    
+    // Try brand-scoped endpoint
+    try {
+      final response = await _dio.get('/brand/collabs/$collabId');
+      final root = _asMap(response.data);
+      final collabRaw = _extractCollabMap(root);
+      return _collabFromApi(collabRaw, fallbackId: collabId);
+    } on DioException catch (_) {}
+    
+    // Try shared endpoint
+    try {
+      final response = await _dio.get('/collabs/$collabId');
+      final root = _asMap(response.data);
+      final collabRaw = _extractCollabMap(root);
+      return _collabFromApi(collabRaw, fallbackId: collabId);
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
     }
   }
 
@@ -97,10 +106,10 @@ class CollabRepository {
           _string(brand['category']) ??
           _string(raw['brand_category']) ??
           'General',
-      'agreedAmountPaise': _int(raw['agreed_amount']) ??
-          _int(raw['agreed_amount_paise']) ??
-          _int(raw['amount']) ??
-          0,
+'agreedAmountPaise': _int(raw['agreed_amount']) ??
+           _int(raw['agreed_amount_paise']) ??
+           _int(raw['amount']) ??
+           0,
       'collabType': _normalizeCollabType(_string(raw['collab_type'])),
       'status': _string(raw['status']) ?? 'in_progress',
       'milestoneStatus': _string(raw['milestone_status']) ?? fallbackMilestone,

@@ -74,6 +74,25 @@ class BCPrimaryButton extends StatefulWidget {
         isFullWidth: isFullWidth);
   }
 
+  factory BCPrimaryButton.agency(
+      {required String label,
+      VoidCallback? onPressed,
+      bool isLoading = false,
+      bool isFullWidth = true,
+      Widget? prefixIcon,
+      Widget? suffixIcon}) {
+    return BCPrimaryButton(
+        label: label,
+        onPressed: onPressed,
+        backgroundColor: AppColors.agencyDark,
+        textColor: AppColors.white,
+        shadow: AppShadows.ink,
+        isLoading: isLoading,
+        isFullWidth: isFullWidth,
+        prefixIcon: prefixIcon,
+        suffixIcon: suffixIcon);
+  }
+
   @override
   State<BCPrimaryButton> createState() => _BCPrimaryButtonState();
 }

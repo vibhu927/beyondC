@@ -25,7 +25,6 @@ import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/creator_page_top_header.dart';
 import '../../../widgets/buttons/bc_back_button.dart';
-import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
 import '../../../widgets/inputs/bc_location_picker.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
@@ -153,178 +152,247 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
               builder: (context, setSheetState) {
                 return Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppSpacing.radiusLG),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.lightBg,
+                        const Color(0xFFE1EBCF),
+                        const Color(0xFFD2DEBF),
+                      ],
+                      stops: const [0.0, 0.55, 1.0],
                     ),
-border: const Border(
-                              top: BorderSide(color: AppColors.creatorDark, width: 2.2),
-                            ),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(30),
+                    ),
+                    border: const Border(
+                      top: BorderSide(
+                        color: AppColors.creatorDark,
+                        width: 2.2,
+                      ),
+                    ),
                   ),
-                  child: ListView(
-                    controller: controller,
-                    padding: const EdgeInsets.all(AppSpacing.xl),
-                    children: [
-                      const Text('Edit Creator Profile',
-                          style: AppTypography.displaySM),
-                      const SizedBox(height: AppSpacing.lg),
-                      BCTextField(
-                        label: 'Display Name',
-                        controller: displayNameController,
+                  child: SafeArea(
+                    top: false,
+                    child: ListView(
+                      controller: controller,
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.screenPadding,
+                        AppSpacing.lg,
+                        AppSpacing.screenPadding,
+                        AppSpacing.xl + MediaQuery.of(context).viewInsets.bottom,
                       ),
-                      const SizedBox(height: AppSpacing.lg),
-                      BCTextField(
-                        label: 'Bio',
-                        maxLines: 4,
-                        controller: bioController,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      BCTextField(
-                        label: 'Niches',
-                        hint: 'Fashion, Lifestyle, Beauty',
-                        controller: nichesController,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      BCTextField(
-                        label: 'Content Types',
-                        hint: 'Instagram, Reels, YouTube',
-                        controller: contentTypesController,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      BCTextField(
-                        label: 'YouTube Handle',
-                        hint: '@yourchannel',
-                        controller: youtubeController,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      BCLocationPicker(
-                        initialState: selectedState,
-                        initialCity: selectedCity,
-                        onChanged: (state, city) {
-                          selectedState = state;
-                          selectedCity = city;
-                        },
-                        required: true,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      Center(
-                        child: Container(
-                          width: 72,
-                          height: 72,
-                          decoration: BoxDecoration(
-                            color: AppColors.darkSurface,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.darkGreen,
-                              width: 2.5,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text('Edit Creator Profile',
+                                  style: AppTypography.displaySM.copyWith(
+                                    color: AppColors.creatorDark,
+                                    fontWeight: FontWeight.w900,
+                                  )),
                             ),
-                          ),
-                          alignment: Alignment.center,
-                          child: (avatarUrl ?? '').trim().isNotEmpty
-                              ? ClipOval(
-                                  child: Image.network(
-                                    avatarUrl!,
-                                    width: 72,
-                                    height: 72,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Text(
-                                      _avatarInitials(profile.fullName),
-                                      style: AppTypography.labelMD.copyWith(
-                                        color: AppColors.white,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              : Text(
-                                  _avatarInitials(profile.fullName),
-                                  style: AppTypography.labelMD.copyWith(
-                                    color: AppColors.white,
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: AppColors.white.withValues(alpha: 0.9),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.creatorDark.withValues(alpha: 0.14),
+                                ),
+                              ),
+                              child: IconButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                icon: const Icon(
+                                  Icons.close_rounded,
+                                  color: AppColors.creatorDark,
+                                  size: 22,
+                                ),
+                                splashRadius: 20,
+                                padding: EdgeInsets.zero,
+                              ),
+),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Center(
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 96,
+                                height: 96,
+                                decoration: BoxDecoration(
+                                  color: AppColors.creatorDark,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.neon,
+                                    width: 3,
                                   ),
                                 ),
+                                alignment: Alignment.center,
+                                child: (avatarUrl ?? '').trim().isNotEmpty
+                                    ? ClipOval(
+                                        child: Image.network(
+                                          avatarUrl!,
+                                          width: 96,
+                                          height: 96,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) => Text(
+                                            _avatarInitials(profile.fullName),
+                                            style: AppTypography.displaySM.copyWith(
+                                              color: AppColors.neon,
+                                              fontWeight: FontWeight.w900,
+                                            ),
+                                          ),
+                                        ),
+                                      )
+                                    : Text(
+                                        _avatarInitials(profile.fullName),
+                                        style: AppTypography.displaySM.copyWith(
+                                          color: AppColors.neon,
+                                          fontWeight: FontWeight.w900,
+                                        ),
+                                      ),
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              GlassButton(
+                                label: 'Upload Photo',
+                                accent: AppColors.darkGreen,
+                                textColor: AppColors.white,
+                                solidBackground: true,
+                                onTap: isSaving
+                                    ? null
+                                    : () async {
+                                        try {
+                                          final url = await _pickAndUploadAvatar();
+                                          if (url != null) {
+                                            setSheetState(() {
+                                              avatarUrl = url;
+                                            });
+                                            if (mounted) {
+                                              ScaffoldMessenger.of(this.context)
+                                                  .showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                      'Profile photo uploaded successfully.'),
+                                                ),
+                                              );
+                                            }
+                                          }
+                                        } catch (e) {
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(this.context)
+                                              .showSnackBar(
+                                            SnackBar(content: Text('Upload failed: $e')),
+                                          );
+                                        }
+                                      },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      BCPrimaryButton.dark(
-                        label: 'Upload Profile Photo',
-                        isFullWidth: false,
-                        onPressed: () async {
-                          try {
-                            final url = await _pickAndUploadAvatar();
-                            if (url != null) {
-                              setSheetState(() {
-                                avatarUrl = url;
-                              });
-                              if (mounted) {
-                                ScaffoldMessenger.of(this.context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        'Profile photo uploaded successfully.'),
-                                  ),
-                                );
-                              }
-                            }
-                          } catch (e) {
-                            if (!mounted) return;
-                            ScaffoldMessenger.of(this.context).showSnackBar(
-                              SnackBar(content: Text('Upload failed: $e')),
-                            );
-                          }
-                        },
-                      ),
-                      if ((avatarUrl ?? '').isNotEmpty) ...[
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          'Profile photo uploaded',
-                          style: AppTypography.bodySM
-                              .copyWith(color: AppColors.success),
+                        const SizedBox(height: AppSpacing.lg),
+                        BCTextField(
+                          label: 'Display Name',
+                          controller: displayNameController,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        BCTextField(
+                          label: 'Bio',
+                          maxLines: 4,
+                          controller: bioController,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        BCTextField(
+                          label: 'Niches',
+                          hint: 'Fashion, Lifestyle, Beauty',
+                          controller: nichesController,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        BCTextField(
+                          label: 'Content Types',
+                          hint: 'Instagram, Reels, YouTube',
+                          controller: contentTypesController,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        BCTextField(
+                          label: 'YouTube Handle',
+                          hint: '@yourchannel',
+                          controller: youtubeController,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        BCLocationPicker(
+                          initialState: selectedState,
+                          initialCity: selectedCity,
+                          onChanged: (state, city) {
+                            selectedState = state;
+                            selectedCity = city;
+                          },
+                        ),
+                        // if ((avatarUrl ?? '').isNotEmpty) ...[
+                        //   const SizedBox(height: AppSpacing.sm),
+                        //   Text(
+                        //     'Profile photo uploaded',
+                        //     style: AppTypography.bodySM
+                        //         .copyWith(color: AppColors.success),
+                        //   ),
+                        // ],
+                        const SizedBox(height: AppSpacing.xl),
+                        Center(
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.5,
+                            height: 52,
+                            child: GlassButton(
+                              label: isSaving ? 'Saving...' : 'Save Changes',
+                              accent: AppColors.darkGreen,
+                              textColor: AppColors.neon,
+                              solidBackground: true,
+                              onTap: isSaving
+                                  ? null
+                                  : () async {
+                                  setSheetState(() => isSaving = true);
+                                  try {
+                                    await ref
+                                        .read(creatorProfileProvider.notifier)
+                                        .updateProfile({
+                                      'display_name':
+                                          displayNameController.text.trim(),
+                                      'bio': bioController.text.trim(),
+                                      'niches':
+                                          _parseTagList(nichesController.text),
+                                      'platforms': _parseTagList(
+                                          contentTypesController.text),
+                                      'youtube_handle': _normalizeHandle(
+                                          youtubeController.text),
+                                      'state': selectedState,
+                                      'city': selectedCity,
+                                      if ((avatarUrl ?? '').isNotEmpty)
+                                        'avatar_url': avatarUrl,
+                                    });
+
+                                    if (mounted) {
+                                      setState(() {
+                                        _avatarUrl = avatarUrl;
+                                      });
+                                    }
+                                    await _refresh();
+                                    if (!mounted) return;
+                                    Navigator.of(this.context).pop();
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    setSheetState(() => isSaving = false);
+                                    ScaffoldMessenger.of(this.context)
+                                        .showSnackBar(
+                                      SnackBar(content: Text(e.toString())),
+                                    );
+                                  }
+                                },
+                            ),
+                          ),
                         ),
                       ],
-                      const SizedBox(height: AppSpacing.xl),
-                      BCPrimaryButton.dark(
-                        label: 'Save Changes →',
-                        isLoading: isSaving,
-                        onPressed: isSaving
-                            ? null
-                            : () async {
-                                setSheetState(() => isSaving = true);
-                                try {
-                                  await ref
-                                      .read(creatorProfileProvider.notifier)
-                                      .updateProfile({
-                                    'display_name':
-                                        displayNameController.text.trim(),
-                                    'bio': bioController.text.trim(),
-                                    'niches':
-                                        _parseTagList(nichesController.text),
-                                    'platforms': _parseTagList(
-                                        contentTypesController.text),
-                                    'youtube_handle': _normalizeHandle(
-                                        youtubeController.text),
-                                    'state': selectedState,
-                                    'city': selectedCity,
-                                    if ((avatarUrl ?? '').isNotEmpty)
-                                      'avatar_url': avatarUrl,
-                                  });
-
-                                  if (mounted) {
-                                    setState(() {
-                                      _avatarUrl = avatarUrl;
-                                    });
-                                  }
-                                  await _refresh();
-                                  if (!mounted) return;
-                                  Navigator.of(this.context).pop();
-                                } catch (e) {
-                                  if (!mounted) return;
-                                  setSheetState(() => isSaving = false);
-                                  ScaffoldMessenger.of(this.context)
-                                      .showSnackBar(
-                                    SnackBar(content: Text(e.toString())),
-                                  );
-                                }
-                              },
-                      ),
-                    ],
+                    ),
                   ),
                 );
               },
@@ -357,71 +425,121 @@ border: const Border(
               builder: (context, setSheetState) {
                 return Container(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppSpacing.radiusLG),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.lightBg,
+                        const Color(0xFFE1EBCF),
+                        const Color(0xFFD2DEBF),
+                      ],
+                      stops: const [0.0, 0.55, 1.0],
                     ),
-border: const Border(
-                              top: BorderSide(color: AppColors.creatorDark, width: 2.2),
-                            ),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(30),
+                    ),
+                    border: const Border(
+                      top: BorderSide(
+                        color: AppColors.creatorDark,
+                        width: 2.2,
+                      ),
+                    ),
                   ),
-                  child: ListView(
-                    controller: controller,
-                    padding: const EdgeInsets.all(AppSpacing.xl),
-                    children: [
-                      const Text('Edit Collab Fee',
-                          style: AppTypography.displaySM),
-                      const SizedBox(height: AppSpacing.lg),
-                      BCTextField(
-                        label: 'Starting Price (INR)',
-                        hint: 'e.g. 2500',
-                        controller: priceController,
-                        keyboardType: TextInputType.number,
+                  child: SafeArea(
+                    top: false,
+                    child: ListView(
+                      controller: controller,
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.screenPadding,
+                        AppSpacing.lg,
+                        AppSpacing.screenPadding,
+                        AppSpacing.xl + MediaQuery.of(context).viewInsets.bottom,
                       ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        'This is your minimum fee shown to brands.',
-                        style: AppTypography.bodySM
-                            .copyWith(color: AppColors.muted),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-                      BCPrimaryButton.dark(
-                        label: 'Update Fee →',
-                        isLoading: isSavingFee,
-                        onPressed: isSavingFee
-                            ? null
-                            : () async {
-                                final rupees =
-                                    int.tryParse(priceController.text.trim());
-                                if (rupees == null || rupees < 0) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Enter a valid non-negative amount.'),
-                                    ),
-                                  );
-                                  return;
-                                }
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text('Edit Collab Fee',
+                                  style: AppTypography.displaySM.copyWith(
+                                    color: AppColors.creatorDark,
+                                    fontWeight: FontWeight.w900,
+                                  )),
+                            ),
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: AppColors.white.withValues(alpha: 0.9),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.creatorDark.withValues(alpha: 0.14),
+                                ),
+                              ),
+                              child: IconButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                icon: const Icon(
+                                  Icons.close_rounded,
+                                  color: AppColors.creatorDark,
+                                  size: 22,
+                                ),
+                                splashRadius: 20,
+                                padding: EdgeInsets.zero,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        BCTextField(
+                          label: 'Starting Price (INR)',
+                          hint: 'e.g. 2500',
+                          controller: priceController,
+                          keyboardType: TextInputType.number,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          'This is your minimum fee shown to brands.',
+                          style: AppTypography.bodySM
+                              .copyWith(color: AppColors.muted),
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
+GlassButton(
+                          label: isSavingFee ? 'Updating...' : 'Update Fee →',
+                          accent: AppColors.neon,
+                          onTap: isSavingFee
+                              ? null
+                              : () async {
+                                  final rupees =
+                                      int.tryParse(priceController.text.trim());
+                                  if (rupees == null || rupees < 0) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            'Enter a valid non-negative amount.'),
+                                      ),
+                                    );
+                                    return;
+                                  }
 
-                                setSheetState(() => isSavingFee = true);
-                                try {
-                                  await ref
-                                      .read(creatorProfileProvider.notifier)
-                                      .updateStartingPrice(rupees * 100);
-                                  await _refresh();
-                                  if (!mounted) return;
-                                  Navigator.of(this.context).pop();
-                                } catch (e) {
-                                  if (!mounted) return;
-                                  setSheetState(() => isSavingFee = false);
-                                  ScaffoldMessenger.of(this.context)
-                                      .showSnackBar(
-                                    SnackBar(content: Text(e.toString())),
-                                  );
-                                }
-                              },
-                      ),
-                    ],
+                                  setSheetState(() => isSavingFee = true);
+                                  try {
+                                    await ref
+                                        .read(creatorProfileProvider.notifier)
+                                        .updateStartingPrice(rupees * 100);
+                                    await _refresh();
+                                    if (!mounted) return;
+                                    Navigator.of(this.context).pop();
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    setSheetState(() => isSavingFee = false);
+                                    ScaffoldMessenger.of(this.context)
+                                        .showSnackBar(
+                                      SnackBar(content: Text(e.toString())),
+                                    );
+                                  }
+                                },
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -806,6 +924,7 @@ border: const Border(
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(creatorProfileProvider);
     final collabsAsync = ref.watch(creatorCollabsProvider);
+    final completedCollabsAsync = ref.watch(creatorCompletedCollabsProvider);
     final walletAsync = ref.watch(walletProvider);
 
     if (profileAsync.isLoading) {
@@ -831,7 +950,7 @@ border: const Border(
     }
 
     final pastCollabs =
-        collabsAsync.valueOrNull?.take(3).toList() ?? const <Collab>[];
+        completedCollabsAsync.valueOrNull?.take(3).toList() ?? const <Collab>[];
     final walletBalance =
         walletAsync.valueOrNull?.balance ?? profile.walletBalancePaise;
     final navClearance = MediaQuery.of(context).padding.bottom + 84;
@@ -1117,13 +1236,13 @@ border: const Border(
                               ),
                             ],
                           ),
-                          if (collabsAsync.isLoading)
+                          if (completedCollabsAsync.isLoading)
                             const _PastCollabsShimmerList()
-                          else if (collabsAsync.hasError)
+                          else if (completedCollabsAsync.hasError)
                             BCErrorState(
-                              message: collabsAsync.error.toString(),
+                              message: completedCollabsAsync.error.toString(),
                               onRetry: () =>
-                                  ref.invalidate(creatorCollabsProvider),
+                                  ref.invalidate(creatorCompletedCollabsProvider),
                             )
                           else
                             Column(

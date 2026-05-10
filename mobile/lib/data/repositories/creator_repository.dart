@@ -320,6 +320,40 @@ class CreatorRepository {
     }
   }
 
+  Future<List<Collab>> fetchCreatorCompletedCollabs() async {
+    try {
+      final response = await _dio.get('/creator/collabs?status=completed');
+      final root = _asMap(response.data);
+
+      final parsed = <Collab>[];
+      for (final item in _asMapList(root['collabs'])) {
+        final brand = _asMap(item['brand']);
+
+        parsed.add(
+          Collab.fromJson({
+            'id': _string(item['id']) ?? '',
+            'brandId': _string(item['brand_id']) ?? '',
+            'creatorId': _string(item['creator_id']) ?? '',
+            'brandCategory': _string(item['brand_category']) ??
+                _string(brand['brand_category']) ??
+                'General',
+            'agreedAmountPaise': (_int(item['agreed_amount']) ?? 0) * 100,
+            'collabType': _normalizeCollabType(_string(item['collab_type'])),
+            'status': _string(item['status']) ?? 'completed',
+            'milestoneStatus': _string(item['milestone_status']),
+            'createdAt': _string(item['created_at']),
+            'completedAt': _string(item['completed_at']),
+            'rating': _int(item['rating']),
+          }),
+        );
+      }
+
+      return parsed;
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parse(e));
+    }
+  }
+
   Future<Collab> updateCollabMilestone({
     required String collabId,
     required String milestone,

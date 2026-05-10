@@ -62,6 +62,11 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
     final text = theme == Brightness.dark ? AppColors.darkText : AppColors.black;
     final muted = theme == Brightness.dark ? AppColors.darkMuted : AppColors.gray;
 
+    final topInset = MediaQuery.of(context).padding.top + 14;
+    const headerHeight = 48.0;
+    const headerGap = 34.0;
+    final sheetTop = topInset + headerHeight + headerGap;
+
     return Scaffold(
       extendBody: true,
       bottomNavigationBar: const BCBottomNav(
@@ -75,15 +80,26 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
           children: [
             Positioned.fill(
               child: DecoratedBox(
-                decoration: BoxDecoration(color: bg),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.lightBg,
+                      Color(0xFFF0F4EC),
+                      Color(0xFFE8EFE0),
+                    ],
+                    stops: [0.0, 0.55, 1.0],
+                  ),
+                ),
               ),
             ),
             Positioned(
               top: -46,
-              right: -32,
+              right: -54,
               child: _GlowOrb(
                 size: 136,
-                color: AppColors.brandPrimary.withValues(alpha: 0.08),
+                color: AppColors.brandPrimary.withValues(alpha: 0.12),
               ),
             ),
             Positioned(
