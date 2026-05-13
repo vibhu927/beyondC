@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shimmer/shimmer.dart';
@@ -38,10 +40,15 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
   final Set<CampaignCollabType> _types = <CampaignCollabType>{};
   GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   List<CollabRequest> _visibleRequests = const <CollabRequest>[];
+  final _scrollController = ScrollController();
+  double _scrollOffset = 0;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (mounted) setState(() => _scrollOffset = _scrollController.offset);
+    });
     Future<void>.microtask(() async {
       final cached = ref.read(brandRequestsProvider).valueOrNull;
       if (cached == null) {
@@ -53,6 +60,12 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
         (_, next) => _resyncVisibleList(next.valueOrNull ?? const []),
       );
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   List<CollabRequest> _applyFilters(List<CollabRequest> source) {
@@ -260,6 +273,15 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
   @override
   Widget build(BuildContext context) {
     final requestsAsync = ref.watch(brandRequestsProvider);
+    final topInset = MediaQuery.of(context).padding.top + 14;
+    const headerHeight = 48.0;
+    const headerGap = 34.0;
+    final sheetTop = topInset + headerHeight + headerGap;
+    final headerSlide = _scrollOffset.clamp(0.0, sheetTop);
+    final collapseProgress = (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+    final collapsedTop = MediaQuery.of(context).padding.top + 8;
+    final headerTop = lerpDouble(topInset, collapsedTop, collapseProgress)!;
+
     return Scaffold(
       extendBody: true,
       bottomNavigationBar: const BCBottomNav(role: BCPortalRole.brand, currentIndex: 2),
@@ -296,15 +318,6 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
             ),
             Column(
               children: [
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.screenPadding,
-                    MediaQuery.of(context).padding.top + 14,
-                    AppSpacing.screenPadding,
-                    AppSpacing.sm,
-                  ),
-                  child: const BrandPageTopHeader(),
-                ),
                 const SizedBox(height: AppSpacing.sm),
                 _TabBarPills(
                   activeTab: _activeTab,
@@ -332,6 +345,7 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
                         );
                       }
                       return AnimatedList(
+                        controller: _scrollController,
                         key: _listKey,
                         initialItemCount: _visibleRequests.length,
                         padding: const EdgeInsets.fromLTRB(
@@ -358,6 +372,28 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
                   ),
                 ),
               ],
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: collapsedTop + 48 + 16,
+              child: IgnorePointer(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBg.withValues(alpha: collapseProgress * 0.95),
+                    border: collapseProgress > 0.5
+                        ? const Border(bottom: BorderSide(color: AppColors.lightBorder))
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: headerTop,
+              left: AppSpacing.screenPadding,
+              right: AppSpacing.screenPadding,
+              child: BrandPageTopHeader(collapseProgress: collapseProgress),
             ),
           ],
         ),

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shimmer/shimmer.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
@@ -37,7 +35,7 @@ class _AgencyCreditsScreenState extends ConsumerState<AgencyCreditsScreen> {
       final order = await ref.read(agencyCreditsProvider.notifier).initiateCreditPurchase(pack);
       final auth = ref.read(authProvider);
       final user = auth.user;
-      final keyId = ApiConstants.razorpayKeyId;
+      const keyId = ApiConstants.razorpayKeyId;
 
       if (keyId == 'YOUR_RAZORPAY_KEY_ID') {
         throw Exception('Missing Razorpay key. Add RAZORPAY_KEY_ID in env.');

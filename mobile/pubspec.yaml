@@ -69,6 +69,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/
   # Fonts temporarily commented out - download from Google Fonts and uncomment
   # fonts:
   #   - family: PlusJakartaSans

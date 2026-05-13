@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,11 +6,9 @@ import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../providers/agency_provider.dart';
-import '../../../widgets/agency_page_top_header.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/cards/bc_card.dart';
@@ -475,7 +472,7 @@ class _CreatorListCard extends StatelessWidget {
                       Text(firstName, style: AppTypography.labelLG.copyWith(color: text)),
                       if (niche != null)
                         Text(
-                          niche is List ? (niche as List).join(', ') : niche.toString(),
+                          niche is List ? (niche).join(', ') : niche.toString(),
                           style: AppTypography.bodyXS.copyWith(color: muted),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -608,7 +605,7 @@ class _CreatorActionSheet extends StatelessWidget {
                     Text(firstName, style: AppTypography.displaySM.copyWith(color: AppColors.white)),
                     if (niche != null)
                       Text(
-                        niche is List ? (niche as List).join(', ') : niche.toString(),
+                        niche is List ? (niche).join(', ') : niche.toString(),
                         style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
                       ),
                   ],

@@ -155,10 +155,18 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
       followers: _readInt(creator['followers_count']) ??
           _readInt(creator['follower_count']) ??
           _readInt(widget.data['followers']) ??
+          _readInt(widget.data['followers_count']) ??
+          _readInt(widget.data['follower_count']) ??
+          _readInt(creator['followersCount']) ??
+          _readInt(widget.data['followersCount']) ??
           0,
       engagementRate: _readDouble(creator['engagement_rate']) ?? 0,
       avgCollabPricePaise: _readInt(creator['avg_collab_price']) ?? 0,
-      startingPricePaise: _readInt(creator['starting_price']) ?? 0,
+      startingPricePaise: _readInt(creator['starting_price']) ??
+          _readInt(creator['startingPrice']) ??
+          _readInt(widget.data['starting_price']) ??
+          _readInt(widget.data['startingPrice']) ??
+          0,
       instagramUsername: _readString(creator['instagram_username']) ??
           _readString(widget.data['instagramUsername']),
       instagramVerified: _readBool(creator['instagram_verified']) ?? false,

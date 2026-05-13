@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -75,7 +74,7 @@ class _AgencyDiscoverBrandsScreenState extends ConsumerState<AgencyDiscoverBrand
                   children: [
                     Text('Active Brands', style: AppTypography.labelLG.copyWith(color: text)),
                     const Spacer(),
-                    BCBadge(label: 'Coming Soon', variant: BCBadgeVariant.warning),
+                    const BCBadge(label: 'Coming Soon', variant: BCBadgeVariant.warning),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.lg),

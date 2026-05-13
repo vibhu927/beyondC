@@ -13,8 +13,11 @@ import '../features/chat/chat_modal.dart';
 import '../features/shared/widgets/notifications_modal.dart';
 
 class BrandPageTopHeader extends ConsumerWidget {
+  final double collapseProgress;
+
   const BrandPageTopHeader({
     super.key,
+    this.collapseProgress = 0.0,
     this.showBrandIdentity = true,
     this.showBackButton = false,
     this.onBack,
@@ -45,41 +48,75 @@ class BrandPageTopHeader extends ConsumerWidget {
     return Row(
       children: [
         if (showBrandIdentity) ...[
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.16)),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              avatarLabel,
-              style: AppTypography.labelLG.copyWith(
-                color: AppColors.brandDark,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Stack(
+              alignment: Alignment.centerLeft,
               children: [
-                Text('Good morning,', style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
-                const SizedBox(height: 2),
-                Text(
-                  brandName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.displaySM.copyWith(
-                    color: AppColors.brandDark,
-                    fontWeight: FontWeight.w900,
+                Opacity(
+                  opacity: 1.0 - collapseProgress,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.16)),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          avatarLabel,
+                          style: AppTypography.labelLG.copyWith(
+                            color: AppColors.brandDark,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Good morning,', style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
+                            const SizedBox(height: 2),
+                            Text(
+                              brandName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.displaySM.copyWith(
+                                color: AppColors.brandDark,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(category, style: AppTypography.bodyXS.copyWith(color: AppColors.muted)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(category, style: AppTypography.bodyXS.copyWith(color: AppColors.muted)),
+                Opacity(
+                  opacity: collapseProgress,
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.16)),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      avatarLabel,
+                      style: AppTypography.labelMD.copyWith(
+                        color: AppColors.brandDark,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

@@ -26,6 +26,22 @@ class AgencyProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _AgencyProfileScreenState extends ConsumerState<AgencyProfileScreen> {
+  final _scrollController = ScrollController();
+  double _scrollOffset = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(() {
+      if (mounted) setState(() => _scrollOffset = _scrollController.offset);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
   Future<void> _logout() async {
     try {
       await ref.read(authProvider.notifier).signOut();
@@ -65,6 +81,7 @@ class _AgencyProfileScreenState extends ConsumerState<AgencyProfileScreen> {
         role: BCPortalRole.agency,
         currentIndex: 4,
         child: AgencyPageLayout(
+          scrollOffset: _scrollOffset,
           child: BCLoadingOverlay(
             isLoading: agency.isLoading,
             child: agency.when(
@@ -73,9 +90,9 @@ class _AgencyProfileScreenState extends ConsumerState<AgencyProfileScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Symbols.error_rounded, color: AppColors.error, size: 48),
+                    const Icon(Symbols.error_rounded, color: AppColors.error, size: 48),
                     const SizedBox(height: AppSpacing.md),
-                    Text('Error loading profile', style: AppTypography.labelLG),
+                    const Text('Error loading profile', style: AppTypography.labelLG),
                     const SizedBox(height: AppSpacing.sm),
                     BCActionButton(label: 'Retry', onPressed: _refresh),
                   ],
@@ -85,6 +102,7 @@ class _AgencyProfileScreenState extends ConsumerState<AgencyProfileScreen> {
                 color: AppColors.agencyPrimary,
                 onRefresh: _refresh,
                 child: CustomScrollView(
+                  controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
                     SliverToBoxAdapter(
@@ -93,7 +111,7 @@ class _AgencyProfileScreenState extends ConsumerState<AgencyProfileScreen> {
                         decoration: BoxDecoration(
                           color: surface,
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                          border: Border(top: BorderSide(color: AppColors.agencyDark, width: 2.2)),
+                          border: const Border(top: BorderSide(color: AppColors.agencyDark, width: 2.2)),
                         ),
                         child: Padding(
                           padding: EdgeInsets.fromLTRB(

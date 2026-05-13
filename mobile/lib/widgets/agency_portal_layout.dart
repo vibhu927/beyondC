@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/router/route_names.dart';
-import '../../core/theme/app_colors.dart';
 import '../../widgets/bc_bottom_nav.dart';
 import '../../widgets/bc_portal_top_bar.dart';
 

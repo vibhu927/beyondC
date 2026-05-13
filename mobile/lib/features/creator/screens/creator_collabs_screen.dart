@@ -77,18 +77,17 @@ class CreatorCollabsScreen extends ConsumerWidget {
               right: AppSpacing.screenPadding,
               child: const CreatorPageTopHeader(),
             ),
-            Positioned.fill(
+            Positioned(
+              top: sheetTop,
+              left: 0,
+              right: 0,
+              bottom: 0,
               child: RefreshIndicator(
                 color: AppColors.neon,
                 onRefresh: () => ref.read(creatorCollabsProvider.notifier).refresh(),
                 child: ListView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(
-                    0,
-                    sheetTop,
-                    0,
-                    0,
-                  ),
+                  padding: EdgeInsets.zero,
                   children: [
                     Container(
                       decoration: const BoxDecoration(

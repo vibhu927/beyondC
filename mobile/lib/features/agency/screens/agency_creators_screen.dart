@@ -140,7 +140,7 @@ class _CreatorListItem extends StatelessWidget {
                   Text(firstName, style: AppTypography.labelLG.copyWith(color: text)),
                   if (niche != null)
                     Text(
-                      niche is List ? (niche as List).join(', ') : niche.toString(),
+                      niche is List ? (niche).join(', ') : niche.toString(),
                       style: AppTypography.bodyXS.copyWith(color: muted),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

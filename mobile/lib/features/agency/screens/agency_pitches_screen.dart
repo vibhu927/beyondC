@@ -13,7 +13,6 @@ import '../../../providers/agency_provider.dart';
 import '../../../widgets/agency_page_layout.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_bottom_nav.dart';
-import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/cards/bc_card.dart';
 import '../../../widgets/buttons/bc_action_button.dart';
 
@@ -25,12 +24,17 @@ class AgencyPitchesScreen extends ConsumerStatefulWidget {
 }
 
 class _AgencyPitchesScreenState extends ConsumerState<AgencyPitchesScreen> with SingleTickerProviderStateMixin {
+  final _scrollController = ScrollController();
+  double _scrollOffset = 0;
   late TabController _tabController;
   String _filterStatus = 'all';
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (mounted) setState(() => _scrollOffset = _scrollController.offset);
+    });
     _tabController = TabController(length: 2, vsync: this);
     Future<void>.microtask(() {
       ref.read(agencyPitchesProvider.notifier).refresh();
@@ -39,6 +43,7 @@ class _AgencyPitchesScreenState extends ConsumerState<AgencyPitchesScreen> with 
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -63,6 +68,7 @@ class _AgencyPitchesScreenState extends ConsumerState<AgencyPitchesScreen> with 
       extendBody: true,
       bottomNavigationBar: const BCBottomNav(role: BCPortalRole.agency, currentIndex: 2),
 body: AgencyPageLayout(
+          scrollOffset: _scrollOffset,
           child: BCPageSwipeArea(
             role: BCPortalRole.agency,
             currentIndex: 2,
@@ -71,7 +77,7 @@ body: AgencyPageLayout(
               decoration: BoxDecoration(
                 color: surface,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                border: Border(top: BorderSide(color: AppColors.agencyDark, width: 2.2)),
+                border: const Border(top: BorderSide(color: AppColors.agencyDark, width: 2.2)),
               ),
               child: Column(
                 children: [
@@ -110,11 +116,15 @@ body: AgencyPageLayout(
                       controller: _tabController,
                       children: [
                         _SentPitchesTab(
+                          scrollController: _scrollController,
                           filterStatus: _filterStatus,
                           onRefresh: _refresh,
                           onShowAll: () => context.push(RouteNames.agencyPitches),
                         ),
-                        _ReceivedPitchesTab(onRefresh: _refresh),
+                        _ReceivedPitchesTab(
+                          scrollController: _scrollController,
+                          onRefresh: _refresh,
+                        ),
                       ],
                     ),
                   ),
@@ -191,8 +201,9 @@ class _MiniFilterChip extends StatelessWidget {
 }
 
 class _SentPitchesTab extends ConsumerWidget {
-  const _SentPitchesTab({required this.filterStatus, required this.onRefresh, required this.onShowAll});
+  const _SentPitchesTab({required this.scrollController, required this.filterStatus, required this.onRefresh, required this.onShowAll});
 
+  final ScrollController scrollController;
   final String filterStatus;
   final VoidCallback onRefresh;
   final VoidCallback onShowAll;
@@ -232,6 +243,7 @@ class _SentPitchesTab extends ConsumerWidget {
                 muted: muted,
               )
             : ListView(
+                controller: scrollController,
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.screenPadding, AppSpacing.md,
                   AppSpacing.screenPadding, AppSpacing.huge,
@@ -275,8 +287,9 @@ class _SentPitchesTab extends ConsumerWidget {
 }
 
 class _ReceivedPitchesTab extends ConsumerWidget {
-  const _ReceivedPitchesTab({required this.onRefresh});
+  const _ReceivedPitchesTab({required this.scrollController, required this.onRefresh});
 
+  final ScrollController scrollController;
   final VoidCallback onRefresh;
 
   @override
@@ -291,6 +304,7 @@ class _ReceivedPitchesTab extends ConsumerWidget {
       color: AppColors.agencyPrimary,
       onRefresh: () async => onRefresh(),
       child: ListView(
+        controller: scrollController,
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.screenPadding, AppSpacing.md,
           AppSpacing.screenPadding, AppSpacing.huge,
@@ -459,7 +473,7 @@ class _PitchCard extends StatelessWidget {
                 if (monthlyFee != null) ...[
                   Icon(Symbols.currency_rupee_rounded, size: 12, color: muted),
                   const SizedBox(width: 2),
-                  Text('₹${monthlyFee}/mo', style: AppTypography.labelXS.copyWith(color: muted)),
+                  Text('₹$monthlyFee/mo', style: AppTypography.labelXS.copyWith(color: muted)),
                   const SizedBox(width: AppSpacing.md),
                 ],
                 if (profitRatio != null) ...[
@@ -572,7 +586,7 @@ class _PitchDetailSheet extends StatelessWidget {
           Row(
             children: [
               if (monthlyFee != null)
-                _DetailChip(icon: Icons.currency_rupee, label: '₹${monthlyFee}/month'),
+                _DetailChip(icon: Icons.currency_rupee, label: '₹$monthlyFee/month'),
               if (profitRatio != null)
                 _DetailChip(icon: Icons.percent, label: '$profitRatio% profit'),
               if (proposedAmount != null)

@@ -23,12 +23,24 @@ class AgencyPartneredScreen extends ConsumerStatefulWidget {
 }
 
 class _AgencyPartneredScreenState extends ConsumerState<AgencyPartneredScreen> {
+  final _scrollController = ScrollController();
+  double _scrollOffset = 0;
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (mounted) setState(() => _scrollOffset = _scrollController.offset);
+    });
     Future<void>.microtask(() {
       ref.read(agencyRosterProvider.notifier).refresh();
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _refresh() async {
@@ -57,6 +69,7 @@ class _AgencyPartneredScreenState extends ConsumerState<AgencyPartneredScreen> {
       extendBody: true,
       bottomNavigationBar: const BCBottomNav(role: BCPortalRole.agency, currentIndex: 3),
       body: AgencyPageLayout(
+          scrollOffset: _scrollOffset,
           child: BCPageSwipeArea(
             role: BCPortalRole.agency,
             currentIndex: 3,
@@ -66,6 +79,7 @@ class _AgencyPartneredScreenState extends ConsumerState<AgencyPartneredScreen> {
                 color: AppColors.agencyPrimary,
                 onRefresh: _refresh,
                 child: CustomScrollView(
+                  controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   slivers: [
                     SliverToBoxAdapter(
@@ -74,7 +88,7 @@ class _AgencyPartneredScreenState extends ConsumerState<AgencyPartneredScreen> {
                         decoration: BoxDecoration(
                           color: surface,
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                          border: Border(top: BorderSide(color: AppColors.agencyDark, width: 2.2)),
+                          border: const Border(top: BorderSide(color: AppColors.agencyDark, width: 2.2)),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.fromLTRB(AppSpacing.screenPadding, 30, AppSpacing.screenPadding, AppSpacing.md),

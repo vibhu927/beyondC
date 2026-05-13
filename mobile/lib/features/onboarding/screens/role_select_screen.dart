@@ -332,7 +332,7 @@ class _RoleSelectScreenState extends State<RoleSelectScreen> {
                       Container(
                         width: 36,
                         height: 36,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.purple,
                           shape: BoxShape.circle,
                         ),

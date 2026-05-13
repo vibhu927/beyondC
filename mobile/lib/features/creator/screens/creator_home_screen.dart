@@ -32,15 +32,26 @@ class CreatorHomeScreen extends ConsumerStatefulWidget {
 
 class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
   bool _isConnectingInstagram = false;
+  final _scrollController = ScrollController();
+  double _scrollOffset = 0;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (mounted) setState(() => _scrollOffset = _scrollController.offset);
+    });
     Future<void>.microtask(() {
       unawaited(ref.read(notificationProvider.notifier).fetchNotifications());
       unawaited(ref.read(creatorHomeProvider.notifier).refreshSilently());
       ref.read(creatorCampaignsProvider);
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _refresh() async {
@@ -130,6 +141,10 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
               const headerHeight = 48.0;
               const headerGap = 34.0;
               final sheetTop = topInset + headerHeight + headerGap;
+              final headerSlide = _scrollOffset.clamp(0.0, sheetTop);
+              final collapseProgress = (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+              final collapsedTop = MediaQuery.of(context).padding.top + 8;
+              final headerTop = lerpDouble(topInset, collapsedTop, collapseProgress)!;
 
               return Stack(
                 children: [
@@ -169,14 +184,9 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                       color: AppColors.creatorDark.withValues(alpha: 0.1),
                     ),
                   ),
-                  Positioned(
-                    top: topInset,
-                    left: AppSpacing.screenPadding,
-                    right: AppSpacing.screenPadding,
-                    child: const CreatorPageTopHeader(),
-                  ),
                   Positioned.fill(
                     child: ListView(
+                      controller: _scrollController,
                       physics: const AlwaysScrollableScrollPhysics(),
                       padding: EdgeInsets.fromLTRB(0, sheetTop, 0, 0),
                       children: [
@@ -347,6 +357,30 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                         ),
                       ],
                     ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: collapsedTop + 48 + 16,
+                    child: IgnorePointer(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.lightBg.withValues(alpha: collapseProgress * 0.95),
+                          border: collapseProgress > 0.5
+                              ? const Border(
+                                  bottom: BorderSide(color: AppColors.lightBorder),
+                                )
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    top: headerTop,
+                    left: AppSpacing.screenPadding,
+                    right: AppSpacing.screenPadding,
+                    child: CreatorPageTopHeader(collapseProgress: collapseProgress),
                   ),
                 ],
               );

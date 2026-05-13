@@ -24,13 +24,25 @@ class AgencyHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _AgencyHomeScreenState extends ConsumerState<AgencyHomeScreen> {
+  final _scrollController = ScrollController();
+  double _scrollOffset = 0;
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (mounted) setState(() => _scrollOffset = _scrollController.offset);
+    });
     Future<void>.microtask(_loadInitialData);
     Future<void>.microtask(() {
       ref.read(agencyProfileProvider);
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadInitialData() async {
@@ -74,6 +86,7 @@ class _AgencyHomeScreenState extends ConsumerState<AgencyHomeScreen> {
         currentIndex: 0,
       ),
       body: AgencyPageLayout(
+        scrollOffset: _scrollOffset,
         child: BCPageSwipeArea(
           role: BCPortalRole.agency,
           currentIndex: 0,
@@ -83,6 +96,7 @@ class _AgencyHomeScreenState extends ConsumerState<AgencyHomeScreen> {
               color: AppColors.agencyPrimary,
               onRefresh: _refresh,
               child: ListView(
+                controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.fromLTRB(0, sheetTop, 0, 0),
                 children: [
@@ -92,7 +106,7 @@ class _AgencyHomeScreenState extends ConsumerState<AgencyHomeScreen> {
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(30),
                       ),
-                      border: Border(
+                      border: const Border(
                         top: BorderSide(
                           color: AppColors.agencyDark,
                           width: 2.2,

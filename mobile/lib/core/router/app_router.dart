@@ -225,7 +225,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.brandCampaigns,
-        pageBuilder: (c, s) => NoTransitionPage(
+        pageBuilder: (c, s) => const NoTransitionPage(
           child: BrandCampaignsScreen(),
         ),
       ),
@@ -323,7 +323,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteNames.agencyPitchCreator,
-        builder: (c, s) => AgencyPitchCreatorScreen(),
+        builder: (c, s) => const AgencyPitchCreatorScreen(),
       ),
       GoRoute(
         path: RouteNames.agencyPitchBrand,

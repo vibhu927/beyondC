@@ -22,9 +22,11 @@ export async function POST(request: NextRequest) {
     if (!pitch_type || !target_id) return NextResponse.json({ error: 'pitch_type and target_id required' }, { status: 400 })
 
     if (pitch_type === 'creator') {
+      const pitchType = monthly_fee ? 'monthly_fee' : (profit_ratio ? 'profit_ratio' : null);
       const { error } = await supabase.from('agency_creator_pitches').insert({
         agency_id: user.id,
         creator_id: target_id,
+        pitch_type: pitchType,
         pitch_title,
         pitch_message: pitch_message,
         monthly_fee: monthly_fee,
@@ -77,37 +79,115 @@ export async function GET(request: NextRequest) {
     if (!type || type === 'creator') {
       const { data: creatorPitches, error: creatorError } = await supabase
         .from('agency_creator_pitches')
-        .select(`
-          *,
-          creator:creator_profiles!agency_creator_pitches_creator_id_fkey (id, bio, niches, platforms, followers_count),
-          creator_profile:profiles!agency_creator_pitches_creator_id_fkey (first_name, full_name, avatar_url, state, city)
-        `)
+        .select('*')
         .eq('agency_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (!creatorError && creatorPitches) {
-        pitches = [...pitches, ...creatorPitches.map(p => ({ ...p, pitch_direction: 'to_creator' }))]
+      if (!creatorError && creatorPitches && creatorPitches.length > 0) {
+        for (const p of creatorPitches) {
+          const profileRes = await supabase
+            .from('profiles')
+            .select('id, first_name, full_name, avatar_url')
+            .eq('id', p.creator_id)
+            .maybeSingle()
+          
+          const creatorRes = await supabase
+            .from('creator_profiles')
+            .select('id, bio, niche')
+            .eq('id', p.creator_id)
+            .maybeSingle()
+          
+          pitches.push({
+            ...p,
+            pitch_direction: 'to_creator',
+            creator: creatorRes.data || {},
+            creator_profile: profileRes.data || {},
+          })
+        }
       }
     }
 
     if (!type || type === 'brand') {
       const { data: brandPitches, error: brandError } = await supabase
         .from('agency_brand_pitches')
-        .select(`
-          *,
-          brand:brand_profiles!agency_brand_pitches_brand_id_fkey (id, brand_name, brand_category, logo_url, size),
-          creator:creator_profiles!agency_brand_pitches_creator_id_fkey (id, bio, niches, followers_count),
-          creator_profile:profiles!agency_brand_pitches_creator_id_fkey (first_name, full_name, avatar_url)
-        `)
+        .select('*')
         .eq('agency_id', user.id)
         .order('created_at', { ascending: false })
 
-      if (!brandError && brandPitches) {
-        pitches = [...pitches, ...brandPitches.map(p => ({ ...p, pitch_direction: 'to_brand' }))]
+      if (!brandError && brandPitches && brandPitches.length > 0) {
+        for (const p of brandPitches) {
+          let brandProfile = null
+          let creatorProfile = null
+          let creatorProfileData = null
+          
+          try {
+            const bp = await supabase.from('brand_profiles').select('id, brand_name, brand_category, logo_url, size').eq('id', p.brand_id).maybeSingle()
+            brandProfile = bp.data
+          } catch (e) {}
+          
+          try {
+            const cp = await supabase.from('creator_profiles').select('id, bio, niches, followers_count').eq('id', p.creator_id).maybeSingle()
+            creatorProfile = cp.data
+          } catch (e) {}
+          
+          try {
+            const cpf = await supabase.from('profiles').select('first_name, full_name, avatar_url').eq('id', p.creator_id).maybeSingle()
+            creatorProfileData = cpf.data
+          } catch (e) {}
+          
+          pitches.push({
+            ...p,
+            pitch_direction: 'to_brand',
+            brand: brandProfile || {},
+            creator: creatorProfile || {},
+            creator_profile: creatorProfileData || {},
+          })
+        }
       }
     }
 
     return NextResponse.json({ pitches })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 400 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = createClient()
+    const body = await request.json()
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+
+    const { data: profileRow } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profileRow?.role !== 'agency') return NextResponse.json({ error: 'Forbidden: not an agency' }, { status: 403 })
+
+    const { pitch_id, pitch_type } = body
+
+    if (!pitch_id || !pitch_type) {
+      return NextResponse.json({ error: 'pitch_id and pitch_type required' }, { status: 400 })
+    }
+
+    const table = pitch_type === 'creator' ? 'agency_creator_pitches' : 'agency_brand_pitches'
+
+    const { error: updateError } = await supabase
+      .from(table)
+      .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+      .eq('id', pitch_id)
+      .eq('agency_id', user.id)
+      .eq('status', 'pending')
+
+    if (updateError) {
+      return NextResponse.json({ error: updateError.message }, { status: 400 })
+    }
+
+    return NextResponse.json({ message: 'Pitch withdrawn successfully' })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }

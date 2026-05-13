@@ -53,7 +53,6 @@ export async function GET(request: NextRequest) {
           is_onboarded
         )
       `, { count: 'exact' })
-      .eq('profile.is_onboarded', true)
 
     if (brand_category) query = query.eq('brand_category', brand_category)
     if (size && ['startup', 'small', 'medium', 'enterprise'].includes(size)) query = query.eq('size', size)
@@ -68,7 +67,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    const normalized = (brands ?? []).map((item: any) => {
+    // Filter to show any brand with a profile (not just onboarded)
+    const filteredBrands = brands?.filter((b: any) => b.profile?.id) ?? []
+    const filteredCount = count != null ? (brands?.length ?? 0) : null
+
+    const normalized = (filteredBrands).map((item: any) => {
       const profile = item.profile ?? {}
       return {
         id: item.id,
@@ -93,8 +96,8 @@ export async function GET(request: NextRequest) {
       pagination: {
         page,
         limit,
-        total: count || 0,
-        total_pages: Math.ceil((count || 0) / limit),
+        total: filteredCount ?? normalized.length,
+        total_pages: Math.ceil((filteredCount ?? normalized.length) / limit),
       },
     })
   } catch (error: any) {

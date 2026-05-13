@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,10 +38,15 @@ class _CreatorDiscoveryScreenState
   int? _maxBudget;
   String _platform = 'Both';
   double? _minEngagement;
+  final _scrollController = ScrollController();
+  double _scrollOffset = 0;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (mounted) setState(() => _scrollOffset = _scrollController.offset);
+    });
     Future<void>.microtask(() async {
       await ref.read(brandProvider.notifier).fetchBrandHome();
       final brand = ref.read(brandProvider).brandProfile;
@@ -55,6 +62,7 @@ class _CreatorDiscoveryScreenState
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -63,6 +71,13 @@ class _CreatorDiscoveryScreenState
     final brandState = ref.watch(brandProvider);
     final creators = _filteredCreators(brandState.creators);
     final topInset = MediaQuery.of(context).padding.top + 14;
+    const headerHeight = 48.0;
+    const headerGap = 34.0;
+    final sheetTop = topInset + headerHeight + headerGap;
+    final headerSlide = _scrollOffset.clamp(0.0, sheetTop);
+    final collapseProgress = (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+    final collapsedTop = MediaQuery.of(context).padding.top + 8;
+    final headerTop = lerpDouble(topInset, collapsedTop, collapseProgress)!;
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
@@ -108,17 +123,9 @@ class _CreatorDiscoveryScreenState
             ),
           ),
           ListView(
-            padding: EdgeInsets.fromLTRB(
-              AppSpacing.screenPadding,
-              topInset,
-              AppSpacing.screenPadding,
-              AppSpacing.huge,
-            ),
+            controller: _scrollController,
+            padding: EdgeInsets.fromLTRB(0, sheetTop, 0, 0),
             children: [
-              const BrandPageTopHeader(
-                showBrandIdentity: false,
-                showBackButton: true,
-              ),
               const SizedBox(height: AppSpacing.lg),
               Text(
                 'Find Creators',
@@ -247,6 +254,32 @@ class _CreatorDiscoveryScreenState
                       .toList(),
                 ),
             ],
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: collapsedTop + 48 + 16,
+            child: IgnorePointer(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.lightBg.withValues(alpha: collapseProgress * 0.95),
+                  border: collapseProgress > 0.5
+                      ? const Border(bottom: BorderSide(color: AppColors.lightBorder))
+                      : null,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: headerTop,
+            left: AppSpacing.screenPadding,
+            right: AppSpacing.screenPadding,
+            child: BrandPageTopHeader(
+              showBrandIdentity: false,
+              showBackButton: true,
+              collapseProgress: collapseProgress,
+            ),
           ),
         ],
       ),

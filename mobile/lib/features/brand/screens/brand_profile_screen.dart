@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,10 +39,15 @@ class BrandProfileScreen extends ConsumerStatefulWidget {
 
 class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
   String? _avatarUrl;
+  final _scrollController = ScrollController();
+  double _scrollOffset = 0;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (mounted) setState(() => _scrollOffset = _scrollController.offset);
+    });
     Future<void>.microtask(() async {
       await ref.read(brandProvider.notifier).fetchBrandHome();
       ref.read(brandProfileProvider);
@@ -49,6 +55,12 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
       ref.read(creditsProvider);
       await _loadAvatarUrl();
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _refresh() async {
@@ -342,6 +354,15 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
         ? '${profile.city}, ${profile.state ?? ''}'
         : ((profile.state ?? '').trim().isEmpty ? 'Location not set' : profile.state!);
 
+    final topInset = MediaQuery.of(context).padding.top + 14;
+    const headerHeight = 48.0;
+    const headerGap = 34.0;
+    final sheetTop = topInset + headerHeight + headerGap;
+    final headerSlide = _scrollOffset.clamp(0.0, sheetTop);
+    final collapseProgress = (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+    final collapsedTop = MediaQuery.of(context).padding.top + 8;
+    final headerTop = lerpDouble(topInset, collapsedTop, collapseProgress)!;
+
     return Scaffold(
       extendBody: true,
       bottomNavigationBar: const BCBottomNav(role: BCPortalRole.brand, currentIndex: 3),
@@ -357,15 +378,6 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
               Positioned(top: 220, left: -44, child: _GlowOrb(size: 112, color: AppColors.brandDark.withValues(alpha: 0.08))),
               Column(
                 children: [
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.screenPadding,
-                      MediaQuery.of(context).padding.top + 14,
-                      AppSpacing.screenPadding,
-                      AppSpacing.sm,
-                    ),
-                    child: const BrandPageTopHeader(),
-                  ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
                       AppSpacing.screenPadding,
@@ -475,13 +487,9 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                           color: AppColors.brandPrimary,
                           onRefresh: _refresh,
                           child: ListView(
+                            controller: _scrollController,
                             physics: const AlwaysScrollableScrollPhysics(),
-                            padding: const EdgeInsets.fromLTRB(
-                              AppSpacing.screenPadding,
-                              AppSpacing.sm,
-                              AppSpacing.screenPadding,
-                              AppSpacing.huge + AppSpacing.xxxl,
-                            ),
+                            padding: EdgeInsets.fromLTRB(0, sheetTop, 0, 0),
                             children: [
                               BCCard(
                                 child: Column(
@@ -635,6 +643,28 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                     ),
                   ),
                 ],
+              ),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: collapsedTop + 48 + 16,
+                child: IgnorePointer(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.lightBg.withValues(alpha: collapseProgress * 0.95),
+                      border: collapseProgress > 0.5
+                          ? const Border(bottom: BorderSide(color: AppColors.lightBorder))
+                          : null,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: headerTop,
+                left: AppSpacing.screenPadding,
+                right: AppSpacing.screenPadding,
+                child: BrandPageTopHeader(collapseProgress: collapseProgress),
               ),
             ],
           ),

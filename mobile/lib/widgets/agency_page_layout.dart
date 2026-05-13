@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,9 +8,14 @@ import '../core/theme/app_spacing.dart';
 import 'agency_page_top_header.dart';
 
 class AgencyPageLayout extends ConsumerWidget {
+  final double collapseProgress;
+  final double? scrollOffset;
+
   const AgencyPageLayout({
     super.key,
     required this.child,
+    this.collapseProgress = 0.0,
+    this.scrollOffset,
     this.currentIndex = 0,
     this.showHeader = true,
   });
@@ -24,6 +31,10 @@ class AgencyPageLayout extends ConsumerWidget {
     const headerHeight = 48.0;
     const headerGap = 34.0;
     final sheetTop = topInset + headerHeight + headerGap + 16;
+    final headerSlide = (scrollOffset ?? 0.0).clamp(0.0, sheetTop);
+    final progress = (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+    final collapsedTop = MediaQuery.of(context).padding.top + 8;
+    final headerTop = lerpDouble(topInset, collapsedTop, progress)!;
 
     final bg = theme == Brightness.dark ? AppColors.darkBg : AppColors.lightBg;
 
@@ -56,12 +67,30 @@ class AgencyPageLayout extends ConsumerWidget {
             color: AppColors.agencyPrimary.withValues(alpha: 0.15),
           ),
         ),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: collapsedTop + 48 + 16,
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.lightBg.withValues(alpha: progress * 0.95),
+                border: progress > 0.5
+                    ? const Border(
+                        bottom: BorderSide(color: AppColors.lightBorder),
+                      )
+                    : null,
+              ),
+            ),
+          ),
+        ),
         if (showHeader)
           Positioned(
-            top: topInset,
+            top: headerTop,
             left: AppSpacing.screenPadding,
             right: AppSpacing.screenPadding,
-            child: const AgencyPageTopHeader(),
+            child: AgencyPageTopHeader(collapseProgress: progress),
           ),
         Positioned.fill(child: child),
       ],

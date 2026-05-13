@@ -293,10 +293,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         width: AppSpacing.borderWidth,
                       ),
                       boxShadow: [
-                        BoxShadow(
+                        const BoxShadow(
                           color: AppColors.purple,
                           blurRadius: 0,
-                          offset: const Offset(4, 4),
+                          offset: Offset(4, 4),
                         ),
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.05),
@@ -319,7 +319,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         Container(
                           width: 28,
                           height: 28,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: AppColors.purple,
                             shape: BoxShape.circle,
                           ),

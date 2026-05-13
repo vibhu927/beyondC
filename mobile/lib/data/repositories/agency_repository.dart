@@ -67,6 +67,17 @@ class AgencyRepository {
     }
   }
 
+  Future<void> withdrawPitch(String pitchId, String pitchType) async {
+    try {
+      await _dio.delete('/agency/pitches', data: {
+        'pitch_id': pitchId,
+        'pitch_type': pitchType,
+      });
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
   Future<List<dynamic>> getBids() async {
     try {
       final response = await _dio.get('/agency/bids');

@@ -3,11 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
-import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../data/repositories/agency_repository.dart';
 import '../../../providers/agency_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/cards/bc_card.dart';
@@ -149,7 +147,7 @@ class _AgencyPitchCreatorScreenState extends ConsumerState<AgencyPitchCreatorScr
                           Text(firstName, style: AppTypography.labelLG.copyWith(color: text)),
                           if (niche != null)
                             Text(
-                              niche is List ? (niche as List).join(', ') : niche.toString(),
+                              niche is List ? (niche).join(', ') : niche.toString(),
                               style: AppTypography.bodyXS.copyWith(color: muted),
                             ),
                         ],

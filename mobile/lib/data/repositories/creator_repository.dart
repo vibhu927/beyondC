@@ -255,6 +255,16 @@ class CreatorRepository {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchAgencyPitches() async {
+    try {
+      final response = await _dio.get('/creator/agency-pitches');
+      final root = _asMap(response.data);
+      return _asMapList(root['pitches']);
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parse(e));
+    }
+  }
+
   Future<Collab?> respondToRequest({
     required String requestId,
     required String action,

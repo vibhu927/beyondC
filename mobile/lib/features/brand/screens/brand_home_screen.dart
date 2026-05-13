@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,14 +25,26 @@ class BrandHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
+  final _scrollController = ScrollController();
+  double _scrollOffset = 0;
+
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (mounted) setState(() => _scrollOffset = _scrollController.offset);
+    });
     Future<void>.microtask(_loadInitialData);
     Future<void>.microtask(() {
       ref.read(brandRequestsProvider);
       ref.read(brandProfileProvider);
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadInitialData() async {
@@ -66,6 +79,10 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
     const headerHeight = 48.0;
     const headerGap = 34.0;
     final sheetTop = topInset + headerHeight + headerGap;
+    final headerSlide = _scrollOffset.clamp(0.0, sheetTop);
+    final collapseProgress = (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+    final collapsedTop = MediaQuery.of(context).padding.top + 8;
+    final headerTop = lerpDouble(topInset, collapsedTop, collapseProgress)!;
 
     return Scaffold(
       extendBody: true,
@@ -78,9 +95,9 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
         currentIndex: 0,
         child: Stack(
           children: [
-            Positioned.fill(
+            const Positioned.fill(
               child: DecoratedBox(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -118,15 +135,10 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                 color: AppColors.brandPrimary,
                 onRefresh: _refresh,
                 child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.screenPadding,
-                    MediaQuery.of(context).padding.top + 14,
-                    AppSpacing.screenPadding,
-                    navClearance,
-                  ),
-                  children: [
-                    const BrandPageTopHeader(),
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(0, sheetTop, 0, 0),
+                    children: [
                     const SizedBox(height: AppSpacing.lg),
                     _MetricRow(
                       left: _MetricData(
@@ -263,6 +275,28 @@ class _BrandHomeScreenState extends ConsumerState<BrandHomeScreen> {
                   ],
                 ),
               ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: collapsedTop + 48 + 16,
+              child: IgnorePointer(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBg.withValues(alpha: collapseProgress * 0.95),
+                    border: collapseProgress > 0.5
+                        ? const Border(bottom: BorderSide(color: AppColors.lightBorder))
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: headerTop,
+              left: AppSpacing.screenPadding,
+              right: AppSpacing.screenPadding,
+              child: BrandPageTopHeader(collapseProgress: collapseProgress),
             ),
           ],
         ),
@@ -404,8 +438,8 @@ class _TopHeader extends StatelessWidget {
                   ),
                 ),
               ),
-          ],
-        ),
+            ],
+          ),
       ],
     );
   }

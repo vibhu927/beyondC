@@ -109,7 +109,7 @@ child: IconButton(
                         color: AppColors.creatorDark.withValues(alpha: 0.14),
                       ),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Symbols.group_rounded,
                       color: AppColors.creatorDark,
                       size: 20,
@@ -294,7 +294,7 @@ class _CollabCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(
+                const Icon(
                   Icons.arrow_forward_ios_rounded,
                   color: AppColors.creatorDark,
                   size: 18,
@@ -533,7 +533,7 @@ class _CollabCardSkeleton extends StatelessWidget {
               Container(
                 width: 48,
                 height: 48,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.lightBorder,
                   shape: BoxShape.circle,
                 ),

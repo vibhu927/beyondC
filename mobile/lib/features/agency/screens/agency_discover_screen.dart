@@ -24,11 +24,16 @@ class AgencyDiscoverScreen extends ConsumerStatefulWidget {
 }
 
 class _AgencyDiscoverScreenState extends ConsumerState<AgencyDiscoverScreen> with SingleTickerProviderStateMixin {
+  final _scrollController = ScrollController();
+  double _scrollOffset = 0;
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (mounted) setState(() => _scrollOffset = _scrollController.offset);
+    });
     _tabController = TabController(length: 2, vsync: this);
     Future<void>.microtask(() {
       ref.read(agencyProfileProvider);
@@ -39,6 +44,7 @@ class _AgencyDiscoverScreenState extends ConsumerState<AgencyDiscoverScreen> wit
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -59,6 +65,7 @@ class _AgencyDiscoverScreenState extends ConsumerState<AgencyDiscoverScreen> wit
       extendBody: true,
       bottomNavigationBar: const BCBottomNav(role: BCPortalRole.agency, currentIndex: 1),
 body: AgencyPageLayout(
+          scrollOffset: _scrollOffset,
           child: BCPageSwipeArea(
             role: BCPortalRole.agency,
             currentIndex: 1,
@@ -67,7 +74,7 @@ body: AgencyPageLayout(
               decoration: BoxDecoration(
                 color: surface,
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
-                border: Border(top: BorderSide(color: AppColors.agencyDark, width: 2.2)),
+                border: const Border(top: BorderSide(color: AppColors.agencyDark, width: 2.2)),
               ),
               child: Column(
                 children: [
@@ -103,8 +110,14 @@ body: AgencyPageLayout(
                       child: TabBarView(
                         controller: _tabController,
                         children: [
-                          _DiscoverCreatorsTab(onShowAll: () => context.push(RouteNames.agencyDiscoverCreators)),
-                          _DiscoverBrandsTab(onShowAll: () => context.push(RouteNames.agencyDiscoverBrands)),
+                          _DiscoverCreatorsTab(
+                            scrollController: _scrollController,
+                            onShowAll: () => context.push(RouteNames.agencyDiscoverCreators),
+                          ),
+                          _DiscoverBrandsTab(
+                            scrollController: _scrollController,
+                            onShowAll: () => context.push(RouteNames.agencyDiscoverBrands),
+                          ),
                         ],
                       ),
                     ),
@@ -229,8 +242,9 @@ class _FilterChip extends StatelessWidget {
 }
 
 class _DiscoverCreatorsTab extends ConsumerWidget {
-  const _DiscoverCreatorsTab({required this.onShowAll});
+  const _DiscoverCreatorsTab({required this.scrollController, required this.onShowAll});
 
+  final ScrollController scrollController;
   final VoidCallback onShowAll;
 
   @override
@@ -249,6 +263,7 @@ class _DiscoverCreatorsTab extends ConsumerWidget {
         color: AppColors.agencyPrimary,
         onRefresh: () => ref.read(agencyDiscoveryProvider.notifier).refresh(),
         child: ListView(
+          controller: scrollController,
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.screenPadding, 0,
             AppSpacing.screenPadding, AppSpacing.huge,
@@ -346,7 +361,7 @@ class _CreatorActionSheet extends StatelessWidget {
                     Text(firstName, style: AppTypography.displaySM.copyWith(color: AppColors.white)),
                     if (niche != null)
                       Text(
-                        niche is List ? (niche as List).join(', ') : niche.toString(),
+                        niche is List ? (niche).join(', ') : niche.toString(),
                         style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
                       ),
                   ],
@@ -422,8 +437,9 @@ class _CreatorActionSheet extends StatelessWidget {
 }
 
 class _DiscoverBrandsTab extends ConsumerWidget {
-  const _DiscoverBrandsTab({required this.onShowAll});
+  const _DiscoverBrandsTab({required this.scrollController, required this.onShowAll});
 
+  final ScrollController scrollController;
   final VoidCallback onShowAll;
 
   @override
@@ -442,6 +458,7 @@ class _DiscoverBrandsTab extends ConsumerWidget {
         color: AppColors.agencyPrimary,
         onRefresh: () => ref.read(agencyBrandsProvider.notifier).refresh(),
         child: ListView(
+          controller: scrollController,
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.screenPadding, AppSpacing.md,
             AppSpacing.screenPadding, AppSpacing.huge,
@@ -760,7 +777,7 @@ class _CreatorCard extends StatelessWidget {
                         Text(firstName, style: AppTypography.labelLG.copyWith(color: text)),
                         if (niche != null)
                           Text(
-                            niche is List ? (niche as List).join(', ') : niche.toString(),
+                            niche is List ? (niche).join(', ') : niche.toString(),
                             style: AppTypography.bodyXS.copyWith(color: muted),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

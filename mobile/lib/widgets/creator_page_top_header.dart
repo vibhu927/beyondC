@@ -21,7 +21,9 @@ String _getGreeting() {
 }
 
 class CreatorPageTopHeader extends ConsumerWidget {
-  const CreatorPageTopHeader({super.key});
+  final double collapseProgress;
+
+  const CreatorPageTopHeader({super.key, this.collapseProgress = 0.0});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -45,44 +47,70 @@ class CreatorPageTopHeader extends ConsumerWidget {
 
     return Row(
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.creatorDark.withValues(alpha: 0.16)),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            initial,
-            style: AppTypography.labelLG.copyWith(
-              color: AppColors.creatorDark,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Stack(
+            alignment: Alignment.centerLeft,
             children: [
-              Text('${_getGreeting()},', style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
-              const SizedBox(height: 2),
-              Text(
-                displayName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.displaySM.copyWith(
-                  color: AppColors.creatorDark,
-                  fontWeight: FontWeight.w900,
+              Opacity(
+                opacity: 1.0 - collapseProgress,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: AppColors.creatorDark.withValues(alpha: 0.16)),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        initial,
+                        style: AppTypography.labelLG.copyWith(
+                          color: AppColors.creatorDark,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${_getGreeting()},', style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
+                          const SizedBox(height: 2),
+                          Text(
+                            displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.displaySM.copyWith(
+                              color: AppColors.creatorDark,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(tier, style: AppTypography.bodyXS.copyWith(color: AppColors.muted)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 2),
-              Text(tier, style: AppTypography.bodyXS.copyWith(color: AppColors.muted)),
+              Opacity(
+                opacity: collapseProgress,
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/C.png',
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
+        const SizedBox(width: AppSpacing.sm),
         _HeaderIcon(
           icon: Symbols.notifications_rounded,
           count: unreadNotifications,

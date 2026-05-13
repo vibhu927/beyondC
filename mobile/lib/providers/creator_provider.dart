@@ -546,6 +546,23 @@ final requestsProvider =
   RequestsNotifier.new,
 );
 
+final creatorAgencyPitchesProvider =
+    AsyncNotifierProvider<CreatorAgencyPitchesNotifier, List<Map<String, dynamic>>>(
+  CreatorAgencyPitchesNotifier.new,
+);
+
+class CreatorAgencyPitchesNotifier extends AsyncNotifier<List<Map<String, dynamic>>> {
+  @override
+  Future<List<Map<String, dynamic>>> build() async {
+    return ref.read(creatorRepositoryProvider).fetchAgencyPitches();
+  }
+
+  Future<void> refresh() async {
+    ref.invalidateSelf();
+    await future;
+  }
+}
+
 final creatorCollabsProvider =
     AsyncNotifierProvider<CreatorCollabsNotifier, List<Collab>>(
   CreatorCollabsNotifier.new,

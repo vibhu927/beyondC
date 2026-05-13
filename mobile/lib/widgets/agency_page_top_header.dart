@@ -21,7 +21,9 @@ String _getGreeting() {
 }
 
 class AgencyPageTopHeader extends ConsumerWidget {
-  const AgencyPageTopHeader({super.key});
+  final double collapseProgress;
+
+  const AgencyPageTopHeader({super.key, this.collapseProgress = 0.0});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,39 +43,71 @@ class AgencyPageTopHeader extends ConsumerWidget {
 
     return Row(
       children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.agencyDark.withValues(alpha: 0.16)),
-          ),
-          alignment: Alignment.center,
-          child: const Icon(
-            Icons.business,
-            color: AppColors.agencyDark,
-            size: 24,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.md),
         Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Stack(
+            alignment: Alignment.centerLeft,
             children: [
-              Text('${_getGreeting()},', style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
-              const SizedBox(height: 2),
-              Text(
-                agencyName,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.displaySM.copyWith(
-                  color: AppColors.agencyDark,
-                  fontWeight: FontWeight.w900,
+              Opacity(
+                opacity: 1.0 - collapseProgress,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: AppColors.agencyDark.withValues(alpha: 0.16)),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.business,
+                        color: AppColors.agencyDark,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${_getGreeting()},', style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
+                          const SizedBox(height: 2),
+                          Text(
+                            agencyName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.displaySM.copyWith(
+                              color: AppColors.agencyDark,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text('Partner with top creators', style: AppTypography.bodyXS.copyWith(color: AppColors.muted)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 2),
-              Text('Partner with top creators', style: AppTypography.bodyXS.copyWith(color: AppColors.muted)),
+              Opacity(
+                opacity: collapseProgress,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.agencyDark.withValues(alpha: 0.16)),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.business,
+                    color: AppColors.agencyDark,
+                    size: 22,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

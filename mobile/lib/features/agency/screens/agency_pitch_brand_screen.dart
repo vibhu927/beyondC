@@ -301,7 +301,7 @@ class _CreatorSelectChip extends StatelessWidget {
                 Text(firstName, style: AppTypography.labelSM.copyWith(color: AppColors.agencyDark, fontWeight: FontWeight.w700)),
                 if (niche != null)
                   Text(
-                    niche is List ? (niche as List).join(', ') : niche.toString(),
+                    niche is List ? (niche).join(', ') : niche.toString(),
                     style: AppTypography.labelXS.copyWith(color: AppColors.muted),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,

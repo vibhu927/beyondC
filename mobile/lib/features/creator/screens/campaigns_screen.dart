@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,6 +33,7 @@ class CampaignsScreen extends ConsumerStatefulWidget {
 
 class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
   final ScrollController _scrollController = ScrollController();
+  double _scrollOffset = 0;
 
   String _activeChip = _campaignFilterChips.first;
   _CampaignSort _activeSort = _CampaignSort.newest;
@@ -67,6 +70,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
+    setState(() => _scrollOffset = _scrollController.offset);
     final max = _scrollController.position.maxScrollExtent;
     final current = _scrollController.position.pixels;
     if (current >= max - 220) {
@@ -434,6 +438,10 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
     const headerHeight = 48.0;
     const headerGap = 34.0;
     final sheetTop = topInset + headerHeight + headerGap;
+    final headerSlide = _scrollOffset.clamp(0.0, sheetTop);
+    final collapseProgress = (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+    final collapsedTop = MediaQuery.of(context).padding.top + 8;
+    final headerTop = lerpDouble(topInset, collapsedTop, collapseProgress)!;
 
     return Scaffold(
       extendBody: true,
@@ -477,12 +485,6 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                 size: 126,
                 color: AppColors.pink.withValues(alpha: 0.14),
               ),
-            ),
-            Positioned(
-              top: topInset,
-              left: AppSpacing.screenPadding,
-              right: AppSpacing.screenPadding,
-              child: const CreatorPageTopHeader(),
             ),
             Positioned.fill(
               child: RefreshIndicator(
@@ -719,6 +721,30 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                   ),
                 ),
               ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: collapsedTop + 48 + 16,
+              child: IgnorePointer(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBg.withValues(alpha: collapseProgress * 0.95),
+                    border: collapseProgress > 0.5
+                        ? const Border(
+                            bottom: BorderSide(color: AppColors.lightBorder),
+                          )
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: headerTop,
+              left: AppSpacing.screenPadding,
+              right: AppSpacing.screenPadding,
+              child: CreatorPageTopHeader(collapseProgress: collapseProgress),
             ),
           ],
         ),

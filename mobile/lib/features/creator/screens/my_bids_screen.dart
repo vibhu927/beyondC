@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,14 +30,25 @@ class MyBidsScreen extends ConsumerStatefulWidget {
 
 class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
   _BidFilter _activeFilter = _BidFilter.all;
+  final _scrollController = ScrollController();
+  double _scrollOffset = 0;
 
   @override
   void initState() {
     super.initState();
+    _scrollController.addListener(() {
+      if (mounted) setState(() => _scrollOffset = _scrollController.offset);
+    });
     Future<void>.microtask(() {
       ref.read(creatorCampaignsProvider);
       ref.read(creatorProfileProvider);
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _refresh() async {
@@ -52,6 +65,10 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
     const headerHeight = 48.0;
     const headerGap = 34.0;
     final sheetTop = topInset + headerHeight + headerGap;
+    final headerSlide = _scrollOffset.clamp(0.0, sheetTop);
+    final collapseProgress = (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+    final collapsedTop = MediaQuery.of(context).padding.top + 8;
+    final headerTop = lerpDouble(topInset, collapsedTop, collapseProgress)!;
 
     return Scaffold(
       extendBody: true,
@@ -96,12 +113,6 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
                 color: AppColors.pink.withValues(alpha: 0.14),
               ),
             ),
-            Positioned(
-              top: topInset,
-              left: AppSpacing.screenPadding,
-              right: AppSpacing.screenPadding,
-              child: const CreatorPageTopHeader(),
-            ),
             Positioned.fill(
               child: bidsAsync.when(
                 loading: () => const _MyBidsLoadingView(),
@@ -119,13 +130,9 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
                     color: AppColors.neon,
                     onRefresh: _refresh,
                     child: ListView(
+                      controller: _scrollController,
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.fromLTRB(
-                        0,
-                        sheetTop,
-                        0,
-                        0,
-                      ),
+                      padding: EdgeInsets.only(top: sheetTop),
                       children: [
                         Container(
                           constraints: BoxConstraints(
@@ -352,6 +359,30 @@ class _MyBidsScreenState extends ConsumerState<MyBidsScreen> {
                   );
                 },
               ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              height: collapsedTop + 48 + 16,
+              child: IgnorePointer(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.lightBg.withValues(alpha: collapseProgress * 0.95),
+                    border: collapseProgress > 0.5
+                        ? const Border(
+                            bottom: BorderSide(color: AppColors.lightBorder),
+                          )
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: headerTop,
+              left: AppSpacing.screenPadding,
+              right: AppSpacing.screenPadding,
+              child: CreatorPageTopHeader(collapseProgress: collapseProgress),
             ),
           ],
         ),

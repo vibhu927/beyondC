@@ -27,7 +27,7 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
       extendBody: true,
       body: Stack(
         children: [
-          Positioned.fill(
+          const Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -35,10 +35,10 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                   end: Alignment.bottomCenter,
                   colors: [
                     AppColors.lightBg,
-                    const Color(0xFFD8E6C6),
-                    const Color(0xFFC4D4AE),
+                    Color(0xFFD8E6C6),
+                    Color(0xFFC4D4AE),
                   ],
-                  stops: const [0.0, 0.4, 1.0],
+                  stops: [0.0, 0.4, 1.0],
                 ),
               ),
             ),
@@ -103,7 +103,7 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                         color: AppColors.creatorDark.withValues(alpha: 0.14),
                       ),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Symbols.share_rounded,
                       color: AppColors.creatorDark,
                       size: 20,
@@ -124,7 +124,7 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                 data: (collab) {
                   final isCompleted = collab.status == 'completed';
                   return ListView(
-                    padding: EdgeInsets.only(
+                    padding: const EdgeInsets.only(
                       left: AppSpacing.screenPadding,
                       right: AppSpacing.screenPadding,
                       top: 84,
@@ -249,7 +249,7 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                                       child: Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          Icon(
+                                          const Icon(
                                             Symbols.chat_rounded,
                                             color: AppColors.neon,
                                             size: 20,
@@ -288,7 +288,7 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(
+                                    const Icon(
                                       Symbols.checklist_rounded,
                                       color: AppColors.creatorDark,
                                       size: 20,
@@ -362,7 +362,7 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                           accentColor: AppColors.neon,
                           child: Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Symbols.star_rounded,
                                 color: AppColors.creatorDark,
                                 size: 24,

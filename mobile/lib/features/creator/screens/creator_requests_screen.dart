@@ -18,12 +18,42 @@ import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/creator_page_top_header.dart';
 
-class CreatorRequestsScreen extends ConsumerWidget {
+class CreatorRequestsScreen extends ConsumerStatefulWidget {
   const CreatorRequestsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CreatorRequestsScreen> createState() => _CreatorRequestsScreenState();
+}
+
+class _CreatorRequestsScreenState extends ConsumerState<CreatorRequestsScreen> {
+  int _selectedTab = 0;
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 0);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _onTabChanged(int index) {
+    setState(() => _selectedTab = index);
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final requestsAsync = ref.watch(requestsProvider);
+    final agencyPitchesAsync = ref.watch(creatorAgencyPitchesProvider);
 
     return Scaffold(
       extendBody: true,
@@ -36,46 +66,62 @@ class CreatorRequestsScreen extends ConsumerWidget {
         currentIndex: 3,
         child: RefreshIndicator(
           color: AppColors.neon,
-          onRefresh: () => ref.read(requestsProvider.notifier).refresh(),
-          child: requestsAsync.when(
-            loading: () => const Center(child: BCAppLoader()),
-            error: (error, _) => BCErrorState(
-              message: error.toString(),
-              onRetry: () => ref.read(requestsProvider.notifier).refresh(),
-            ),
-            data: (requests) {
-              return ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
+          onRefresh: () async {
+            if (_selectedTab == 0) {
+              await ref.read(requestsProvider.notifier).refresh();
+            } else {
+              await ref.read(creatorAgencyPitchesProvider.notifier).refresh();
+            }
+          },
+          child: Column(
+            children: [
+              Padding(
                 padding: EdgeInsets.fromLTRB(
                   AppSpacing.screenPadding,
                   MediaQuery.of(context).padding.top + 14,
                   AppSpacing.screenPadding,
-                  AppSpacing.huge,
+                  AppSpacing.md,
                 ),
-                children: [
-                  const CreatorPageTopHeader(),
-                  const SizedBox(height: AppSpacing.lg),
-                  if (requests.isEmpty)
-                    const BCEmptyState(
-                      emoji: '??',
-                      message: 'No requests yet. Brands will reach out soon.',
-                    )
-                  else
-                    ...requests.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final request = entry.value;
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index == requests.length - 1
-                              ? 0
-                              : AppSpacing.md,
-                        ),
-                        child: _RequestCard(request: request),
-                      );
-                    }),
-                ],
-              );
-            },
+                child: Column(
+                  children: [
+                    const CreatorPageTopHeader(),
+                    const SizedBox(height: AppSpacing.md),
+                    _CreatorCardShell(
+                      accent: AppColors.neon,
+                      padding: const EdgeInsets.all(6),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _TabButton(
+                              label: 'Brand Requests',
+                              isSelected: _selectedTab == 0,
+                              onTap: () => _onTabChanged(0),
+                            ),
+                          ),
+                          Expanded(
+                            child: _TabButton(
+                              label: 'Agency Pitches',
+                              isSelected: _selectedTab == 1,
+                              onTap: () => _onTabChanged(1),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (index) => setState(() => _selectedTab = index),
+                  children: [
+                    _BrandRequestsTab(requestsAsync: requestsAsync),
+                    _AgencyPitchesTab(pitchesAsync: agencyPitchesAsync),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -83,8 +129,122 @@ class CreatorRequestsScreen extends ConsumerWidget {
   }
 }
 
-class _RequestCard extends ConsumerWidget {
-  const _RequestCard({required this.request});
+class _CreatorCardShell extends StatelessWidget {
+  const _CreatorCardShell({
+    required this.child,
+    required this.accent,
+    this.padding = const EdgeInsets.all(AppSpacing.lg),
+  });
+
+  final Widget child;
+  final Color accent;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppColors.lightBorder),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+          BoxShadow(
+            color: accent.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class _TabButton extends StatelessWidget {
+  const _TabButton({required this.label, required this.isSelected, required this.onTap});
+
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.creatorDark : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: AppTypography.labelMD.copyWith(
+            color: isSelected ? AppColors.white : AppColors.creatorDark,
+            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BrandRequestsTab extends ConsumerWidget {
+  const _BrandRequestsTab({required this.requestsAsync});
+
+  final AsyncValue<List<CollabRequest>> requestsAsync;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return requestsAsync.when(
+      loading: () => const Center(child: BCAppLoader()),
+      error: (error, _) => BCErrorState(
+        message: error.toString(),
+        onRetry: () => ref.read(requestsProvider.notifier).refresh(),
+      ),
+      data: (requests) {
+        if (requests.isEmpty) {
+          return const Center(
+            child: BCEmptyState(
+              emoji: '📨',
+              message: 'No brand requests yet. Brands will reach out soon.',
+            ),
+          );
+        }
+        return ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenPadding,
+            AppSpacing.md,
+            AppSpacing.screenPadding,
+            AppSpacing.huge,
+          ),
+          itemCount: requests.length,
+          itemBuilder: (context, index) {
+            final request = requests[index];
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index == requests.length - 1 ? 0 : AppSpacing.md,
+              ),
+              child: _BrandRequestCard(request: request),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _BrandRequestCard extends ConsumerWidget {
+  const _BrandRequestCard({required this.request});
 
   final CollabRequest request;
 
@@ -92,8 +252,9 @@ class _RequestCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final actionLoading = ref.watch(creatorActionsProvider).isLoading;
 
-    return GlassPanel(
-      accentColor: AppColors.blue,
+    return _CreatorCardShell(
+      accent: AppColors.neon,
+      padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -103,33 +264,42 @@ class _RequestCard extends ConsumerWidget {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: AppColors.blue,
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                  border: Border.all(color: AppColors.ink, width: 2),
+                  color: _avatarColor(request.brandInitial),
+                  borderRadius: BorderRadius.circular(16),
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   request.brandInitial,
-                  style: AppTypography.labelMD.copyWith(color: AppColors.white),
+                  style: AppTypography.labelMD.copyWith(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(request.brandName, style: AppTypography.labelLG),
-                    const SizedBox(height: AppSpacing.xs),
                     Text(
-                      timeago.format(request.receivedAt),
-                      style: AppTypography.bodyXS,
+                      request.brandName,
+                      style: AppTypography.labelLG.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${request.brandCategory} / ${timeago.format(request.receivedAt)}',
+                      style: AppTypography.bodyXS.copyWith(
+                        color: AppColors.muted,
+                      ),
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.md),
           Wrap(
             spacing: AppSpacing.sm,
             runSpacing: AppSpacing.xs,
@@ -139,8 +309,8 @@ class _RequestCard extends ConsumerWidget {
                 variant: BCBadgeVariant.neon,
               ),
               BCBadge(
-                label: _collabTypeLabel(request.collabType),
-                variant: _collabTypeVariant(request.collabType),
+                label: _collabTypeLabel(request.collabType.name),
+                variant: _collabTypeVariant(request.collabType.name),
               ),
               BCBadge(
                 label: request.status,
@@ -151,13 +321,13 @@ class _RequestCard extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
-              _RequestButton(
+              _CardActionButton(
                 label: 'View Campaigns',
                 filled: false,
                 onTap: () => context.push(RouteNames.creatorCampaigns),
               ),
               const SizedBox(width: AppSpacing.sm),
-              _RequestButton(
+              _CardActionButton(
                 label: actionLoading ? 'Please wait...' : 'Accept',
                 filled: true,
                 onTap: actionLoading
@@ -170,41 +340,18 @@ class _RequestCard extends ConsumerWidget {
                                 requestId: request.id,
                                 action: 'accept',
                               );
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Request accepted.')),
-                          );
+                          await ref.read(requestsProvider.notifier).refresh();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Request accepted!')),
+                            );
+                          }
                         } catch (e) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(e.toString())),
-                          );
-                        }
-                      },
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              _RequestButton(
-                label: 'Reject',
-                filled: false,
-                onTap: actionLoading
-                    ? null
-                    : () async {
-                        try {
-                          await ref
-                              .read(creatorActionsProvider.notifier)
-                              .respondToRequest(
-                                requestId: request.id,
-                                action: 'reject',
-                              );
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Request rejected.')),
-                          );
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(e.toString())),
-                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
                         }
                       },
               ),
@@ -214,13 +361,46 @@ class _RequestCard extends ConsumerWidget {
       ),
     );
   }
+
+  Color _avatarColor(String initial) {
+    final colors = [
+      AppColors.pink,
+      AppColors.purple,
+      AppColors.orange,
+      AppColors.skyBlue,
+    ];
+    final index = initial.isNotEmpty ? initial.codeUnitAt(0) % colors.length : 0;
+    return colors[index];
+  }
+
+  String _collabTypeLabel(String type) {
+    switch (type) {
+      case ' barter':
+        return 'Barter';
+      case 'paid':
+        return 'Paid';
+      default:
+        return type;
+    }
+  }
+
+  BCBadgeVariant _collabTypeVariant(String type) {
+    switch (type) {
+      case 'barter':
+        return BCBadgeVariant.neon;
+      case 'paid':
+        return BCBadgeVariant.outline;
+      default:
+        return BCBadgeVariant.outline;
+    }
+  }
 }
 
-class _RequestButton extends StatelessWidget {
-  const _RequestButton({
+class _CardActionButton extends StatelessWidget {
+  const _CardActionButton({
     required this.label,
     required this.filled,
-    this.onTap,
+    required this.onTap,
   });
 
   final String label;
@@ -229,45 +409,201 @@ class _RequestButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Opacity(
-        opacity: onTap == null ? 0.55 : 1,
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: filled ? AppColors.neon : AppColors.white,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusSM),
-            border: Border.all(color: AppColors.ink, width: 2),
+            color: filled ? AppColors.creatorDark : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
+            border: filled ? null : Border.all(color: AppColors.lightBorder),
           ),
-          child: Text(label, style: AppTypography.labelSM),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: AppTypography.labelMD.copyWith(
+              color: filled ? AppColors.white : AppColors.creatorDark,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-String _collabTypeLabel(CampaignCollabType type) {
-  switch (type) {
-    case CampaignCollabType.paid:
-      return 'Paid';
-    case CampaignCollabType.barter:
-      return 'Barter';
-    case CampaignCollabType.hybrid:
-      return 'Hybrid';
+class _AgencyPitchesTab extends ConsumerWidget {
+  const _AgencyPitchesTab({required this.pitchesAsync});
+
+  final AsyncValue<List<Map<String, dynamic>>> pitchesAsync;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return pitchesAsync.when(
+      loading: () => const Center(child: BCAppLoader()),
+      error: (error, _) => BCErrorState(
+        message: error.toString(),
+        onRetry: () => ref.read(creatorAgencyPitchesProvider.notifier).refresh(),
+      ),
+      data: (pitches) {
+        if (pitches.isEmpty) {
+          return const Center(
+            child: BCEmptyState(
+              emoji: '🏢',
+              message: 'No agency pitches yet.',
+            ),
+          );
+        }
+        return ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenPadding,
+            AppSpacing.md,
+            AppSpacing.screenPadding,
+            AppSpacing.huge,
+          ),
+          itemCount: pitches.length,
+          itemBuilder: (context, index) {
+            final pitch = pitches[index];
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index == pitches.length - 1 ? 0 : AppSpacing.md,
+              ),
+              child: _AgencyPitchCard(pitch: pitch),
+            );
+          },
+        );
+      },
+    );
   }
 }
 
-BCBadgeVariant _collabTypeVariant(CampaignCollabType type) {
-  switch (type) {
-    case CampaignCollabType.paid:
-      return BCBadgeVariant.pink;
-    case CampaignCollabType.barter:
-      return BCBadgeVariant.blue;
-    case CampaignCollabType.hybrid:
-      return BCBadgeVariant.purple;
+class _AgencyPitchCard extends StatelessWidget {
+  const _AgencyPitchCard({required this.pitch});
+
+  final Map<String, dynamic> pitch;
+
+  @override
+  Widget build(BuildContext context) {
+    final agency = pitch['agency'] ?? {};
+    final agencyProfile = pitch['agency_profile'] ?? {};
+    final agencyName = agency['agency_name'] ?? agencyProfile['first_name'] ?? agencyProfile['full_name'] ?? 'Agency';
+    final agencyAvatar = agency['logo_url'] ?? agencyProfile['avatar_url'];
+    final title = pitch['pitch_title'] ?? 'Pitch';
+    final message = pitch['pitch_message'] ?? '';
+    final status = pitch['status'] ?? 'pending';
+    final monthlyFee = pitch['monthly_fee'];
+    final profitRatio = pitch['profit_ratio'];
+    final createdAt = pitch['created_at'];
+
+    final statusColor = status == 'pending' 
+        ? AppColors.warning 
+        : status == 'accepted' 
+            ? AppColors.success 
+            : AppColors.gray;
+
+    return _CreatorCardShell(
+      accent: AppColors.creatorPrimary,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.creatorDark.withValues(alpha: 0.15),
+                backgroundImage: agencyAvatar != null ? NetworkImage(agencyAvatar) : null,
+                child: agencyAvatar == null 
+                    ? const Icon(Icons.business, color: AppColors.creatorDark, size: 16) 
+                    : null,
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      agencyName,
+                      style: AppTypography.labelLG.copyWith(fontWeight: FontWeight.w900),
+                    ),
+                    Text(
+                      createdAt != null ? timeago.format(DateTime.parse(createdAt)) : '',
+                      style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  status.toString().toUpperCase(),
+                  style: AppTypography.labelXS.copyWith(color: statusColor, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            title,
+            style: AppTypography.labelLG.copyWith(fontWeight: FontWeight.w900),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (message.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              message,
+              style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              if (monthlyFee != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    color: AppColors.creatorPrimary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '₹$monthlyFee/mo',
+                    style: AppTypography.labelXS.copyWith(
+                      color: AppColors.creatorDark,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+              ],
+              if (profitRatio != null) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    color: AppColors.creatorPrimary.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    '$profitRatio%',
+                    style: AppTypography.labelXS.copyWith(
+                      color: AppColors.creatorDark,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

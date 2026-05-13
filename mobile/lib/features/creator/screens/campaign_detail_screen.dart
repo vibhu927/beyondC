@@ -95,7 +95,7 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
       extendBody: true,
       body: Stack(
         children: [
-          Positioned.fill(
+          const Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -103,10 +103,10 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                   end: Alignment.bottomCenter,
                   colors: [
                     AppColors.lightBg,
-                    const Color(0xFFD8E6C6),
-                    const Color(0xFFC4D4AE),
+                    Color(0xFFD8E6C6),
+                    Color(0xFFC4D4AE),
                   ],
-                  stops: const [0.0, 0.4, 1.0],
+                  stops: [0.0, 0.4, 1.0],
                 ),
               ),
             ),
@@ -171,7 +171,7 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                         color: AppColors.creatorDark.withValues(alpha: 0.14),
                       ),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Symbols.share_rounded,
                       color: AppColors.creatorDark,
                       size: 20,
