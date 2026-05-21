@@ -9,7 +9,6 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
-import '../shared/widgets/creator_design_system.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';

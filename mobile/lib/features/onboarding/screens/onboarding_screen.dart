@@ -151,7 +151,7 @@ class _OnboardingPage1 extends StatelessWidget {
                     width: 250,
                     height: 250,
                     decoration: BoxDecoration(
-                      color: AppColors.neon.withOpacity(0.15),
+                      color: AppColors.neon.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -184,7 +184,7 @@ class _OnboardingPage1 extends StatelessWidget {
                               width: 48,
                               height: 48,
                               decoration: BoxDecoration(
-                                color: AppColors.pink.withOpacity(0.2),
+                                color: AppColors.pink.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(
                                     AppSpacing.radiusFull),
                                 border: Border.all(
@@ -324,7 +324,7 @@ class _OnboardingPage2 extends StatelessWidget {
                     width: 250,
                     height: 250,
                     decoration: BoxDecoration(
-                      color: AppColors.pink.withOpacity(0.15),
+                      color: AppColors.pink.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                   ),
@@ -478,7 +478,7 @@ class _OnboardingPage3 extends StatelessWidget {
                     width: 250,
                     height: 250,
                     decoration: BoxDecoration(
-                      color: AppColors.purple.withOpacity(0.15),
+                      color: AppColors.purple.withValues(alpha: 0.15),
                       shape: BoxShape.circle,
                     ),
                   ),

@@ -70,6 +70,8 @@ export async function GET(request: NextRequest) {
     const signature = signState(encodedPayload)
 
     const params = new URLSearchParams({
+      enable_fb_login: '0',
+      force_authentication: '1',
       client_id: clientId,
       redirect_uri: redirectUri,
       scope,

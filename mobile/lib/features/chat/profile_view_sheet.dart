@@ -73,15 +73,13 @@ class ProfileSheetPreviewData {
 class ProfileViewSheet extends ConsumerWidget {
   const ProfileViewSheet.fromCollab({
     super.key,
-    required String collabId,
-  })  : collabId = collabId,
-        preview = null;
+    required String this.collabId,
+  })  : preview = null;
 
   const ProfileViewSheet.fromPreview({
     super.key,
-    required ProfileSheetPreviewData preview,
-  })  : preview = preview,
-        collabId = null;
+    required ProfileSheetPreviewData this.preview,
+  })  : collabId = null;
 
   final String? collabId;
   final ProfileSheetPreviewData? preview;

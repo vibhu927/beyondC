@@ -151,21 +151,21 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
             return StatefulBuilder(
               builder: (context, setSheetState) {
                 return Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
                         AppColors.lightBg,
-                        const Color(0xFFE1EBCF),
-                        const Color(0xFFD2DEBF),
+                        Color(0xFFE1EBCF),
+                        Color(0xFFD2DEBF),
                       ],
-                      stops: const [0.0, 0.55, 1.0],
+                      stops: [0.0, 0.55, 1.0],
                     ),
-                    borderRadius: const BorderRadius.vertical(
+                    borderRadius: BorderRadius.vertical(
                       top: Radius.circular(30),
                     ),
-                    border: const Border(
+                    border: Border(
                       top: BorderSide(
                         color: AppColors.creatorDark,
                         width: 2.2,
@@ -424,21 +424,21 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
             return StatefulBuilder(
               builder: (context, setSheetState) {
                 return Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
                         AppColors.lightBg,
-                        const Color(0xFFE1EBCF),
-                        const Color(0xFFD2DEBF),
+                        Color(0xFFE1EBCF),
+                        Color(0xFFD2DEBF),
                       ],
-                      stops: const [0.0, 0.55, 1.0],
+                      stops: [0.0, 0.55, 1.0],
                     ),
-                    borderRadius: const BorderRadius.vertical(
+                    borderRadius: BorderRadius.vertical(
                       top: Radius.circular(30),
                     ),
-                    border: const Border(
+                    border: Border(
                       top: BorderSide(
                         color: AppColors.creatorDark,
                         width: 2.2,
