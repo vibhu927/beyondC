@@ -113,12 +113,18 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
   Widget build(BuildContext context) {
     final homeAsync = ref.watch(creatorHomeProvider);
 
-    return Scaffold(
-      extendBody: true,
-      bottomNavigationBar: const BCBottomNav(
-        role: BCPortalRole.creator,
-        currentIndex: 0,
+    return Theme(
+      data: Theme.of(context).copyWith(
+        snackBarTheme: Theme.of(context).snackBarTheme.copyWith(
+          behavior: SnackBarBehavior.fixed,
+        ),
       ),
+      child: Scaffold(
+        extendBody: true,
+        bottomNavigationBar: const BCBottomNav(
+          role: BCPortalRole.creator,
+          currentIndex: 0,
+        ),
       body: BCPageSwipeArea(
         role: BCPortalRole.creator,
         currentIndex: 0,
@@ -387,6 +393,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
             },
           ),
         ),
+      ),
       ),
     );
   }

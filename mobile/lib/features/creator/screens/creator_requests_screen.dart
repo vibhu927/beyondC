@@ -17,6 +17,12 @@ import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/creator_page_top_header.dart';
 
+String _readString(dynamic value) {
+  if (value == null) return '';
+  final s = value.toString().trim();
+  return s.isEmpty ? '' : s;
+}
+
 class CreatorRequestsScreen extends ConsumerStatefulWidget {
   const CreatorRequestsScreen({super.key});
 
@@ -247,6 +253,32 @@ class _BrandRequestCard extends ConsumerWidget {
 
   final CollabRequest request;
 
+  void _viewDetails(BuildContext context) {
+    if (request.campaignId != null && request.campaignId!.isNotEmpty) {
+      context.push('${RouteNames.creatorCampaigns}/${request.campaignId}');
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => _BrandRequestDetailSheet(request: request),
+      );
+    }
+  }
+
+  void _viewProfile(BuildContext context) {
+    context.push(
+      RouteNames.partnerProfile,
+      extra: {
+        'id': request.brandId,
+        'role': 'brand',
+        'full_name': request.brandName,
+        'name': request.brandName,
+        'brandCategory': request.brandCategory,
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final actionLoading = ref.watch(creatorActionsProvider).isLoading;
@@ -320,39 +352,55 @@ class _BrandRequestCard extends ConsumerWidget {
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
-              _CardActionButton(
-                label: 'View Campaigns',
-                filled: false,
-                onTap: () => context.push(RouteNames.creatorCampaigns),
+              Expanded(
+                child: _CardActionButton(
+                  label: 'View Details',
+                  filled: false,
+                  onTap: () => _viewDetails(context),
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              _CardActionButton(
-                label: actionLoading ? 'Please wait...' : 'Accept',
-                filled: true,
-                onTap: actionLoading
-                    ? null
-                    : () async {
-                        try {
-                          await ref
-                              .read(creatorActionsProvider.notifier)
-                              .respondToRequest(
-                                requestId: request.id,
-                                action: 'accept',
+              Expanded(
+                child: _CardActionButton(
+                  label: 'View Profile',
+                  filled: false,
+                  onTap: () => _viewProfile(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(
+                child: _CardActionButton(
+                  label: actionLoading ? 'Please wait...' : 'Accept',
+                  filled: true,
+                  onTap: actionLoading
+                      ? null
+                      : () async {
+                          try {
+                            await ref
+                                .read(creatorActionsProvider.notifier)
+                                .respondToRequest(
+                                  requestId: request.id,
+                                  action: 'accept',
+                                );
+                            await ref.read(requestsProvider.notifier).refresh();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Request accepted!')),
                               );
-                          await ref.read(requestsProvider.notifier).refresh();
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Request accepted!')),
-                            );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Error: $e')),
+                              );
+                            }
                           }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: $e')),
-                            );
-                          }
-                        }
-                      },
+                        },
+                ),
               ),
             ],
           ),
@@ -391,6 +439,119 @@ class _BrandRequestCard extends ConsumerWidget {
         return BCBadgeVariant.outline;
       default:
         return BCBadgeVariant.outline;
+    }
+  }
+}
+
+class _BrandRequestDetailSheet extends StatelessWidget {
+  const _BrandRequestDetailSheet({required this.request});
+
+  final CollabRequest request;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.screenPadding,
+        AppSpacing.md,
+        AppSpacing.screenPadding,
+        MediaQuery.of(context).padding.bottom + AppSpacing.md,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40, height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.lightBorder,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            children: [
+              Container(
+                width: 48, height: 48,
+                decoration: BoxDecoration(
+                  color: _avatarColor(request.brandInitial),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  request.brandInitial,
+                  style: AppTypography.labelMD.copyWith(
+                    color: AppColors.white, fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(request.brandName, style: AppTypography.labelLG.copyWith(fontWeight: FontWeight.w900)),
+                    Text(
+                      '${request.brandCategory} / ${timeago.format(request.receivedAt)}',
+                      style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text('Deal Details', style: AppTypography.displaySM.copyWith(fontWeight: FontWeight.w900)),
+          const SizedBox(height: AppSpacing.md),
+          _detailRow('Budget', Formatters.currency(request.budget)),
+          const SizedBox(height: AppSpacing.sm),
+          _detailRow('Type', _collabTypeLabel(request.collabType.name)),
+          const SizedBox(height: AppSpacing.sm),
+          _detailRow('Status', request.status),
+          if (request.deliverables.isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text('Deliverables', style: AppTypography.labelLG.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: request.deliverables.map((d) => BCBadge(
+                label: d, variant: BCBadgeVariant.neon,
+              )).toList(),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
+        Text(value, style: AppTypography.labelMD.copyWith(fontWeight: FontWeight.w600)),
+      ],
+    );
+  }
+
+  Color _avatarColor(String initial) {
+    final colors = [AppColors.pink, AppColors.purple, AppColors.orange, AppColors.skyBlue];
+    final index = initial.isNotEmpty ? initial.codeUnitAt(0) % colors.length : 0;
+    return colors[index];
+  }
+
+  String _collabTypeLabel(String type) {
+    switch (type) {
+      case ' barter': return 'Barter';
+      case 'paid': return 'Paid';
+      default: return type;
     }
   }
 }
@@ -478,13 +639,71 @@ class _AgencyPitchesTab extends ConsumerWidget {
   }
 }
 
-class _AgencyPitchCard extends StatelessWidget {
+class _AgencyPitchCard extends ConsumerWidget {
   const _AgencyPitchCard({required this.pitch});
 
   final Map<String, dynamic> pitch;
 
+  void _viewAgencyProfile(BuildContext context) {
+    final agency = pitch['agency'] ?? {};
+    final agencyProfile = pitch['agency_profile'] ?? {};
+    final agencyName = agency['agency_name'] ?? agencyProfile['first_name'] ?? agencyProfile['full_name'] ?? 'Agency';
+    final agencyAvatar = agency['logo_url'] ?? agencyProfile['avatar_url'];
+    final agencyId = _readString(agency['id']);
+    final agencyProfileId = _readString(agencyProfile['id']);
+    final resolvedId = agencyId.isNotEmpty ? agencyId : agencyProfileId;
+
+    context.push(
+      RouteNames.partnerProfile,
+      extra: {
+        'id': resolvedId,
+        'role': 'brand',
+        'full_name': agencyName,
+        'name': agencyName,
+        'avatar_url': agencyAvatar ?? '',
+        if (pitch['pitch_message'] != null) 'bio': pitch['pitch_message'],
+      },
+    );
+  }
+
+  void _showPitchDetail(BuildContext context, WidgetRef ref) {
+    final agency = pitch['agency'] ?? {};
+    final agencyProfile = pitch['agency_profile'] ?? {};
+    final agencyName = agency['agency_name'] ?? agencyProfile['first_name'] ?? agencyProfile['full_name'] ?? 'Agency';
+    final agencyAvatar = agency['logo_url'] ?? agencyProfile['avatar_url'];
+    final title = pitch['pitch_title'] ?? 'Pitch';
+    final message = pitch['pitch_message'] ?? '';
+    final status = pitch['status'] ?? 'pending';
+    final monthlyFee = pitch['monthly_fee'];
+    final profitRatio = pitch['profit_ratio'];
+    final createdAt = pitch['created_at'];
+    final isPending = status == 'pending';
+    final agencyId = _readString(agency['id']);
+    final agencyProfileId = _readString(agencyProfile['id']);
+    final resolvedId = agencyId.isNotEmpty ? agencyId : agencyProfileId;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _AgencyPitchDetailSheet(
+        pitchId: pitch['id'] ?? '',
+        agencyName: agencyName,
+        agencyAvatar: agencyAvatar,
+        title: title,
+        message: message,
+        status: status,
+        monthlyFee: monthlyFee,
+        profitRatio: profitRatio,
+        createdAt: createdAt,
+        isPending: isPending,
+        agencyId: resolvedId,
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final agency = pitch['agency'] ?? {};
     final agencyProfile = pitch['agency_profile'] ?? {};
     final agencyName = agency['agency_name'] ?? agencyProfile['first_name'] ?? agencyProfile['full_name'] ?? 'Agency';
@@ -502,105 +721,372 @@ class _AgencyPitchCard extends StatelessWidget {
             ? AppColors.success 
             : AppColors.gray;
 
-    return _CreatorCardShell(
-      accent: AppColors.creatorPrimary,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+    return GestureDetector(
+      onTap: () => _showPitchDetail(context, ref),
+      child: _CreatorCardShell(
+        accent: AppColors.creatorPrimary,
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 18,
+                  backgroundColor: AppColors.creatorDark.withValues(alpha: 0.15),
+                  backgroundImage: agencyAvatar != null ? NetworkImage(agencyAvatar) : null,
+                  child: agencyAvatar == null 
+                      ? const Icon(Icons.business, color: AppColors.creatorDark, size: 16) 
+                      : null,
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        agencyName,
+                        style: AppTypography.labelLG.copyWith(fontWeight: FontWeight.w900),
+                      ),
+                      Text(
+                        createdAt != null ? timeago.format(DateTime.parse(createdAt)) : '',
+                        style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    status.toString().toUpperCase(),
+                    style: AppTypography.labelXS.copyWith(color: statusColor, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              title,
+              style: AppTypography.labelLG.copyWith(fontWeight: FontWeight.w900),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (message.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                message,
+                style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                if (monthlyFee != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                    decoration: BoxDecoration(
+                      color: AppColors.creatorPrimary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '₹$monthlyFee/mo',
+                      style: AppTypography.labelXS.copyWith(
+                        color: AppColors.creatorDark,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                ],
+                if (profitRatio != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                    decoration: BoxDecoration(
+                      color: AppColors.creatorPrimary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '$profitRatio%',
+                      style: AppTypography.labelXS.copyWith(
+                        color: AppColors.creatorDark,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                Expanded(
+                  child: _CardActionButton(
+                    label: 'View Details',
+                    filled: false,
+                    onTap: () => _showPitchDetail(context, ref),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: _CardActionButton(
+                    label: 'View Profile',
+                    filled: false,
+                    onTap: () => _viewAgencyProfile(context),
+                  ),
+                ),
+              ],
+            ),
+            if (status == 'pending') ...[
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: _CardActionButton(
+                      label: 'Accept',
+                      filled: true,
+                      onTap: () {
+                        _showPitchDetail(context, ref);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AgencyPitchDetailSheet extends ConsumerWidget {
+  const _AgencyPitchDetailSheet({
+    required this.pitchId,
+    required this.agencyName,
+    this.agencyAvatar,
+    required this.title,
+    required this.message,
+    required this.status,
+    this.monthlyFee,
+    this.profitRatio,
+    this.createdAt,
+    required this.isPending,
+    this.agencyId,
+  });
+
+  final String pitchId;
+  final String agencyName;
+  final String? agencyAvatar;
+  final String title;
+  final String message;
+  final String status;
+  final int? monthlyFee;
+  final int? profitRatio;
+  final String? createdAt;
+  final bool isPending;
+  final String? agencyId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final actionLoading = ref.watch(creatorActionsProvider).isLoading;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        AppSpacing.screenPadding,
+        AppSpacing.md,
+        AppSpacing.screenPadding,
+        MediaQuery.of(context).padding.bottom + AppSpacing.md,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
+      ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.lightBorder,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
               CircleAvatar(
-                radius: 18,
+                radius: 24,
                 backgroundColor: AppColors.creatorDark.withValues(alpha: 0.15),
-                backgroundImage: agencyAvatar != null ? NetworkImage(agencyAvatar) : null,
-                child: agencyAvatar == null 
-                    ? const Icon(Icons.business, color: AppColors.creatorDark, size: 16) 
+                backgroundImage: agencyAvatar != null ? NetworkImage(agencyAvatar!) : null,
+                child: agencyAvatar == null
+                    ? const Icon(Icons.business, color: AppColors.creatorDark, size: 22)
                     : null,
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      agencyName,
-                      style: AppTypography.labelLG.copyWith(fontWeight: FontWeight.w900),
-                    ),
-                    Text(
-                      createdAt != null ? timeago.format(DateTime.parse(createdAt)) : '',
-                      style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
-                    ),
+                    Text(agencyName, style: AppTypography.labelLG.copyWith(fontWeight: FontWeight.w900)),
+                    if (createdAt != null)
+                      Text(
+                        timeago.format(DateTime.parse(createdAt!)),
+                        style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                      ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.15),
+                  color: (status == 'pending' ? AppColors.warning : AppColors.success).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  status.toString().toUpperCase(),
-                  style: AppTypography.labelXS.copyWith(color: statusColor, fontWeight: FontWeight.w700),
+                  status.toUpperCase(),
+                  style: AppTypography.labelXS.copyWith(
+                    color: status == 'pending' ? AppColors.warning : AppColors.success,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            title,
-            style: AppTypography.labelLG.copyWith(fontWeight: FontWeight.w900),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(title, style: AppTypography.displaySM.copyWith(fontWeight: FontWeight.w900)),
           if (message.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              message,
-              style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
+            const SizedBox(height: AppSpacing.sm),
+            Text(message, style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
+          ],
+          if (monthlyFee != null || profitRatio != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                if (monthlyFee != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                    decoration: BoxDecoration(
+                      color: AppColors.creatorPrimary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '₹$monthlyFee/mo',
+                      style: AppTypography.labelXS.copyWith(
+                        color: AppColors.creatorDark,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                ],
+                if (profitRatio != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                    decoration: BoxDecoration(
+                      color: AppColors.creatorPrimary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '$profitRatio%',
+                      style: AppTypography.labelXS.copyWith(
+                        color: AppColors.creatorDark,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ],
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
-              if (monthlyFee != null) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                  decoration: BoxDecoration(
-                    color: AppColors.creatorPrimary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '₹$monthlyFee/mo',
-                    style: AppTypography.labelXS.copyWith(
-                      color: AppColors.creatorDark,
-                      fontWeight: FontWeight.w600,
-                    ),
+              Expanded(
+                child: _CardActionButton(
+                  label: 'View Agency Profile',
+                  filled: false,
+                  onTap: () {
+                    final resolvedId = (agencyId ?? '').isNotEmpty ? agencyId! : '';
+                    context.push(
+                      RouteNames.partnerProfile,
+                      extra: {
+                        'id': resolvedId,
+                        'role': 'brand',
+                        'full_name': agencyName,
+                        'name': agencyName,
+                        'avatar_url': agencyAvatar ?? '',
+                        if (message.isNotEmpty) 'bio': message,
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          if (isPending) ...[
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                Expanded(
+                  child: _CardActionButton(
+                    label: 'Decline',
+                    filled: false,
+                    onTap: actionLoading
+                        ? null
+                        : () async {
+                            try {
+                              await ref
+                                  .read(creatorActionsProvider.notifier)
+                                  .respondToAgencyPitch(pitchId: pitchId, action: 'decline');
+                              await ref.read(creatorAgencyPitchesProvider.notifier).refresh();
+                              if (context.mounted) Navigator.of(context).pop();
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error: $e')),
+                                );
+                              }
+                            }
+                          },
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),
-              ],
-              if (profitRatio != null) ...[
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                  decoration: BoxDecoration(
-                    color: AppColors.creatorPrimary.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    '$profitRatio%',
-                    style: AppTypography.labelXS.copyWith(
-                      color: AppColors.creatorDark,
-                      fontWeight: FontWeight.w600,
-                    ),
+                Expanded(
+                  child: _CardActionButton(
+                    label: actionLoading ? 'Please wait...' : 'Accept',
+                    filled: true,
+                    onTap: actionLoading
+                        ? null
+                        : () async {
+                            try {
+                              await ref
+                                  .read(creatorActionsProvider.notifier)
+                                  .respondToAgencyPitch(pitchId: pitchId, action: 'accept');
+                              await ref.read(creatorAgencyPitchesProvider.notifier).refresh();
+                              if (context.mounted) Navigator.of(context).pop();
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error: $e')),
+                                );
+                              }
+                            }
+                          },
                   ),
                 ),
               ],
-            ],
-          ),
+            ),
+          ],
         ],
       ),
     );

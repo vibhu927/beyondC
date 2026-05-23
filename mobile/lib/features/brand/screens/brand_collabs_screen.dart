@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,13 +28,29 @@ final _brandCompletedCollabsProvider =
   (ref) => ref.read(brandRepositoryProvider).getCompletedCollabs(),
 );
 
-class BrandCollabsScreen extends ConsumerWidget {
+class BrandCollabsScreen extends ConsumerStatefulWidget {
   const BrandCollabsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<BrandCollabsScreen> createState() => _BrandCollabsScreenState();
+}
+
+class _BrandCollabsScreenState extends ConsumerState<BrandCollabsScreen> {
+  double _scrollOffset = 0;
+
+  @override
+  Widget build(BuildContext context) {
     final activeAsync = ref.watch(_brandActiveCollabsProvider);
     final completedAsync = ref.watch(_brandCompletedCollabsProvider);
+    final topInset = MediaQuery.of(context).padding.top + 14;
+    const headerHeight = 48.0;
+    const headerGap = 34.0;
+    final sheetTop = topInset + headerHeight + headerGap;
+    final headerSlide = _scrollOffset.clamp(0.0, sheetTop);
+    final collapseProgress =
+        (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+    final collapsedTop = MediaQuery.of(context).padding.top + 8;
+    final headerTop = lerpDouble(topInset, collapsedTop, collapseProgress)!;
 
     Future<void> refresh() async {
       ref.invalidate(_brandActiveCollabsProvider);
@@ -79,15 +97,7 @@ class BrandCollabsScreen extends ConsumerWidget {
               ),
               Column(
                 children: [
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      AppSpacing.screenPadding,
-                      MediaQuery.of(context).padding.top + 14,
-                      AppSpacing.screenPadding,
-                      AppSpacing.sm,
-                    ),
-                    child: const BrandPageTopHeader(),
-                  ),
+                  SizedBox(height: sheetTop + AppSpacing.sm),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
                       AppSpacing.screenPadding,
@@ -124,22 +134,56 @@ class BrandCollabsScreen extends ConsumerWidget {
                     child: RefreshIndicator(
                       color: AppColors.brandPrimary,
                       onRefresh: refresh,
-                      child: TabBarView(
-                        children: [
-                          _CollabsList(
-                            asyncValue: activeAsync,
-                            emptyMessage:
-                                'No active collabs yet. Accept a bid or request to start one.',
-                          ),
-                          _CollabsList(
-                            asyncValue: completedAsync,
-                            emptyMessage: 'No completed collabs yet.',
-                          ),
-                        ],
+                      child: NotificationListener<ScrollNotification>(
+                        onNotification: (notification) {
+                          if (notification.metrics.axis == Axis.vertical &&
+                              mounted) {
+                            setState(() =>
+                                _scrollOffset = notification.metrics.pixels);
+                          }
+                          return false;
+                        },
+                        child: TabBarView(
+                          children: [
+                            _CollabsList(
+                              asyncValue: activeAsync,
+                              emptyMessage:
+                                  'No active collabs yet. Accept a bid or request to start one.',
+                            ),
+                            _CollabsList(
+                              asyncValue: completedAsync,
+                              emptyMessage: 'No completed collabs yet.',
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ],
+              ),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                height: collapsedTop + 48 + 16,
+                child: IgnorePointer(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.lightBg
+                          .withValues(alpha: collapseProgress * 0.95),
+                      border: collapseProgress > 0.5
+                          ? const Border(
+                              bottom: BorderSide(color: AppColors.lightBorder))
+                          : null,
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: headerTop,
+                left: AppSpacing.screenPadding,
+                right: AppSpacing.screenPadding,
+                child: BrandPageTopHeader(collapseProgress: collapseProgress),
               ),
             ],
           ),
@@ -222,8 +266,8 @@ class _CollabCard extends StatelessWidget {
             child: BCPrimaryButton.dark(
               label: 'Open Details ->',
               isFullWidth: false,
-              onPressed: () =>
-                  context.push(RouteNames.collabDetail.replaceFirst(':id', collab.id)),
+              onPressed: () => context
+                  .push(RouteNames.collabDetail.replaceFirst(':id', collab.id)),
             ),
           ),
         ],
@@ -294,4 +338,3 @@ class _GlowOrb extends StatelessWidget {
     );
   }
 }
-

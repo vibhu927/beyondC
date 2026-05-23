@@ -1679,6 +1679,7 @@ mixin _$CollabRequest {
   List<String> get deliverables => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
+  String? get campaignId => throw _privateConstructorUsedError;
 
   /// Serializes this CollabRequest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1706,7 +1707,8 @@ abstract class $CollabRequestCopyWith<$Res> {
       CampaignCollabType collabType,
       List<String> deliverables,
       String status,
-      DateTime? createdAt});
+      DateTime? createdAt,
+      String? campaignId});
 }
 
 /// @nodoc
@@ -1734,6 +1736,7 @@ class _$CollabRequestCopyWithImpl<$Res, $Val extends CollabRequest>
     Object? deliverables = null,
     Object? status = null,
     Object? createdAt = freezed,
+    Object? campaignId = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -1776,6 +1779,10 @@ class _$CollabRequestCopyWithImpl<$Res, $Val extends CollabRequest>
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      campaignId: freezed == campaignId
+          ? _value.campaignId
+          : campaignId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -1798,7 +1805,8 @@ abstract class _$$CollabRequestImplCopyWith<$Res>
       CampaignCollabType collabType,
       List<String> deliverables,
       String status,
-      DateTime? createdAt});
+      DateTime? createdAt,
+      String? campaignId});
 }
 
 /// @nodoc
@@ -1824,6 +1832,7 @@ class __$$CollabRequestImplCopyWithImpl<$Res>
     Object? deliverables = null,
     Object? status = null,
     Object? createdAt = freezed,
+    Object? campaignId = freezed,
   }) {
     return _then(_$CollabRequestImpl(
       id: null == id
@@ -1866,6 +1875,10 @@ class __$$CollabRequestImplCopyWithImpl<$Res>
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
+      campaignId: freezed == campaignId
+          ? _value.campaignId
+          : campaignId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -1883,7 +1896,8 @@ class _$CollabRequestImpl extends _CollabRequest {
       this.collabType = CampaignCollabType.paid,
       final List<String> deliverables = const <String>[],
       this.status = 'pending',
-      this.createdAt})
+      this.createdAt,
+      this.campaignId})
       : _deliverables = deliverables,
         super._();
 
@@ -1923,10 +1937,12 @@ class _$CollabRequestImpl extends _CollabRequest {
   final String status;
   @override
   final DateTime? createdAt;
+  @override
+  final String? campaignId;
 
   @override
   String toString() {
-    return 'CollabRequest(id: $id, brandId: $brandId, brandName: $brandName, brandCategory: $brandCategory, brandInitial: $brandInitial, budgetPaise: $budgetPaise, collabType: $collabType, deliverables: $deliverables, status: $status, createdAt: $createdAt)';
+    return 'CollabRequest(id: $id, brandId: $brandId, brandName: $brandName, brandCategory: $brandCategory, brandInitial: $brandInitial, budgetPaise: $budgetPaise, collabType: $collabType, deliverables: $deliverables, status: $status, createdAt: $createdAt, campaignId: $campaignId)';
   }
 
   @override
@@ -1950,7 +1966,9 @@ class _$CollabRequestImpl extends _CollabRequest {
                 .equals(other._deliverables, _deliverables) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.createdAt, createdAt) ||
-                other.createdAt == createdAt));
+                other.createdAt == createdAt) &&
+            (identical(other.campaignId, campaignId) ||
+                other.campaignId == campaignId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1966,7 +1984,8 @@ class _$CollabRequestImpl extends _CollabRequest {
       collabType,
       const DeepCollectionEquality().hash(_deliverables),
       status,
-      createdAt);
+      createdAt,
+      campaignId);
 
   /// Create a copy of CollabRequest
   /// with the given fields replaced by the non-null parameter values.
@@ -1995,7 +2014,8 @@ abstract class _CollabRequest extends CollabRequest {
       final CampaignCollabType collabType,
       final List<String> deliverables,
       final String status,
-      final DateTime? createdAt}) = _$CollabRequestImpl;
+      final DateTime? createdAt,
+      final String? campaignId}) = _$CollabRequestImpl;
   const _CollabRequest._() : super._();
 
   factory _CollabRequest.fromJson(Map<String, dynamic> json) =
@@ -2021,6 +2041,8 @@ abstract class _CollabRequest extends CollabRequest {
   String get status;
   @override
   DateTime? get createdAt;
+  @override
+  String? get campaignId;
 
   /// Create a copy of CollabRequest
   /// with the given fields replaced by the non-null parameter values.

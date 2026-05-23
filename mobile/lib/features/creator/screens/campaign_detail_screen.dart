@@ -127,60 +127,6 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
               color: AppColors.pink.withValues(alpha: 0.22),
             ),
           ),
-          Positioned(
-            top: topInset,
-            left: AppSpacing.screenPadding,
-            right: AppSpacing.screenPadding,
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.white.withValues(alpha: 0.9),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.creatorDark.withValues(alpha: 0.14),
-                    ),
-                  ),
-                  child: IconButton(
-                    onPressed: () => context.pop(),
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      color: AppColors.creatorDark,
-                      size: 22,
-                    ),
-                    splashRadius: 20,
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Share link copied.')),
-                    );
-                  },
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.9),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.creatorDark.withValues(alpha: 0.14),
-                      ),
-                    ),
-                    child: const Icon(
-                      Symbols.share_rounded,
-                      color: AppColors.creatorDark,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
           Positioned.fill(
             child: RefreshIndicator(
               color: AppColors.neon,
@@ -456,6 +402,60 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                   ),
                 ],
               ),
+            ),
+          ),
+          Positioned(
+            top: topInset,
+            left: AppSpacing.screenPadding,
+            right: AppSpacing.screenPadding,
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withValues(alpha: 0.9),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.creatorDark.withValues(alpha: 0.14),
+                    ),
+                  ),
+                  child: IconButton(
+                    onPressed: () => context.pop(),
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: AppColors.creatorDark,
+                      size: 22,
+                    ),
+                    splashRadius: 20,
+                    padding: EdgeInsets.zero,
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Share link copied.')),
+                    );
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.9),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.creatorDark.withValues(alpha: 0.14),
+                      ),
+                    ),
+                    child: const Icon(
+                      Symbols.share_rounded,
+                      color: AppColors.creatorDark,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

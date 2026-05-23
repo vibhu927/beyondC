@@ -75,7 +75,8 @@ class _CreatorDiscoveryScreenState
     const headerGap = 34.0;
     final sheetTop = topInset + headerHeight + headerGap;
     final headerSlide = _scrollOffset.clamp(0.0, sheetTop);
-    final collapseProgress = (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+    final collapseProgress =
+        (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
     final collapsedTop = MediaQuery.of(context).padding.top + 8;
     final headerTop = lerpDouble(topInset, collapsedTop, collapseProgress)!;
 
@@ -124,9 +125,13 @@ class _CreatorDiscoveryScreenState
           ),
           ListView(
             controller: _scrollController,
-            padding: EdgeInsets.fromLTRB(0, sheetTop, 0, 0),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.screenPadding,
+              sheetTop + AppSpacing.lg,
+              AppSpacing.screenPadding,
+              MediaQuery.of(context).padding.bottom + 104,
+            ),
             children: [
-              const SizedBox(height: AppSpacing.lg),
               Text(
                 'Find Creators',
                 style: AppTypography.displaySM.copyWith(
@@ -199,14 +204,20 @@ class _CreatorDiscoveryScreenState
                       borderRadius: _pillFieldRadius,
                       items: _filterState == null
                           ? const ['All Cities']
-                          : ['All Cities', ...IndiaLocations.getCities(_filterState!)],
+                          : [
+                              'All Cities',
+                              ...IndiaLocations.getCities(_filterState!)
+                            ],
                       onChanged: _filterState == null
                           ? null
                           : (value) async {
                               setState(() {
-                                _filterCity = value == 'All Cities' ? null : value;
+                                _filterCity =
+                                    value == 'All Cities' ? null : value;
                               });
-                              await ref.read(brandProvider.notifier).fetchDiscovery(
+                              await ref
+                                  .read(brandProvider.notifier)
+                                  .fetchDiscovery(
                                     stateFilter: _filterState,
                                     cityFilter: _filterCity,
                                   );
@@ -233,8 +244,8 @@ class _CreatorDiscoveryScreenState
                   child: Text(
                     'No creators match these filters.',
                     textAlign: TextAlign.center,
-                    style: AppTypography.bodyMD
-                        .copyWith(color: AppColors.muted),
+                    style:
+                        AppTypography.bodyMD.copyWith(color: AppColors.muted),
                   ),
                 )
               else
@@ -242,8 +253,7 @@ class _CreatorDiscoveryScreenState
                   children: creators
                       .map(
                         (creator) => Padding(
-                          padding:
-                              const EdgeInsets.only(bottom: AppSpacing.md),
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
                           child: CreatorCard(
                             creator: creator,
                             onTap: () => _openCreatorDetails(creator),
@@ -263,9 +273,11 @@ class _CreatorDiscoveryScreenState
             child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.lightBg.withValues(alpha: collapseProgress * 0.95),
+                  color: AppColors.lightBg
+                      .withValues(alpha: collapseProgress * 0.95),
                   border: collapseProgress > 0.5
-                      ? const Border(bottom: BorderSide(color: AppColors.lightBorder))
+                      ? const Border(
+                          bottom: BorderSide(color: AppColors.lightBorder))
                       : null,
                 ),
               ),
@@ -456,8 +468,8 @@ class _CreatorDiscoveryScreenState
                                 _selectedTiers
                                   ..clear()
                                   ..addAll(workingTiers);
-                                _maxBudget =
-                                    int.tryParse(maxBudgetController.text.trim());
+                                _maxBudget = int.tryParse(
+                                    maxBudgetController.text.trim());
                                 _platform = workingPlatform;
                                 _minEngagement = double.tryParse(
                                     minEngagementController.text.trim());

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,16 +11,17 @@ import '../../../providers/agency_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/cards/bc_card.dart';
-import '../../../widgets/buttons/bc_primary_button.dart';
 
 class AgencyDiscoverCreatorsScreen extends ConsumerStatefulWidget {
   const AgencyDiscoverCreatorsScreen({super.key});
 
   @override
-  ConsumerState<AgencyDiscoverCreatorsScreen> createState() => _AgencyDiscoverCreatorsScreenState();
+  ConsumerState<AgencyDiscoverCreatorsScreen> createState() =>
+      _AgencyDiscoverCreatorsScreenState();
 }
 
-class _AgencyDiscoverCreatorsScreenState extends ConsumerState<AgencyDiscoverCreatorsScreen> {
+class _AgencyDiscoverCreatorsScreenState
+    extends ConsumerState<AgencyDiscoverCreatorsScreen> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
@@ -44,7 +44,8 @@ class _AgencyDiscoverCreatorsScreenState extends ConsumerState<AgencyDiscoverCre
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       // Load more if available
     }
   }
@@ -77,9 +78,11 @@ class _AgencyDiscoverCreatorsScreenState extends ConsumerState<AgencyDiscoverCre
           icon: const Icon(Icons.arrow_back, color: AppColors.agencyDark),
           onPressed: () => context.pop(),
         ),
-        title: Text('Discover Creators', style: AppTypography.displaySM.copyWith(
-          color: AppColors.agencyDark, fontWeight: FontWeight.w900,
-        )),
+        title: Text('Discover Creators',
+            style: AppTypography.displaySM.copyWith(
+              color: AppColors.agencyDark,
+              fontWeight: FontWeight.w900,
+            )),
         actions: [
           IconButton(
             icon: Container(
@@ -87,9 +90,11 @@ class _AgencyDiscoverCreatorsScreenState extends ConsumerState<AgencyDiscoverCre
               decoration: BoxDecoration(
                 color: AppColors.agencyPrimary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.agencyDark.withValues(alpha: 0.14)),
+                border: Border.all(
+                    color: AppColors.agencyDark.withValues(alpha: 0.14)),
               ),
-              child: const Icon(Symbols.tune_rounded, color: AppColors.agencyDark, size: 20),
+              child: const Icon(Symbols.tune_rounded,
+                  color: AppColors.agencyDark, size: 20),
             ),
             onPressed: () => _showFilterSheet(context),
           ),
@@ -102,8 +107,10 @@ class _AgencyDiscoverCreatorsScreenState extends ConsumerState<AgencyDiscoverCre
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenPadding, 0,
-                AppSpacing.screenPadding, AppSpacing.md,
+                AppSpacing.screenPadding,
+                0,
+                AppSpacing.screenPadding,
+                AppSpacing.md,
               ),
               child: _SearchBar(
                 controller: _searchController,
@@ -111,9 +118,12 @@ class _AgencyDiscoverCreatorsScreenState extends ConsumerState<AgencyDiscoverCre
                 hint: 'Search creators...',
               ),
             ),
-            if (_selectedTier != null || _selectedPlatform != null || _selectedNiche != null)
+            if (_selectedTier != null ||
+                _selectedPlatform != null ||
+                _selectedNiche != null)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenPadding),
                 child: SizedBox(
                   height: 36,
                   child: ListView(
@@ -125,14 +135,17 @@ class _AgencyDiscoverCreatorsScreenState extends ConsumerState<AgencyDiscoverCre
                           onRemove: () => setState(() => _selectedTier = null),
                         ),
                       if (_selectedPlatform != null) ...[
-                        if (_selectedTier != null) const SizedBox(width: AppSpacing.xs),
+                        if (_selectedTier != null)
+                          const SizedBox(width: AppSpacing.xs),
                         _ActiveFilterChip(
                           label: _selectedPlatform!,
-                          onRemove: () => setState(() => _selectedPlatform = null),
+                          onRemove: () =>
+                              setState(() => _selectedPlatform = null),
                         ),
                       ],
                       if (_selectedNiche != null) ...[
-                        if (_selectedTier != null || _selectedPlatform != null) const SizedBox(width: AppSpacing.xs),
+                        if (_selectedTier != null || _selectedPlatform != null)
+                          const SizedBox(width: AppSpacing.xs),
                         _ActiveFilterChip(
                           label: _selectedNiche!,
                           onRemove: () => setState(() => _selectedNiche = null),
@@ -145,21 +158,30 @@ class _AgencyDiscoverCreatorsScreenState extends ConsumerState<AgencyDiscoverCre
             Expanded(
               child: RefreshIndicator(
                 color: AppColors.agencyPrimary,
-                onRefresh: () => ref.read(agencyDiscoveryProvider.notifier).refresh(),
+                onRefresh: () =>
+                    ref.read(agencyDiscoveryProvider.notifier).refresh(),
                 child: creators.isEmpty
-                    ? _EmptyState(mutedColor: muted, surfaceColor: surface, outlineColor: outline, textColor: text)
+                    ? _EmptyState(
+                        mutedColor: muted,
+                        surfaceColor: surface,
+                        outlineColor: outline,
+                        textColor: text)
                     : ListView.builder(
                         controller: _scrollController,
                         padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.screenPadding, 0,
-                          AppSpacing.screenPadding, AppSpacing.huge,
+                          AppSpacing.screenPadding,
+                          0,
+                          AppSpacing.screenPadding,
+                          AppSpacing.huge,
                         ),
                         itemCount: creators.length + (hasMore ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index == creators.length) {
                             return const Padding(
                               padding: EdgeInsets.all(AppSpacing.lg),
-                              child: Center(child: CircularProgressIndicator(color: AppColors.agencyPrimary)),
+                              child: Center(
+                                  child: CircularProgressIndicator(
+                                      color: AppColors.agencyPrimary)),
                             );
                           }
                           final creator = creators[index];
@@ -180,11 +202,8 @@ class _AgencyDiscoverCreatorsScreenState extends ConsumerState<AgencyDiscoverCre
   void _showFilterSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.ink,
+      backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
       builder: (ctx) => _FullFilterSheet(
         selectedTier: _selectedTier,
         selectedPlatform: _selectedPlatform,
@@ -203,20 +222,20 @@ class _AgencyDiscoverCreatorsScreenState extends ConsumerState<AgencyDiscoverCre
   }
 
   void _showCreatorActions(BuildContext context, Map<String, dynamic> creator) {
-    final creditBalance = ref.read(agencyProfileProvider).valueOrNull?['credit_balance'] ?? 0;
+    final creditBalance =
+        ref.read(agencyProfileProvider).valueOrNull?['credit_balance'] ?? 0;
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.ink,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => _CreatorActionSheet(creator: creator, creditBalance: creditBalance),
+      backgroundColor: Colors.transparent,
+      builder: (ctx) =>
+          _CreatorActionSheet(creator: creator, creditBalance: creditBalance),
     );
   }
 }
 
 class _SearchBar extends StatelessWidget {
-  const _SearchBar({required this.controller, required this.onChanged, required this.hint});
+  const _SearchBar(
+      {required this.controller, required this.onChanged, required this.hint});
 
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
@@ -237,9 +256,11 @@ class _SearchBar extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: AppTypography.bodySM.copyWith(color: AppColors.muted),
-          prefixIcon: const Icon(Symbols.search_rounded, color: AppColors.muted, size: 20),
+          prefixIcon: const Icon(Symbols.search_rounded,
+              color: AppColors.muted, size: 20),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+          contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: AppSpacing.md),
         ),
       ),
     );
@@ -255,7 +276,8 @@ class _ActiveFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: AppColors.agencyPrimary.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(20),
@@ -264,11 +286,14 @@ class _ActiveFilterChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: AppTypography.labelXS.copyWith(color: AppColors.agencyDark, fontWeight: FontWeight.w700)),
+          Text(label,
+              style: AppTypography.labelXS.copyWith(
+                  color: AppColors.agencyDark, fontWeight: FontWeight.w700)),
           const SizedBox(width: 4),
           GestureDetector(
             onTap: onRemove,
-            child: const Icon(Symbols.close_rounded, color: AppColors.agencyDark, size: 14),
+            child: const Icon(Symbols.close_rounded,
+                color: AppColors.agencyDark, size: 14),
           ),
         ],
       ),
@@ -300,7 +325,16 @@ class _FullFilterSheetState extends State<_FullFilterSheet> {
 
   final List<String> _tiers = ['nano', 'micro', 'mid', 'macro', 'mega'];
   final List<String> _platforms = ['instagram', 'youtube', 'twitter', 'tiktok'];
-  final List<String> _niches = ['Fashion', 'Food', 'Fitness', 'Travel', 'Tech', 'Beauty', 'Lifestyle', 'Gaming'];
+  final List<String> _niches = [
+    'Fashion',
+    'Food',
+    'Fitness',
+    'Travel',
+    'Tech',
+    'Beauty',
+    'Lifestyle',
+    'Gaming'
+  ];
 
   @override
   void initState() {
@@ -317,14 +351,22 @@ class _FullFilterSheetState extends State<_FullFilterSheet> {
       maxChildSize: 0.9,
       minChildSize: 0.5,
       expand: false,
-      builder: (context, scrollController) => Padding(
-        padding: const EdgeInsets.all(AppSpacing.screenPadding),
+      builder: (context, scrollController) => _AgencySheetShell(
+        expand: true,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Text('Filter Creators', style: AppTypography.displaySM.copyWith(color: AppColors.white)),
+                const _SheetIcon(icon: Symbols.tune_rounded),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  'Filter Creators',
+                  style: AppTypography.displaySM.copyWith(
+                    color: AppColors.agencyDark,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
                 const Spacer(),
                 GestureDetector(
                   onTap: () => setState(() {
@@ -332,7 +374,9 @@ class _FullFilterSheetState extends State<_FullFilterSheet> {
                     _platform = null;
                     _niche = null;
                   }),
-                  child: Text('Reset', style: AppTypography.labelMD.copyWith(color: AppColors.agencyPrimary)),
+                  child: Text('Reset',
+                      style: AppTypography.labelMD
+                          .copyWith(color: AppColors.agencyDark)),
                 ),
               ],
             ),
@@ -341,51 +385,64 @@ class _FullFilterSheetState extends State<_FullFilterSheet> {
               child: ListView(
                 controller: scrollController,
                 children: [
-                  Text('Tier', style: AppTypography.labelLG.copyWith(color: AppColors.white)),
+                  Text('Tier',
+                      style: AppTypography.labelLG
+                          .copyWith(color: AppColors.agencyDark)),
                   const SizedBox(height: AppSpacing.sm),
                   Wrap(
                     spacing: AppSpacing.sm,
                     runSpacing: AppSpacing.sm,
-                    children: _tiers.map((t) => _FilterChip(
-                      label: t.toUpperCase(),
-                      isSelected: _tier == t,
-                      onTap: () => setState(() => _tier = _tier == t ? null : t),
-                    )).toList(),
+                    children: _tiers
+                        .map((t) => _FilterChip(
+                              label: t.toUpperCase(),
+                              isSelected: _tier == t,
+                              onTap: () =>
+                                  setState(() => _tier = _tier == t ? null : t),
+                            ))
+                        .toList(),
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  Text('Platform', style: AppTypography.labelLG.copyWith(color: AppColors.white)),
+                  Text('Platform',
+                      style: AppTypography.labelLG
+                          .copyWith(color: AppColors.agencyDark)),
                   const SizedBox(height: AppSpacing.sm),
                   Wrap(
                     spacing: AppSpacing.sm,
                     runSpacing: AppSpacing.sm,
-                    children: _platforms.map((p) => _FilterChip(
-                      label: p[0].toUpperCase() + p.substring(1),
-                      isSelected: _platform == p,
-                      onTap: () => setState(() => _platform = _platform == p ? null : p),
-                    )).toList(),
+                    children: _platforms
+                        .map((p) => _FilterChip(
+                              label: p[0].toUpperCase() + p.substring(1),
+                              isSelected: _platform == p,
+                              onTap: () => setState(
+                                  () => _platform = _platform == p ? null : p),
+                            ))
+                        .toList(),
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  Text('Niche', style: AppTypography.labelLG.copyWith(color: AppColors.white)),
+                  Text('Niche',
+                      style: AppTypography.labelLG
+                          .copyWith(color: AppColors.agencyDark)),
                   const SizedBox(height: AppSpacing.sm),
                   Wrap(
                     spacing: AppSpacing.sm,
                     runSpacing: AppSpacing.sm,
-                    children: _niches.map((n) => _FilterChip(
-                      label: n,
-                      isSelected: _niche == n,
-                      onTap: () => setState(() => _niche = _niche == n ? null : n),
-                    )).toList(),
+                    children: _niches
+                        .map((n) => _FilterChip(
+                              label: n,
+                              isSelected: _niche == n,
+                              onTap: () => setState(
+                                  () => _niche = _niche == n ? null : n),
+                            ))
+                        .toList(),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            BCPrimaryButton.dark(
+            _SheetPrimaryButton(
               label: 'Apply Filters',
-              isFullWidth: true,
               onPressed: () => widget.onApply(_tier, _platform, _niche),
             ),
-            SizedBox(height: MediaQuery.of(context).padding.bottom + AppSpacing.md),
           ],
         ),
       ),
@@ -394,7 +451,8 @@ class _FullFilterSheetState extends State<_FullFilterSheet> {
 }
 
 class _FilterChip extends StatelessWidget {
-  const _FilterChip({required this.label, required this.isSelected, required this.onTap});
+  const _FilterChip(
+      {required this.label, required this.isSelected, required this.onTap});
 
   final String label;
   final bool isSelected;
@@ -405,19 +463,23 @@ class _FilterChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.agencyPrimary : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? AppColors.agencyPrimary : AppColors.white.withValues(alpha: 0.3),
+            color: isSelected
+                ? AppColors.agencyPrimary
+                : AppColors.agencyDark.withValues(alpha: 0.16),
             width: 1.5,
           ),
         ),
-        child: Text(label, style: AppTypography.labelSM.copyWith(
-          color: isSelected ? AppColors.ink : AppColors.white,
-          fontWeight: FontWeight.w700,
-        )),
+        child: Text(label,
+            style: AppTypography.labelSM.copyWith(
+              color: AppColors.agencyDark,
+              fontWeight: FontWeight.w700,
+            )),
       ),
     );
   }
@@ -461,15 +523,19 @@ class _CreatorListCard extends StatelessWidget {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: AppColors.agencyDark.withValues(alpha: 0.15),
-                  backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-                  child: avatarUrl == null ? const Icon(Icons.person, color: AppColors.agencyDark) : null,
+                  backgroundImage:
+                      avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                  child: avatarUrl == null
+                      ? const Icon(Icons.person, color: AppColors.agencyDark)
+                      : null,
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(firstName, style: AppTypography.labelLG.copyWith(color: text)),
+                      Text(firstName,
+                          style: AppTypography.labelLG.copyWith(color: text)),
                       if (niche != null)
                         Text(
                           niche is List ? (niche).join(', ') : niche.toString(),
@@ -484,11 +550,14 @@ class _CreatorListCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     if (followers.isNotEmpty)
-                      BCBadge(label: followers, variant: BCBadgeVariant.outline),
+                      BCBadge(
+                          label: followers, variant: BCBadgeVariant.outline),
                     if (tier != null)
                       Padding(
                         padding: const EdgeInsets.only(top: 4),
-                        child: BCBadge(label: tier.toString().toUpperCase(), variant: _getTierVariant(tier.toString())),
+                        child: BCBadge(
+                            label: tier.toString().toUpperCase(),
+                            variant: _getTierVariant(tier.toString())),
                       ),
                   ],
                 ),
@@ -497,7 +566,9 @@ class _CreatorListCard extends StatelessWidget {
             if (bio != null) ...[
               const SizedBox(height: AppSpacing.sm),
               Text(
-                bio.toString().length > 80 ? '${bio.toString().substring(0, 80)}...' : bio.toString(),
+                bio.toString().length > 80
+                    ? '${bio.toString().substring(0, 80)}...'
+                    : bio.toString(),
                 style: AppTypography.bodyXS.copyWith(color: muted),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -508,7 +579,9 @@ class _CreatorListCard extends StatelessWidget {
               Wrap(
                 spacing: AppSpacing.xs,
                 runSpacing: 4,
-                children: platforms.map<Widget>((p) => _PlatformChip(platform: p.toString())).toList(),
+                children: platforms
+                    .map<Widget>((p) => _PlatformChip(platform: p.toString()))
+                    .toList(),
               ),
             ],
             const SizedBox(height: AppSpacing.sm),
@@ -524,7 +597,8 @@ class _CreatorListCard extends StatelessWidget {
                   const Spacer(),
                 ],
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md, vertical: AppSpacing.xs),
                   decoration: BoxDecoration(
                     color: AppColors.agencyDark,
                     borderRadius: BorderRadius.circular(999),
@@ -532,9 +606,13 @@ class _CreatorListCard extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text('Pitch', style: AppTypography.labelSM.copyWith(color: AppColors.white, fontWeight: FontWeight.w800)),
+                      Text('Pitch',
+                          style: AppTypography.labelSM.copyWith(
+                              color: AppColors.white,
+                              fontWeight: FontWeight.w800)),
                       const SizedBox(width: 4),
-                      const Icon(Symbols.send_rounded, color: AppColors.white, size: 14),
+                      const Icon(Symbols.send_rounded,
+                          color: AppColors.white, size: 14),
                     ],
                   ),
                 ),
@@ -570,7 +648,8 @@ class _CreatorListCard extends StatelessWidget {
 }
 
 class _CreatorActionSheet extends StatelessWidget {
-  const _CreatorActionSheet({required this.creator, required this.creditBalance});
+  const _CreatorActionSheet(
+      {required this.creator, required this.creditBalance});
 
   final Map<String, dynamic> creator;
   final int creditBalance;
@@ -583,8 +662,7 @@ class _CreatorActionSheet extends StatelessWidget {
     final avatarUrl = creator['avatar_url'];
     final bio = creator['bio'];
 
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.screenPadding),
+    return _AgencySheetShell(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -594,19 +672,26 @@ class _CreatorActionSheet extends StatelessWidget {
               CircleAvatar(
                 radius: 28,
                 backgroundColor: AppColors.agencyDark.withValues(alpha: 0.2),
-                backgroundImage: avatarUrl != null ? NetworkImage(avatarUrl) : null,
-                child: avatarUrl == null ? const Icon(Icons.person, color: AppColors.agencyDark) : null,
+                backgroundImage:
+                    avatarUrl != null ? NetworkImage(avatarUrl) : null,
+                child: avatarUrl == null
+                    ? const Icon(Icons.person, color: AppColors.agencyDark)
+                    : null,
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(firstName, style: AppTypography.displaySM.copyWith(color: AppColors.white)),
+                    Text(firstName,
+                        style: AppTypography.displaySM.copyWith(
+                            color: AppColors.agencyDark,
+                            fontWeight: FontWeight.w900)),
                     if (niche != null)
                       Text(
                         niche is List ? (niche).join(', ') : niche.toString(),
-                        style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                        style: AppTypography.bodyXS
+                            .copyWith(color: AppColors.muted),
                       ),
                   ],
                 ),
@@ -617,7 +702,8 @@ class _CreatorActionSheet extends StatelessWidget {
           ),
           if (bio != null) ...[
             const SizedBox(height: AppSpacing.md),
-            Text(bio.toString(), style: AppTypography.bodySM.copyWith(color: AppColors.white.withValues(alpha: 0.8))),
+            Text(bio.toString(),
+                style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
           ],
           const SizedBox(height: AppSpacing.xl),
           Container(
@@ -625,25 +711,28 @@ class _CreatorActionSheet extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.agencyPrimary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.agencyPrimary.withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: AppColors.agencyPrimary.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
-                const Icon(Symbols.credit_card_rounded, color: AppColors.agencyPrimary, size: 18),
+                const Icon(Symbols.credit_card_rounded,
+                    color: AppColors.agencyPrimary, size: 18),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     'Pitching costs 1 credit. You have $creditBalance credits.',
-                    style: AppTypography.labelSM.copyWith(color: AppColors.agencyPrimary),
+                    style: AppTypography.labelSM.copyWith(
+                        color: AppColors.agencyDark,
+                        fontWeight: FontWeight.w800),
                   ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          BCPrimaryButton.dark(
+          _SheetPrimaryButton(
             label: 'Pitch Creator',
-            isFullWidth: true,
             onPressed: creditBalance > 0
                 ? () {
                     Navigator.pop(context);
@@ -655,10 +744,11 @@ class _CreatorActionSheet extends StatelessWidget {
           GestureDetector(
             onTap: () => Navigator.pop(context),
             child: Center(
-              child: Text('Cancel', style: AppTypography.labelMD.copyWith(color: AppColors.muted)),
+              child: Text('Cancel',
+                  style:
+                      AppTypography.labelMD.copyWith(color: AppColors.muted)),
             ),
           ),
-          SizedBox(height: MediaQuery.of(context).padding.bottom + AppSpacing.md),
         ],
       ),
     );
@@ -677,6 +767,77 @@ class _CreatorActionSheet extends StatelessWidget {
   }
 }
 
+class _AgencySheetShell extends StatelessWidget {
+  const _AgencySheetShell({required this.child, this.expand = false});
+
+  final Widget child;
+  final bool expand;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.lightBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        border: Border.all(color: AppColors.agencyDark.withValues(alpha: 0.16)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.16),
+            blurRadius: 24,
+            offset: const Offset(0, -8),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.screenPadding,
+            AppSpacing.md,
+            AppSpacing.screenPadding,
+            AppSpacing.lg,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 42,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.agencyDark.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              if (expand) Expanded(child: child) else child,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetIcon extends StatelessWidget {
+  const _SheetIcon({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: AppColors.agencyPrimary.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.agencyDark.withValues(alpha: 0.12)),
+      ),
+      child: Icon(icon, color: AppColors.agencyDark, size: 21),
+    );
+  }
+}
+
 class _PlatformChip extends StatelessWidget {
   const _PlatformChip({required this.platform});
 
@@ -685,7 +846,8 @@ class _PlatformChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
       decoration: BoxDecoration(
         color: AppColors.agencyDark.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(8),
@@ -694,6 +856,46 @@ class _PlatformChip extends StatelessWidget {
       child: Text(
         platform[0].toUpperCase() + platform.substring(1),
         style: AppTypography.labelXS.copyWith(color: AppColors.agencyDark),
+      ),
+    );
+  }
+}
+
+class _SheetPrimaryButton extends StatelessWidget {
+  const _SheetPrimaryButton({required this.label, required this.onPressed});
+
+  final String label;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: 14,
+          ),
+          decoration: BoxDecoration(
+            color: enabled
+                ? AppColors.agencyDark
+                : AppColors.agencyDark.withValues(alpha: 0.28),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: AppTypography.labelMD.copyWith(
+              color: AppColors.white,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -727,11 +929,15 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Symbols.person_search_rounded, size: 56, color: AppColors.agencyDark.withValues(alpha: 0.4)),
+            Icon(Symbols.person_search_rounded,
+                size: 56, color: AppColors.agencyDark.withValues(alpha: 0.4)),
             const SizedBox(height: AppSpacing.md),
-            Text('No creators found', style: AppTypography.labelLG.copyWith(color: textColor, fontWeight: FontWeight.w900)),
+            Text('No creators found',
+                style: AppTypography.labelLG
+                    .copyWith(color: textColor, fontWeight: FontWeight.w900)),
             const SizedBox(height: AppSpacing.xs),
-            Text('Try adjusting your filters or search', style: AppTypography.bodySM.copyWith(color: mutedColor)),
+            Text('Try adjusting your filters or search',
+                style: AppTypography.bodySM.copyWith(color: mutedColor)),
           ],
         ),
       ),

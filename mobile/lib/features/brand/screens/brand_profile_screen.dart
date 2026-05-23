@@ -96,7 +96,8 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
 
   Future<String> _uploadAvatar(Uint8List bytes, String fileName) async {
     final userId = Supabase.instance.client.auth.currentUser!.id;
-    final ext = fileName.contains('.') ? fileName.split('.').last.toLowerCase() : 'jpg';
+    final ext =
+        fileName.contains('.') ? fileName.split('.').last.toLowerCase() : 'jpg';
     final version = DateTime.now().millisecondsSinceEpoch;
     final path = 'brands/$userId-$version.$ext';
     await Supabase.instance.client.storage.from('avatars').uploadBinary(
@@ -134,14 +135,22 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                 children: [
                   const Text('Verify Brand', style: AppTypography.displaySM),
                   const SizedBox(height: AppSpacing.lg),
-                  BCTextField(label: 'GST Number', hint: '27ABCDE1234F1Z5', controller: gstController),
+                  BCTextField(
+                      label: 'GST Number',
+                      hint: '27ABCDE1234F1Z5',
+                      controller: gstController),
                   const SizedBox(height: AppSpacing.lg),
-                  BCTextField(label: 'Website', hint: 'https://yourbrand.com', controller: websiteController),
+                  BCTextField(
+                      label: 'Website',
+                      hint: 'https://yourbrand.com',
+                      controller: websiteController),
                   const SizedBox(height: AppSpacing.xl),
                   BCPrimaryButton.dark(
                     label: 'Submit',
                     onPressed: () async {
-                      await ref.read(brandProfileProvider.notifier).updateProfile({
+                      await ref
+                          .read(brandProfileProvider.notifier)
+                          .updateProfile({
                         'gst_number': gstController.text.trim(),
                         'website': websiteController.text.trim(),
                       });
@@ -161,7 +170,8 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
   Future<void> _openEditSheet(BrandProfile profile) async {
     final brandNameController = TextEditingController(text: profile.brandName);
     final websiteController = TextEditingController(text: profile.website);
-    final descriptionController = TextEditingController(text: profile.description);
+    final descriptionController =
+        TextEditingController(text: profile.description);
     String category = profile.brandCategory;
     String? selectedState = profile.state;
     String? selectedCity = profile.city;
@@ -188,7 +198,8 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                       Row(
                         children: [
                           const Expanded(
-                            child: Text('Edit Profile', style: AppTypography.displaySM),
+                            child: Text('Edit Profile',
+                                style: AppTypography.displaySM),
                           ),
                           IconButton(
                             onPressed: () => Navigator.of(context).pop(),
@@ -196,23 +207,38 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                               backgroundColor: AppColors.lightBg,
                               minimumSize: const Size(36, 36),
                             ),
-                            icon: const Icon(Icons.close_rounded, color: AppColors.brandDark, size: 18),
+                            icon: const Icon(Icons.close_rounded,
+                                color: AppColors.brandDark, size: 18),
                           ),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      BCTextField(label: 'Brand Name', controller: brandNameController),
+                      BCTextField(
+                          label: 'Brand Name', controller: brandNameController),
                       const SizedBox(height: AppSpacing.lg),
                       BCDropdown(
                         label: 'Category',
                         value: category,
-                        items: const ['Fashion', 'Beauty', 'Food', 'Tech', 'Fitness', 'Lifestyle', 'General'],
-                        onChanged: (value) => setSheetState(() => category = value ?? category),
+                        items: const [
+                          'Fashion',
+                          'Beauty',
+                          'Food',
+                          'Tech',
+                          'Fitness',
+                          'Lifestyle',
+                          'General'
+                        ],
+                        onChanged: (value) =>
+                            setSheetState(() => category = value ?? category),
                       ),
                       const SizedBox(height: AppSpacing.lg),
-                      BCTextField(label: 'Website', controller: websiteController),
+                      BCTextField(
+                          label: 'Website', controller: websiteController),
                       const SizedBox(height: AppSpacing.lg),
-                      BCTextField(label: 'Description', maxLines: 4, controller: descriptionController),
+                      BCTextField(
+                          label: 'Description',
+                          maxLines: 4,
+                          controller: descriptionController),
                       const SizedBox(height: AppSpacing.lg),
                       BCLocationPicker(
                         initialState: selectedState,
@@ -245,11 +271,14 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                             child: _SheetActionButton(
                               label: 'Save',
                               onPressed: () async {
-                                await ref.read(brandProfileProvider.notifier).updateProfile({
+                                await ref
+                                    .read(brandProfileProvider.notifier)
+                                    .updateProfile({
                                   'brand_name': brandNameController.text.trim(),
                                   'brand_category': category,
                                   'website': websiteController.text.trim(),
-                                  'description': descriptionController.text.trim(),
+                                  'description':
+                                      descriptionController.text.trim(),
                                   'state': selectedState,
                                   'city': selectedCity,
                                   if ((avatarUrl ?? '').isNotEmpty) ...{
@@ -257,7 +286,9 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                                     'avatar_url': avatarUrl,
                                   },
                                 });
-                                if (mounted) setState(() => _avatarUrl = avatarUrl);
+                                if (mounted) {
+                                  setState(() => _avatarUrl = avatarUrl);
+                                }
                                 await _refresh();
                                 if (!context.mounted) return;
                                 Navigator.of(context).pop();
@@ -294,7 +325,8 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                 BCPrimaryButton.dark(
                   label: 'Choose Photo',
                   onPressed: () async {
-                    final file = await ImagePicker().pickImage(source: ImageSource.gallery);
+                    final file = await ImagePicker()
+                        .pickImage(source: ImageSource.gallery);
                     if (!sheetContext.mounted) return;
                     Navigator.of(sheetContext).pop(file);
                   },
@@ -303,7 +335,8 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                 BCPrimaryButton.neon(
                   label: 'Choose Video',
                   onPressed: () async {
-                    final file = await ImagePicker().pickVideo(source: ImageSource.gallery);
+                    final file = await ImagePicker()
+                        .pickVideo(source: ImageSource.gallery);
                     if (!sheetContext.mounted) return;
                     Navigator.of(sheetContext).pop(file);
                   },
@@ -322,13 +355,17 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
     final bytes = await picked.readAsBytes();
     final url = await _uploadAvatar(bytes, picked.name);
     final next = [...profile.portfolioLinks, url];
-    await ref.read(brandProfileProvider.notifier).updateProfile({'portfolio_links': next});
+    await ref
+        .read(brandProfileProvider.notifier)
+        .updateProfile({'portfolio_links': next});
     await _refresh();
   }
 
   Future<void> _deleteProfilePost(BrandProfile profile, String url) async {
     final next = profile.portfolioLinks.where((item) => item != url).toList();
-    await ref.read(brandProfileProvider.notifier).updateProfile({'portfolio_links': next});
+    await ref
+        .read(brandProfileProvider.notifier)
+        .updateProfile({'portfolio_links': next});
     await _refresh();
   }
 
@@ -340,32 +377,48 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
     final completedCollabsAsync = ref.watch(_completedCollabsProvider);
     final profile = profileAsync.valueOrNull ?? brandState.brandProfile;
 
-    if (profileAsync.isLoading && profile == null) return const Scaffold(body: _ProfileShimmer());
-    if (profileAsync.hasError && profile == null) {
-      return Scaffold(body: BCErrorState(message: profileAsync.error.toString(), onRetry: _refresh));
+    if (profileAsync.isLoading && profile == null) {
+      return const Scaffold(body: _ProfileShimmer());
     }
-    if (profile == null) return const Scaffold(body: Center(child: Text('Unable to load brand profile.')));
+    if (profileAsync.hasError && profile == null) {
+      return Scaffold(
+          body: BCErrorState(
+              message: profileAsync.error.toString(), onRetry: _refresh));
+    }
+    if (profile == null) {
+      return const Scaffold(
+          body: Center(child: Text('Unable to load brand profile.')));
+    }
 
-    final credits = creditsAsync.valueOrNull?.balance ?? brandState.creditBalance;
-    final completedCampaigns = brandState.campaigns.where((c) => c.status == CampaignStatus.completed).toList();
-    final completedCollabs = completedCollabsAsync.valueOrNull ?? const <ActiveCollabSummary>[];
-    final logo = (_avatarUrl ?? profile.avatarUrl ?? profile.logoUrl ?? '').trim();
+    final credits =
+        creditsAsync.valueOrNull?.balance ?? brandState.creditBalance;
+    final completedCampaigns = brandState.campaigns
+        .where((c) => c.status == CampaignStatus.completed)
+        .toList();
+    final completedCollabs =
+        completedCollabsAsync.valueOrNull ?? const <ActiveCollabSummary>[];
+    final logo =
+        (_avatarUrl ?? profile.avatarUrl ?? profile.logoUrl ?? '').trim();
     final location = (profile.city ?? '').trim().isNotEmpty
         ? '${profile.city}, ${profile.state ?? ''}'
-        : ((profile.state ?? '').trim().isEmpty ? 'Location not set' : profile.state!);
+        : ((profile.state ?? '').trim().isEmpty
+            ? 'Location not set'
+            : profile.state!);
 
     final topInset = MediaQuery.of(context).padding.top + 14;
     const headerHeight = 48.0;
     const headerGap = 34.0;
     final sheetTop = topInset + headerHeight + headerGap;
     final headerSlide = _scrollOffset.clamp(0.0, sheetTop);
-    final collapseProgress = (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+    final collapseProgress =
+        (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
     final collapsedTop = MediaQuery.of(context).padding.top + 8;
     final headerTop = lerpDouble(topInset, collapsedTop, collapseProgress)!;
 
     return Scaffold(
       extendBody: true,
-      bottomNavigationBar: const BCBottomNav(role: BCPortalRole.brand, currentIndex: 3),
+      bottomNavigationBar:
+          const BCBottomNav(role: BCPortalRole.brand, currentIndex: 3),
       body: BCPageSwipeArea(
         role: BCPortalRole.brand,
         currentIndex: 3,
@@ -373,15 +426,28 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
           length: 2,
           child: Stack(
             children: [
-              const Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(color: AppColors.lightBg))),
-              Positioned(top: -46, right: -32, child: _GlowOrb(size: 136, color: AppColors.brandPrimary.withValues(alpha: 0.08))),
-              Positioned(top: 220, left: -44, child: _GlowOrb(size: 112, color: AppColors.brandDark.withValues(alpha: 0.08))),
+              const Positioned.fill(
+                  child: DecoratedBox(
+                      decoration: BoxDecoration(color: AppColors.lightBg))),
+              Positioned(
+                  top: -46,
+                  right: -32,
+                  child: _GlowOrb(
+                      size: 136,
+                      color: AppColors.brandPrimary.withValues(alpha: 0.08))),
+              Positioned(
+                  top: 220,
+                  left: -44,
+                  child: _GlowOrb(
+                      size: 112,
+                      color: AppColors.brandDark.withValues(alpha: 0.08))),
               Column(
                 children: [
+                  SizedBox(height: sheetTop + AppSpacing.sm),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
                       AppSpacing.screenPadding,
-                      AppSpacing.xs,
+                      0,
                       AppSpacing.screenPadding,
                       AppSpacing.sm,
                     ),
@@ -397,11 +463,17 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                                 decoration: BoxDecoration(
                                   color: AppColors.white,
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.14)),
+                                  border: Border.all(
+                                      color: AppColors.brandDark
+                                          .withValues(alpha: 0.14)),
                                 ),
                                 child: logo.isNotEmpty
-                                    ? ClipOval(child: Image.network(logo, fit: BoxFit.cover))
-                                    : Center(child: Text(profile.logoInitial, style: AppTypography.labelLG)),
+                                    ? ClipOval(
+                                        child: Image.network(logo,
+                                            fit: BoxFit.cover))
+                                    : Center(
+                                        child: Text(profile.logoInitial,
+                                            style: AppTypography.labelLG)),
                               ),
                               const SizedBox(width: AppSpacing.md),
                               Expanded(
@@ -416,14 +488,20 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 4),
-                                    Text(location, style: AppTypography.bodyXS.copyWith(color: AppColors.muted)),
+                                    Text(location,
+                                        style: AppTypography.bodyXS
+                                            .copyWith(color: AppColors.muted)),
                                     const SizedBox(height: AppSpacing.sm),
                                     Wrap(
                                       spacing: AppSpacing.xs,
                                       children: [
-                                        BCBadge(label: profile.brandCategory, variant: BCBadgeVariant.neon),
+                                        BCBadge(
+                                            label: profile.brandCategory,
+                                            variant: BCBadgeVariant.neon),
                                         if (profile.verified)
-                                          const BCBadge(label: 'Verified', variant: BCBadgeVariant.success),
+                                          const BCBadge(
+                                              label: 'Verified',
+                                              variant: BCBadgeVariant.success),
                                       ],
                                     ),
                                   ],
@@ -448,9 +526,15 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                             spacing: AppSpacing.sm,
                             runSpacing: AppSpacing.sm,
                             children: [
-                              _StatPill(label: 'Collabs', value: '${profile.totalCollabs}'),
-                              _StatPill(label: 'Campaigns', value: '${brandState.activeCampaignCount}'),
-                              _StatPill(label: 'Rating', value: profile.avgRating.toStringAsFixed(1)),
+                              _StatPill(
+                                  label: 'Collabs',
+                                  value: '${profile.totalCollabs}'),
+                              _StatPill(
+                                  label: 'Campaigns',
+                                  value: '${brandState.activeCampaignCount}'),
+                              _StatPill(
+                                  label: 'Rating',
+                                  value: profile.avgRating.toStringAsFixed(1)),
                             ],
                           ),
                         ],
@@ -458,7 +542,8 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.screenPadding),
                     child: Container(
                       decoration: BoxDecoration(
                         color: AppColors.white,
@@ -489,7 +574,12 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                           child: ListView(
                             controller: _scrollController,
                             physics: const AlwaysScrollableScrollPhysics(),
-                            padding: EdgeInsets.fromLTRB(0, sheetTop, 0, 0),
+                            padding: EdgeInsets.fromLTRB(
+                              AppSpacing.screenPadding,
+                              AppSpacing.sm,
+                              AppSpacing.screenPadding,
+                              MediaQuery.of(context).padding.bottom + 104,
+                            ),
                             children: [
                               BCCard(
                                 child: Column(
@@ -497,7 +587,9 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                                   children: [
                                     Row(
                                       children: [
-                                        const _CircleIconChip(icon: Icons.business_center_rounded),
+                                        const _CircleIconChip(
+                                            icon:
+                                                Icons.business_center_rounded),
                                         const SizedBox(width: AppSpacing.sm),
                                         Text(
                                           'About',
@@ -513,18 +605,21 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                                       profile.description.trim().isEmpty
                                           ? 'No description added yet.'
                                           : profile.description,
-                                      style: AppTypography.bodySM.copyWith(color: AppColors.muted),
+                                      style: AppTypography.bodySM
+                                          .copyWith(color: AppColors.muted),
                                     ),
                                     if (profile.website.trim().isNotEmpty) ...[
                                       const SizedBox(height: AppSpacing.sm),
                                       GestureDetector(
                                         onTap: () async {
-                                          final uri = Uri.tryParse(profile.website.trim());
+                                          final uri = Uri.tryParse(
+                                              profile.website.trim());
                                           if (uri != null) await launchUrl(uri);
                                         },
                                         child: Text(
                                           profile.website,
-                                          style: AppTypography.labelSM.copyWith(color: AppColors.blue),
+                                          style: AppTypography.labelSM
+                                              .copyWith(color: AppColors.blue),
                                         ),
                                       ),
                                     ],
@@ -533,10 +628,13 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                               ),
                               const SizedBox(height: AppSpacing.md),
                               BCCard(
-                                onTap: () => context.push(RouteNames.brandCredits),
+                                onTap: () =>
+                                    context.push(RouteNames.brandCredits),
                                 child: Row(
                                   children: [
-                                    const _CircleIconChip(icon: Icons.account_balance_wallet_rounded),
+                                    const _CircleIconChip(
+                                        icon: Icons
+                                            .account_balance_wallet_rounded),
                                     const SizedBox(width: AppSpacing.sm),
                                     Text(
                                       'Credits',
@@ -578,14 +676,19 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                                 const SizedBox(height: AppSpacing.sm),
                                 ...completedCampaigns.take(3).map(
                                       (item) => Padding(
-                                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                                        padding: const EdgeInsets.only(
+                                            bottom: AppSpacing.sm),
                                         child: BCCard(
                                           child: Row(
                                             children: [
-                                              const _CircleIconChip(icon: Icons.campaign_rounded),
-                                              const SizedBox(width: AppSpacing.sm),
+                                              const _CircleIconChip(
+                                                  icon: Icons.campaign_rounded),
+                                              const SizedBox(
+                                                  width: AppSpacing.sm),
                                               Expanded(
-                                                child: Text(item.title, style: AppTypography.labelMD),
+                                                child: Text(item.title,
+                                                    style:
+                                                        AppTypography.labelMD),
                                               ),
                                             ],
                                           ),
@@ -595,7 +698,9 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                               ] else
                                 const SizedBox(height: AppSpacing.lg),
                               SizedBox(
-                                height: completedCampaigns.isEmpty ? AppSpacing.xl : AppSpacing.lg,
+                                height: completedCampaigns.isEmpty
+                                    ? AppSpacing.xl
+                                    : AppSpacing.lg,
                               ),
                               Text(
                                 'Completed Collabs',
@@ -608,11 +713,13 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                               if (completedCollabsAsync.isLoading)
                                 const _InlineShimmerList()
                               else if (completedCollabs.isEmpty)
-                                const Text('No completed collabs yet.', style: AppTypography.bodySM)
+                                const Text('No completed collabs yet.',
+                                    style: AppTypography.bodySM)
                               else
                                 ...completedCollabs.take(3).map(
                                       (item) => Padding(
-                                        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                                        padding: const EdgeInsets.only(
+                                            bottom: AppSpacing.sm),
                                         child: _CompletedCollabTile(item: item),
                                       ),
                                     ),
@@ -620,7 +727,8 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                               _ProfileActionButton(
                                 label: 'Settings',
                                 icon: Icons.settings_rounded,
-                                onPressed: () => context.push(RouteNames.settings),
+                                onPressed: () =>
+                                    context.push(RouteNames.settings),
                               ),
                               const SizedBox(height: AppSpacing.sm),
                               _ProfileActionButton(
@@ -635,7 +743,8 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                         ProfilePostsTab(
                           mediaUrls: profile.portfolioLinks,
                           canManage: true,
-                          emptyTitle: 'Upload photos or videos to showcase your brand work.',
+                          emptyTitle:
+                              'Upload photos or videos to showcase your brand work.',
                           onUpload: () => _uploadProfilePost(profile),
                           onDelete: (url) => _deleteProfilePost(profile, url),
                         ),
@@ -652,9 +761,11 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                 child: IgnorePointer(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColors.lightBg.withValues(alpha: collapseProgress * 0.95),
+                      color: AppColors.lightBg
+                          .withValues(alpha: collapseProgress * 0.95),
                       border: collapseProgress > 0.5
-                          ? const Border(bottom: BorderSide(color: AppColors.lightBorder))
+                          ? const Border(
+                              bottom: BorderSide(color: AppColors.lightBorder))
                           : null,
                     ),
                   ),
@@ -669,39 +780,6 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.value});
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: AppTypography.labelLG.copyWith(
-              color: AppColors.brandDark,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
-          ),
-        ],
       ),
     );
   }
@@ -787,7 +865,8 @@ class _CompletedCollabTile extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'Completed',
-                style: AppTypography.bodyXS.copyWith(color: AppColors.brandDark),
+                style:
+                    AppTypography.bodyXS.copyWith(color: AppColors.brandDark),
               ),
             ],
           ),
@@ -1023,4 +1102,3 @@ class _InlineShimmerList extends StatelessWidget {
     );
   }
 }
-

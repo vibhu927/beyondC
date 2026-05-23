@@ -195,6 +195,7 @@ _$CollabRequestImpl _$$CollabRequestImplFromJson(Map<String, dynamic> json) =>
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
+      campaignId: json['campaignId'] as String?,
     );
 
 Map<String, dynamic> _$$CollabRequestImplToJson(_$CollabRequestImpl instance) =>
@@ -209,6 +210,7 @@ Map<String, dynamic> _$$CollabRequestImplToJson(_$CollabRequestImpl instance) =>
       'deliverables': instance.deliverables,
       'status': instance.status,
       'createdAt': instance.createdAt?.toIso8601String(),
+      'campaignId': instance.campaignId,
     };
 
 _$CollabImpl _$$CollabImplFromJson(Map<String, dynamic> json) => _$CollabImpl(

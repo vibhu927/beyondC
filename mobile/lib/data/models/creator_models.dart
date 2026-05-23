@@ -127,6 +127,7 @@ class CollabRequest with _$CollabRequest {
     @Default(<String>[]) List<String> deliverables,
     @Default('pending') String status,
     DateTime? createdAt,
+    String? campaignId,
   }) = _CollabRequest;
 
   factory CollabRequest.fromJson(Map<String, dynamic> json) =>

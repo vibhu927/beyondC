@@ -22,10 +22,12 @@ class BrandRequestsScreen extends ConsumerStatefulWidget {
   const BrandRequestsScreen({super.key});
 
   @override
-  ConsumerState<BrandRequestsScreen> createState() => _BrandRequestsScreenState();
+  ConsumerState<BrandRequestsScreen> createState() =>
+      _BrandRequestsScreenState();
 }
 
 enum _RequestTab { active, accepted, rejectedExpired }
+
 enum _RequestSort { newest, oldest, budgetAsc, budgetDesc }
 
 class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
@@ -54,7 +56,8 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
       if (cached == null) {
         await ref.read(brandRequestsProvider.notifier).refresh();
       }
-      _resyncVisibleList(ref.read(brandRequestsProvider).valueOrNull ?? const []);
+      _resyncVisibleList(
+          ref.read(brandRequestsProvider).valueOrNull ?? const []);
       ref.listenManual<AsyncValue<List<CollabRequest>>>(
         brandRequestsProvider,
         (_, next) => _resyncVisibleList(next.valueOrNull ?? const []),
@@ -87,9 +90,11 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
     typeFiltered.sort((a, b) {
       switch (_sort) {
         case _RequestSort.newest:
-          return (b.createdAt ?? DateTime(1970)).compareTo(a.createdAt ?? DateTime(1970));
+          return (b.createdAt ?? DateTime(1970))
+              .compareTo(a.createdAt ?? DateTime(1970));
         case _RequestSort.oldest:
-          return (a.createdAt ?? DateTime(1970)).compareTo(b.createdAt ?? DateTime(1970));
+          return (a.createdAt ?? DateTime(1970))
+              .compareTo(b.createdAt ?? DateTime(1970));
         case _RequestSort.budgetAsc:
           return (a.budget ?? 0).compareTo(b.budget ?? 0);
         case _RequestSort.budgetDesc:
@@ -120,8 +125,10 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
             return Container(
               decoration: BoxDecoration(
                 color: AppColors.lightBg,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.16)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(28)),
+                border: Border.all(
+                    color: AppColors.brandDark.withValues(alpha: 0.16)),
               ),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -153,7 +160,9 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
                           label: _collabTypeLabel(type),
                           active: active,
                           onTap: () => setSheetState(() {
-                            active ? workingTypes.remove(type) : workingTypes.add(type);
+                            active
+                                ? workingTypes.remove(type)
+                                : workingTypes.add(type);
                           }),
                         );
                       }).toList(),
@@ -183,7 +192,8 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
                           _sort = workingSort;
                           _listKey = GlobalKey<AnimatedListState>();
                           _visibleRequests = _applyFilters(
-                            ref.read(brandRequestsProvider).valueOrNull ?? const [],
+                            ref.read(brandRequestsProvider).valueOrNull ??
+                                const [],
                           );
                         });
                         Navigator.of(context).pop();
@@ -278,13 +288,15 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
     const headerGap = 34.0;
     final sheetTop = topInset + headerHeight + headerGap;
     final headerSlide = _scrollOffset.clamp(0.0, sheetTop);
-    final collapseProgress = (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+    final collapseProgress =
+        (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
     final collapsedTop = MediaQuery.of(context).padding.top + 8;
     final headerTop = lerpDouble(topInset, collapsedTop, collapseProgress)!;
 
     return Scaffold(
       extendBody: true,
-      bottomNavigationBar: const BCBottomNav(role: BCPortalRole.brand, currentIndex: 2),
+      bottomNavigationBar:
+          const BCBottomNav(role: BCPortalRole.brand, currentIndex: 2),
       floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: AppSpacing.sm),
@@ -295,7 +307,8 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
           foregroundColor: AppColors.brandPrimary,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-            side: BorderSide(color: AppColors.brandDark.withValues(alpha: 0.2), width: 1.5),
+            side: BorderSide(
+                color: AppColors.brandDark.withValues(alpha: 0.2), width: 1.5),
           ),
           child: const Icon(Icons.tune_rounded),
         ),
@@ -305,70 +318,101 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
         currentIndex: 2,
         child: Stack(
           children: [
-            const Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(color: AppColors.lightBg))),
+            const Positioned.fill(
+                child: DecoratedBox(
+                    decoration: BoxDecoration(color: AppColors.lightBg))),
             Positioned(
               top: -46,
               right: -32,
-              child: _GlowOrb(size: 136, color: AppColors.brandPrimary.withValues(alpha: 0.08)),
+              child: _GlowOrb(
+                  size: 136,
+                  color: AppColors.brandPrimary.withValues(alpha: 0.08)),
             ),
             Positioned(
               top: 220,
               left: -44,
-              child: _GlowOrb(size: 112, color: AppColors.brandDark.withValues(alpha: 0.08)),
+              child: _GlowOrb(
+                  size: 112,
+                  color: AppColors.brandDark.withValues(alpha: 0.08)),
             ),
             Column(
               children: [
-                const SizedBox(height: AppSpacing.sm),
-                _TabBarPills(
-                  activeTab: _activeTab,
-                  onChanged: (tab) {
-                    setState(() {
-                      _activeTab = tab;
-                      _listKey = GlobalKey<AnimatedListState>();
-                      _visibleRequests = _applyFilters(requestsAsync.valueOrNull ?? const []);
-                    });
-                  },
-                ),
-                const SizedBox(height: AppSpacing.sm),
+                SizedBox(height: sheetTop),
                 Expanded(
-                  child: requestsAsync.when(
-                    loading: () => const _RequestListShimmer(),
-                    error: (error, _) => BCErrorState(
-                      message: error.toString(),
-                      onRetry: () => ref.read(brandRequestsProvider.notifier).refresh(),
-                    ),
-                    data: (_) {
-                      if (_visibleRequests.isEmpty) {
-                        return BCEmptyState(
-                          emoji: _emptyEmoji(_activeTab),
-                          message: _emptyMessage(_activeTab),
-                        );
-                      }
-                      return AnimatedList(
-                        controller: _scrollController,
-                        key: _listKey,
-                        initialItemCount: _visibleRequests.length,
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.screenPadding,
-                          AppSpacing.sm,
-                          AppSpacing.screenPadding,
-                          AppSpacing.huge,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: AppColors.lightBg,
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(30),
+                      ),
+                      border: Border(
+                        top: BorderSide(
+                          color: AppColors.brandDark,
+                          width: 2.2,
                         ),
-                        itemBuilder: (context, index, animation) {
-                          final request = _visibleRequests[index];
-                          return SizeTransition(
-                            sizeFactor: animation,
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                              child: _RequestCard(
-                                request: request,
-                                onCancel: () => _cancelRequest(request),
-                              ),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: AppSpacing.lg),
+                        _TabBarPills(
+                          activeTab: _activeTab,
+                          onChanged: (tab) {
+                            setState(() {
+                              _activeTab = tab;
+                              _listKey = GlobalKey<AnimatedListState>();
+                              _visibleRequests = _applyFilters(
+                                  requestsAsync.valueOrNull ?? const []);
+                            });
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Expanded(
+                          child: requestsAsync.when(
+                            loading: () => const _RequestListShimmer(),
+                            error: (error, _) => BCErrorState(
+                              message: error.toString(),
+                              onRetry: () => ref
+                                  .read(brandRequestsProvider.notifier)
+                                  .refresh(),
                             ),
-                          );
-                        },
-                      );
-                    },
+                            data: (_) {
+                              if (_visibleRequests.isEmpty) {
+                                return BCEmptyState(
+                                  emoji: _emptyEmoji(_activeTab),
+                                  message: _emptyMessage(_activeTab),
+                                );
+                              }
+                              return AnimatedList(
+                                controller: _scrollController,
+                                key: _listKey,
+                                initialItemCount: _visibleRequests.length,
+                                padding: EdgeInsets.fromLTRB(
+                                  AppSpacing.screenPadding,
+                                  AppSpacing.sm,
+                                  AppSpacing.screenPadding,
+                                  MediaQuery.of(context).padding.bottom + 104,
+                                ),
+                                itemBuilder: (context, index, animation) {
+                                  final request = _visibleRequests[index];
+                                  return SizeTransition(
+                                    sizeFactor: animation,
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                          bottom: AppSpacing.md),
+                                      child: _RequestCard(
+                                        request: request,
+                                        onCancel: () => _cancelRequest(request),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -381,9 +425,11 @@ class _BrandRequestsScreenState extends ConsumerState<BrandRequestsScreen> {
               child: IgnorePointer(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.lightBg.withValues(alpha: collapseProgress * 0.95),
+                    color: AppColors.lightBg
+                        .withValues(alpha: collapseProgress * 0.95),
                     border: collapseProgress > 0.5
-                        ? const Border(bottom: BorderSide(color: AppColors.lightBorder))
+                        ? const Border(
+                            bottom: BorderSide(color: AppColors.lightBorder))
                         : null,
                   ),
                 ),
@@ -510,7 +556,8 @@ class _RequestCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       createdAtLabel,
-                      style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                      style:
+                          AppTypography.bodyXS.copyWith(color: AppColors.muted),
                     ),
                   ],
                 ),
@@ -583,7 +630,8 @@ class _RequestStatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
       decoration: BoxDecoration(
         color: isPrimary ? null : AppColors.brandDark.withValues(alpha: 0.08),
         gradient: isPrimary ? AppColors.brandPrimaryGlassGradient : null,
@@ -667,16 +715,19 @@ class _TabBarPills extends StatelessWidget {
             child: GestureDetector(
               onTap: () => onChanged(tab),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                 decoration: BoxDecoration(
                   color: isActive ? AppColors.brandDark : AppColors.white,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
-                  border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.2)),
+                  border: Border.all(
+                      color: AppColors.brandDark.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   _BrandRequestsScreenState._tabLabels[tab]!,
                   style: AppTypography.labelSM.copyWith(
-                    color: isActive ? AppColors.brandPrimary : AppColors.brandDark,
+                    color:
+                        isActive ? AppColors.brandPrimary : AppColors.brandDark,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -690,7 +741,8 @@ class _TabBarPills extends StatelessWidget {
 }
 
 class _FilterPill extends StatelessWidget {
-  const _FilterPill({required this.label, required this.active, required this.onTap});
+  const _FilterPill(
+      {required this.label, required this.active, required this.onTap});
   final String label;
   final bool active;
   final VoidCallback onTap;
@@ -700,7 +752,8 @@ class _FilterPill extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: active ? AppColors.brandDark : AppColors.white,
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
@@ -759,7 +812,10 @@ class _GlowOrb extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           boxShadow: [
-            BoxShadow(color: color, blurRadius: size * 0.55, spreadRadius: size * 0.04),
+            BoxShadow(
+                color: color,
+                blurRadius: size * 0.55,
+                spreadRadius: size * 0.04),
           ],
         ),
       ),
@@ -838,4 +894,3 @@ String _emptyEmoji(_RequestTab tab) {
       return '📭';
   }
 }
-

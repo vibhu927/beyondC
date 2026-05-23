@@ -19,7 +19,8 @@ class BrandCampaignsScreen extends ConsumerStatefulWidget {
   const BrandCampaignsScreen({super.key});
 
   @override
-  ConsumerState<BrandCampaignsScreen> createState() => _BrandCampaignsScreenState();
+  ConsumerState<BrandCampaignsScreen> createState() =>
+      _BrandCampaignsScreenState();
 }
 
 class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
@@ -59,7 +60,8 @@ class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
     const headerGap = 34.0;
     final sheetTop = topInset + headerHeight + headerGap;
     final headerSlide = _scrollOffset.clamp(0.0, sheetTop);
-    final collapseProgress = (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
+    final collapseProgress =
+        (headerSlide / (headerHeight + headerGap)).clamp(0.0, 1.0);
     final collapsedTop = MediaQuery.of(context).padding.top + 8;
     final headerTop = lerpDouble(topInset, collapsedTop, collapseProgress)!;
 
@@ -117,36 +119,61 @@ class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
               controller: _scrollController,
               padding: EdgeInsets.fromLTRB(0, sheetTop, 0, 0),
               children: [
-                const SizedBox(height: AppSpacing.md),
-                if (state.isLoading)
-                  const _CampaignShimmerList()
-                else if (campaigns.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.huge),
-                    child: Text(
-                      _statusFilter == null
-                          ? 'No campaigns found for this brand account.\nCreate your first campaign to start receiving bids.'
-                          : 'No campaigns found for this selected status.',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.bodyMD.copyWith(color: AppColors.muted),
+                Container(
+                  decoration: const BoxDecoration(
+                    color: AppColors.lightBg,
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(30),
                     ),
-                  )
-                else
-                  Column(
-                    children: campaigns
-                        .map(
-                          (campaign) => Padding(
-                            padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                            child: _CampaignCard(
-                              campaign: campaign,
-                              onViewBids: () => context.push(
-                                RouteNames.campaignBids.replaceFirst(':id', campaign.id),
-                              ),
-                            ),
-                          ),
-                        )
-                        .toList(),
+                    border: Border(
+                      top: BorderSide(
+                        color: AppColors.brandDark,
+                        width: 2.2,
+                      ),
+                    ),
                   ),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.screenPadding,
+                      AppSpacing.lg,
+                      AppSpacing.screenPadding,
+                      MediaQuery.of(context).padding.bottom + 104,
+                    ),
+                    child: state.isLoading
+                        ? const _CampaignShimmerList()
+                        : campaigns.isEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: AppSpacing.huge),
+                                child: Text(
+                                  _statusFilter == null
+                                      ? 'No campaigns found for this brand account.\nCreate your first campaign to start receiving bids.'
+                                      : 'No campaigns found for this selected status.',
+                                  textAlign: TextAlign.center,
+                                  style: AppTypography.bodyMD
+                                      .copyWith(color: AppColors.muted),
+                                ),
+                              )
+                            : Column(
+                                children: campaigns
+                                    .map(
+                                      (campaign) => Padding(
+                                        padding: const EdgeInsets.only(
+                                            bottom: AppSpacing.md),
+                                        child: _CampaignCard(
+                                          campaign: campaign,
+                                          onViewBids: () => context.push(
+                                            RouteNames.campaignBids
+                                                .replaceFirst(
+                                                    ':id', campaign.id),
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                  ),
+                ),
               ],
             ),
             Positioned(
@@ -157,9 +184,11 @@ class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
               child: IgnorePointer(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.lightBg.withValues(alpha: collapseProgress * 0.95),
+                    color: AppColors.lightBg
+                        .withValues(alpha: collapseProgress * 0.95),
                     border: collapseProgress > 0.5
-                        ? const Border(bottom: BorderSide(color: AppColors.lightBorder))
+                        ? const Border(
+                            bottom: BorderSide(color: AppColors.lightBorder))
                         : null,
                   ),
                 ),
@@ -189,8 +218,10 @@ class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
             return Container(
               decoration: BoxDecoration(
                 color: AppColors.lightBg,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-                border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.16)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(28)),
+                border: Border.all(
+                    color: AppColors.brandDark.withValues(alpha: 0.16)),
               ),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -220,22 +251,26 @@ class _BrandCampaignsScreenState extends ConsumerState<BrandCampaignsScreen> {
                         _FilterPill(
                           label: 'All',
                           active: workingFilter == null,
-                          onTap: () => setSheetState(() => workingFilter = null),
+                          onTap: () =>
+                              setSheetState(() => workingFilter = null),
                         ),
                         _FilterPill(
                           label: 'Active',
                           active: workingFilter == CampaignStatus.active,
-                          onTap: () => setSheetState(() => workingFilter = CampaignStatus.active),
+                          onTap: () => setSheetState(
+                              () => workingFilter = CampaignStatus.active),
                         ),
                         _FilterPill(
                           label: 'Paused',
                           active: workingFilter == CampaignStatus.paused,
-                          onTap: () => setSheetState(() => workingFilter = CampaignStatus.paused),
+                          onTap: () => setSheetState(
+                              () => workingFilter = CampaignStatus.paused),
                         ),
                         _FilterPill(
                           label: 'Completed',
                           active: workingFilter == CampaignStatus.completed,
-                          onTap: () => setSheetState(() => workingFilter = CampaignStatus.completed),
+                          onTap: () => setSheetState(
+                              () => workingFilter = CampaignStatus.completed),
                         ),
                       ],
                     ),
@@ -268,8 +303,10 @@ class _CampaignCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final deliverables = campaign.deliverables.take(2).join(' / ');
     final location = campaign.targetCity ?? campaign.targetState ?? 'Pan India';
-    final budgetLabel = '${_inr(campaign.minBudget)} - ${_inr(campaign.maxBudget)}';
-    final deadline = DateFormat('d MMM yyyy').format(campaign.deadline ?? DateTime.now());
+    final budgetLabel =
+        '${_inr(campaign.minBudget)} - ${_inr(campaign.maxBudget)}';
+    final deadline =
+        DateFormat('d MMM yyyy').format(campaign.deadline ?? DateTime.now());
     final createdAt = timeago.format(campaign.createdAt ?? DateTime.now());
 
     return Container(
@@ -297,7 +334,8 @@ class _CampaignCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.lightBg,
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.14)),
+                  border: Border.all(
+                      color: AppColors.brandDark.withValues(alpha: 0.14)),
                 ),
                 alignment: Alignment.center,
                 child: Text(
@@ -327,7 +365,8 @@ class _CampaignCard extends StatelessWidget {
                       '$location • $createdAt',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
+                      style:
+                          AppTypography.bodyXS.copyWith(color: AppColors.muted),
                     ),
                   ],
                 ),
@@ -344,7 +383,9 @@ class _CampaignCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            deliverables.isEmpty ? _collabType(campaign.collabType) : deliverables,
+            deliverables.isEmpty
+                ? _collabType(campaign.collabType)
+                : deliverables,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTypography.bodyXS.copyWith(color: AppColors.muted),
@@ -371,7 +412,8 @@ class _CampaignCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Align(
             alignment: Alignment.centerRight,
-            child: _BriefStyleActionButton(label: 'View Bids', onPressed: onViewBids),
+            child: _BriefStyleActionButton(
+                label: 'View Bids', onPressed: onViewBids),
           ),
         ],
       ),
@@ -416,7 +458,8 @@ class _CampaignStatusPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 6),
       decoration: BoxDecoration(
         color: isActive ? null : AppColors.brandDark.withValues(alpha: 0.08),
         gradient: isActive ? AppColors.brandPrimaryGlassGradient : null,
@@ -448,7 +491,8 @@ class _CampaignStatusPill extends StatelessWidget {
 }
 
 class _FilterPill extends StatelessWidget {
-  const _FilterPill({required this.label, required this.active, required this.onTap});
+  const _FilterPill(
+      {required this.label, required this.active, required this.onTap});
   final String label;
   final bool active;
   final VoidCallback onTap;
@@ -458,7 +502,8 @@ class _FilterPill extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: active ? AppColors.brandDark : AppColors.white,
           borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
@@ -524,7 +569,10 @@ class _GlowOrb extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           boxShadow: [
-            BoxShadow(color: color, blurRadius: size * 0.55, spreadRadius: size * 0.04),
+            BoxShadow(
+                color: color,
+                blurRadius: size * 0.55,
+                spreadRadius: size * 0.04),
           ],
         ),
       ),
@@ -558,5 +606,3 @@ String _inr(int value) {
   final format = NumberFormat.decimalPattern('en_IN');
   return 'INR ${format.format(value)}';
 }
-
-

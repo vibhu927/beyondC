@@ -54,6 +54,7 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
   }
 
   Future<void> _refresh() async {
+    ref.invalidate(creatorAvatarUrlProvider);
     await Future.wait([
       ref.read(creatorProfileProvider.notifier).refresh(),
       ref.read(creatorCollabsProvider.notifier).refresh(),

@@ -231,19 +231,20 @@ class CreatorRepository {
       for (final item in _asMapList(root['requests'])) {
         try {
           final brand = _asMap(item['brand']);
-          parsed.add(
-            CollabRequest.fromJson({
-              'id': _string(item['id']) ?? '',
-              'brandId': _string(item['brand_id']) ?? '',
-              'brandName': _string(brand['brand_name']) ?? 'Brand',
-              'brandCategory': _string(brand['brand_category']) ?? 'General',
-              'brandInitial': _brandInitial(brand),
-              'budgetPaise': _int(item['budget']) ?? 0,
-              'collabType': _normalizeCollabType(_string(item['collab_type'])),
-              'deliverables': _stringList(item['deliverables']),
-              'status': _string(item['status']) ?? 'pending',
-              'createdAt': _string(item['created_at']),
-            }),
+        parsed.add(
+          CollabRequest.fromJson({
+            'id': _string(item['id']) ?? '',
+            'brandId': _string(item['brand_id']) ?? '',
+            'brandName': _string(brand['brand_name']) ?? 'Brand',
+            'brandCategory': _string(brand['brand_category']) ?? 'General',
+            'brandInitial': _brandInitial(brand),
+            'budgetPaise': _int(item['budget']) ?? 0,
+            'collabType': _normalizeCollabType(_string(item['collab_type'])),
+            'deliverables': _stringList(item['deliverables']),
+            'status': _string(item['status']) ?? 'pending',
+            'createdAt': _string(item['created_at']),
+            'campaignId': _string(item['campaign_id']),
+          }),
           );
         } catch (_) {
           // Skip malformed rows instead of failing requests UI.
@@ -260,6 +261,20 @@ class CreatorRepository {
       final response = await _dio.get('/creator/agency-pitches');
       final root = _asMap(response.data);
       return _asMapList(root['pitches']);
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parse(e));
+    }
+  }
+
+  Future<void> respondToAgencyPitch({
+    required String pitchId,
+    required String action,
+  }) async {
+    try {
+      await _dio.put(
+        '/creator/agency-pitches/$pitchId',
+        data: {'action': action},
+      );
     } on DioException catch (e) {
       throw Exception(ApiErrorHandler.parse(e));
     }

@@ -12,6 +12,14 @@ import '../providers/notification_provider.dart';
 import '../features/chat/chat_modal.dart';
 import '../features/shared/widgets/notifications_modal.dart';
 
+String _getGreeting() {
+  final hour = DateTime.now().hour;
+  if (hour < 12) return 'Good morning';
+  if (hour < 16) return 'Good afternoon';
+  if (hour < 19) return 'Good evening';
+  return 'Good night';
+}
+
 class BrandPageTopHeader extends ConsumerWidget {
   final double collapseProgress;
 
@@ -42,6 +50,11 @@ class BrandPageTopHeader extends ConsumerWidget {
     }));
 
     final avatarLabel = profile?.logoInitial ?? 'B';
+    final logoUrl = (profile?.avatarUrl?.trim().isNotEmpty ?? false)
+        ? profile!.avatarUrl!.trim()
+        : (profile?.logoUrl?.trim().isNotEmpty ?? false)
+            ? profile!.logoUrl!.trim()
+            : null;
     final brandName = profile?.brandName ?? 'Brand';
     final category = profile?.brandCategory ?? 'General';
 
@@ -56,29 +69,22 @@ class BrandPageTopHeader extends ConsumerWidget {
                   opacity: 1.0 - collapseProgress,
                   child: Row(
                     children: [
-                      Container(
+                      _BrandLogoMark(
+                        label: avatarLabel,
+                        logoUrl: logoUrl,
                         width: 48,
                         height: 48,
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.16)),
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          avatarLabel,
-                          style: AppTypography.labelLG.copyWith(
-                            color: AppColors.brandDark,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
+                        borderRadius: 18,
+                        textStyle: AppTypography.labelLG,
                       ),
                       const SizedBox(width: AppSpacing.md),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Good morning,', style: AppTypography.bodySM.copyWith(color: AppColors.muted)),
+                            Text('${_getGreeting()},',
+                                style: AppTypography.bodySM
+                                    .copyWith(color: AppColors.muted)),
                             const SizedBox(height: 2),
                             Text(
                               brandName,
@@ -90,7 +96,9 @@ class BrandPageTopHeader extends ConsumerWidget {
                               ),
                             ),
                             const SizedBox(height: 2),
-                            Text(category, style: AppTypography.bodyXS.copyWith(color: AppColors.muted)),
+                            Text(category,
+                                style: AppTypography.bodyXS
+                                    .copyWith(color: AppColors.muted)),
                           ],
                         ),
                       ),
@@ -99,22 +107,13 @@ class BrandPageTopHeader extends ConsumerWidget {
                 ),
                 Opacity(
                   opacity: collapseProgress,
-                  child: Container(
+                  child: _BrandLogoMark(
+                    label: avatarLabel,
+                    logoUrl: logoUrl,
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.16)),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      avatarLabel,
-                      style: AppTypography.labelMD.copyWith(
-                        color: AppColors.brandDark,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
+                    borderRadius: 12,
+                    textStyle: AppTypography.labelMD,
                   ),
                 ),
               ],
@@ -149,6 +148,58 @@ class BrandPageTopHeader extends ConsumerWidget {
   }
 }
 
+class _BrandLogoMark extends StatelessWidget {
+  const _BrandLogoMark({
+    required this.label,
+    required this.logoUrl,
+    required this.width,
+    required this.height,
+    required this.borderRadius,
+    required this.textStyle,
+  });
+
+  final String label;
+  final String? logoUrl;
+  final double width;
+  final double height;
+  final double borderRadius;
+  final TextStyle textStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final fallback = Center(
+      child: Text(
+        label,
+        style: textStyle.copyWith(
+          color: AppColors.brandDark,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    );
+
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.16)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      alignment: Alignment.center,
+      child: logoUrl == null
+          ? fallback
+          : Image.network(
+              logoUrl!,
+              width: width,
+              height: height,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => fallback,
+            ),
+    );
+  }
+}
+
 class _HeaderIcon extends StatelessWidget {
   const _HeaderIcon({
     required this.icon,
@@ -173,7 +224,8 @@ class _HeaderIcon extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.white,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.brandDark.withValues(alpha: 0.14)),
+            border:
+                Border.all(color: AppColors.brandDark.withValues(alpha: 0.14)),
           ),
           child: IconButton(
             onPressed: onTap,
@@ -200,4 +252,3 @@ class _HeaderIcon extends StatelessWidget {
     );
   }
 }
-

@@ -59,60 +59,6 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
               color: AppColors.pink.withValues(alpha: 0.22),
             ),
           ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 14,
-            left: AppSpacing.screenPadding,
-            right: AppSpacing.screenPadding,
-            child: Row(
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.white.withValues(alpha: 0.9),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.creatorDark.withValues(alpha: 0.14),
-                    ),
-                  ),
-                  child: IconButton(
-                    onPressed: () => context.pop(),
-                    icon: const Icon(
-                      Icons.arrow_back,
-                      color: AppColors.creatorDark,
-                      size: 22,
-                    ),
-                    splashRadius: 20,
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Share link copied.')),
-                    );
-                  },
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.9),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.creatorDark.withValues(alpha: 0.14),
-                      ),
-                    ),
-                    child: const Icon(
-                      Symbols.share_rounded,
-                      color: AppColors.creatorDark,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
           Positioned.fill(
             child: SafeArea(
               child: collabAsync.when(
@@ -127,10 +73,65 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                     padding: const EdgeInsets.only(
                       left: AppSpacing.screenPadding,
                       right: AppSpacing.screenPadding,
-                      top: 84,
+                      top: 14,
                       bottom: AppSpacing.huge,
                     ),
                     children: [
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: MediaQuery.of(context).padding.top,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: AppColors.white.withValues(alpha: 0.9),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.creatorDark.withValues(alpha: 0.14),
+                                ),
+                              ),
+                              child: IconButton(
+                                onPressed: () => context.pop(),
+                                icon: const Icon(
+                                  Icons.arrow_back,
+                                  color: AppColors.creatorDark,
+                                  size: 22,
+                                ),
+                                splashRadius: 20,
+                                padding: EdgeInsets.zero,
+                              ),
+                            ),
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Share link copied.')),
+                                );
+                              },
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: AppColors.white.withValues(alpha: 0.9),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppColors.creatorDark.withValues(alpha: 0.14),
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Symbols.share_rounded,
+                                  color: AppColors.creatorDark,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
                       GlassPanel(
                         accentColor: AppColors.creatorDark,
                         child: Column(

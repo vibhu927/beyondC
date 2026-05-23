@@ -28,6 +28,7 @@ class CreatorPageTopHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(creatorProfileProvider).valueOrNull;
+    final avatarAsync = ref.watch(creatorAvatarUrlProvider);
     final unreadNotifications = ref.watch(unreadCountProvider);
     final unreadChats = ref.watch(chatListProvider.select((state) {
       final role = ref.read(authProvider).role ?? 'creator';
@@ -44,6 +45,7 @@ class CreatorPageTopHeader extends ConsumerWidget {
         : profile?.firstName ?? 'Creator';
     final tier = profile?.tier ?? 'Rising Creator';
     final initial = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'C';
+    final avatarUrl = avatarAsync.valueOrNull;
 
     return Row(
       children: [
@@ -55,23 +57,7 @@ class CreatorPageTopHeader extends ConsumerWidget {
                 opacity: 1.0 - collapseProgress,
                 child: Row(
                   children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: AppColors.creatorDark.withValues(alpha: 0.16)),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        initial,
-                        style: AppTypography.labelLG.copyWith(
-                          color: AppColors.creatorDark,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                    ),
+                    _AvatarWidget(avatarUrl: avatarUrl, initial: initial),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
@@ -125,6 +111,47 @@ class CreatorPageTopHeader extends ConsumerWidget {
           tooltip: 'Messages',
         ),
       ],
+    );
+  }
+}
+
+class _AvatarWidget extends StatelessWidget {
+  const _AvatarWidget({required this.avatarUrl, required this.initial});
+
+  final String? avatarUrl;
+  final String initial;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        shape: BoxShape.circle,
+        border: Border.all(color: AppColors.creatorDark.withValues(alpha: 0.16)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      alignment: Alignment.center,
+      child: avatarUrl != null
+          ? Image.network(
+              avatarUrl!,
+              width: 48,
+              height: 48,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildInitial(),
+            )
+          : _buildInitial(),
+    );
+  }
+
+  Widget _buildInitial() {
+    return Text(
+      initial,
+      style: AppTypography.labelLG.copyWith(
+        color: AppColors.creatorDark,
+        fontWeight: FontWeight.w900,
+      ),
     );
   }
 }

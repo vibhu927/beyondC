@@ -459,7 +459,7 @@ class CreatorActionsNotifier extends AsyncNotifier<void> {
     required String action,
   }) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
+    try {
       await ref
           .read(creatorRepositoryProvider)
           .respondToRequest(requestId: requestId, action: action);
@@ -468,7 +468,28 @@ class CreatorActionsNotifier extends AsyncNotifier<void> {
       ref.invalidate(chatListProvider);
       ref.invalidate(walletProvider);
       ref.invalidate(creatorHomeProvider);
-    });
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> respondToAgencyPitch({
+    required String pitchId,
+    required String action,
+  }) async {
+    state = const AsyncLoading();
+    try {
+      await ref
+          .read(creatorRepositoryProvider)
+          .respondToAgencyPitch(pitchId: pitchId, action: action);
+      ref.invalidate(creatorAgencyPitchesProvider);
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
   }
 
   Future<void> updateMilestone({
@@ -630,6 +651,18 @@ final campaignDetailProvider =
       .fetchCampaigns(page: 1, limit: 50);
   final matches = page.items.where((campaign) => campaign.id == id).toList();
   return matches.isEmpty ? null : matches.first;
+});
+
+final creatorAvatarUrlProvider = FutureProvider<String?>((ref) async {
+  final userId = Supabase.instance.client.auth.currentUser?.id;
+  if (userId == null) return null;
+  final row = await Supabase.instance.client
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', userId)
+      .maybeSingle();
+  final url = (row?['avatar_url'] as String?)?.trim();
+  return (url != null && url.isNotEmpty) ? url : null;
 });
 
 const _sentinel = Object();
