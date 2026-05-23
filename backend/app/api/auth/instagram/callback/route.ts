@@ -96,16 +96,14 @@ export async function GET(request: NextRequest) {
       }),
     })
 
-    const tokenData = (await tokenResponse.json()) as {
-      access_token?: string
-      user_id?: number | string
-    }
+    const rawTokenData = await tokenResponse.json()
+    // Business Login wraps in data[0]; Basic Display returns at root
+    const tokenData = rawTokenData.data?.[0] ?? rawTokenData
+    const accessToken: string | undefined = tokenData.access_token
 
-    if (!tokenResponse.ok || !tokenData.access_token) {
+    if (!tokenResponse.ok || !accessToken) {
       return NextResponse.redirect(redirectTarget)
     }
-
-    const accessToken = tokenData.access_token
 
     const profileResponse = await fetch(
       `https://graph.instagram.com/me?fields=id,username&access_token=${encodeURIComponent(accessToken)}`

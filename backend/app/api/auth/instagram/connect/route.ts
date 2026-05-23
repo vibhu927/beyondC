@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const authorizeUrl = process.env.INSTAGRAM_OAUTH_AUTHORIZE_URL?.trim() || 'https://www.instagram.com/oauth/authorize'
     const scope =
       process.env.INSTAGRAM_OAUTH_SCOPE?.trim() ||
-      'user_profile,user_media'
+      'instagram_business_basic,instagram_business_manage_comments,instagram_business_manage_messages,instagram_business_content_publish'
 
     if (!clientId || !redirectUri) {
       return NextResponse.json({ error: 'Instagram OAuth env is not configured' }, { status: 500 })
@@ -70,6 +70,8 @@ export async function GET(request: NextRequest) {
     const signature = signState(encodedPayload)
 
     const params = new URLSearchParams({
+      enable_fb_login: '0',
+      force_reauth: '1',
       client_id: clientId,
       redirect_uri: redirectUri,
       scope,
