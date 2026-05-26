@@ -564,6 +564,26 @@ class CreatorRepository {
     }
   }
 
+  Future<String> generateBioCode() async {
+    try {
+      final response = await _dio.post('/instagram/generate-code');
+      return response.data['code'] as String;
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parse(e));
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyBioCode(String username) async {
+    try {
+      final response = await _dio.post('/instagram/verify-bio', data: {
+        'username': username,
+      });
+      return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parse(e));
+    }
+  }
+
   Campaign _campaignFromApi(Map<String, dynamic> item) {
     final brand = _asMap(item['brand']);
     final bidCountRaw = item['bid_count'];

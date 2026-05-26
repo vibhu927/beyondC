@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { getCachedStats, setCachedStats } from '@/lib/scraping/rate-limiter'
 import { withRetry } from '@/lib/scraping/retry'
+import { checkInstagramNotClaimed } from '@/lib/instagram/helpers'
 import type { InstagramStats } from '@/lib/scraping/instagram-scraper'
 
 export const runtime = 'nodejs'
@@ -63,6 +64,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const claimedError = await checkInstagramNotClaimed(supabase, username, userId)
+    if (claimedError) {
+      return NextResponse.json({ success: false, error: claimedError }, { status: 409 })
+    }
+
     await supabase
       .from('creator_profiles')
       .update({
@@ -100,6 +106,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown scrape failure'
     console.error(`Scrape failed for @${username}: ${message}`)
+
+    const errClaimedError = await checkInstagramNotClaimed(supabase, username, userId)
+    if (errClaimedError) {
+      return NextResponse.json({ success: false, error: errClaimedError }, { status: 409 })
+    }
 
     await supabase
       .from('creator_profiles')

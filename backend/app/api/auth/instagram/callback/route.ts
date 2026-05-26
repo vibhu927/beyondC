@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
+import { checkInstagramNotClaimed } from '@/lib/instagram/helpers'
 
 type OAuthState = {
   userId: string
@@ -131,6 +132,15 @@ export async function GET(request: NextRequest) {
 
     if (!creatorRecord) {
       return NextResponse.redirect(redirectTarget)
+    }
+
+    const claimedError = await checkInstagramNotClaimed(admin, username, state.userId)
+    if (claimedError) {
+      const claimRedirect =
+        state.platform === 'mobile'
+          ? mobileRedirectUrl({ status: 'error', error: 'already_linked' })
+          : webRedirectUrl(appUrl, { status: 'error', error: 'already_linked' })
+      return NextResponse.redirect(claimRedirect)
     }
 
     await admin

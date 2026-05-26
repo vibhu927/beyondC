@@ -34,10 +34,24 @@ export async function scrapeInstagramProfile(username: string): Promise<Instagra
   const normalizedUsername = username.trim().replace(/^@+/, '')
 
   try {
+    const apiStats = await fetchViaWebProfileApi(normalizedUsername)
+    if (apiStats) return apiStats
+  } catch {
+    console.log('Instagram web profile API failed, trying JSON endpoint...')
+  }
+
+  try {
     const jsonStats = await fetchViaJsonEndpoint(normalizedUsername)
     if (jsonStats) return jsonStats
   } catch {
-    console.log('Instagram JSON endpoint failed, trying browser...')
+    console.log('Instagram JSON endpoint failed, trying HTML...')
+  }
+
+  try {
+    const htmlStats = await fetchViaAxiosHtml(normalizedUsername)
+    if (htmlStats) return htmlStats
+  } catch (error) {
+    console.error('Instagram HTML scrape failed:', error)
   }
 
   try {
@@ -48,6 +62,31 @@ export async function scrapeInstagramProfile(username: string): Promise<Instagra
   }
 
   throw new Error(`Could not fetch stats for @${normalizedUsername}`)
+}
+
+async function fetchViaWebProfileApi(username: string): Promise<InstagramStats | null> {
+  // Uses the same API endpoint that the Instagram web app calls
+  const url = `https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(username)}`
+
+  const response = await fetch(url, {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+      Accept: 'application/json',
+      'X-IG-App-ID': '936619743392459',
+      'X-Requested-With': 'XMLHttpRequest',
+      Referer: `https://www.instagram.com/${username}/`,
+    },
+    signal: AbortSignal.timeout(10000),
+  })
+
+  if (!response.ok) return null
+
+  const payload = (await response.json()) as any
+  const user = payload?.data?.user
+  if (!user) return null
+
+  return parseInstagramPayload({ data: { user } }, username)
 }
 
 async function fetchViaJsonEndpoint(username: string): Promise<InstagramStats | null> {
@@ -75,7 +114,7 @@ async function fetchViaBrowser(username: string): Promise<InstagramStats | null>
     process.env.CHROMIUM_EXECUTABLE_PATH || (await chromium.executablePath().catch(() => null))
 
   if (!executablePath) {
-    return fetchViaAxiosHtml(username)
+    return null
   }
 
   let browser: Awaited<ReturnType<typeof puppeteer.launch>> | null = null
@@ -124,6 +163,8 @@ async function fetchViaBrowser(username: string): Promise<InstagramStats | null>
     }
 
     const html = await page.content()
+    const fromJson = parseInstagramFromEmbeddedJson(html, username)
+    if (fromJson) return fromJson
     return parseInstagramHtmlFallback(html, username)
   } finally {
     if (browser) {
@@ -136,15 +177,21 @@ async function fetchViaAxiosHtml(username: string): Promise<InstagramStats | nul
   const url = `https://www.instagram.com/${username}/`
 
   const response = await axios.get<string>(url, {
-    timeout: 10000,
+    timeout: 15000,
     headers: {
       'User-Agent':
-        'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15',
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1',
+      Accept:
+        'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
     },
     validateStatus: () => true,
   })
 
   if (response.status < 200 || response.status >= 300) return null
+
+  const fromJson = parseInstagramFromEmbeddedJson(response.data, username)
+  if (fromJson) return fromJson
 
   return parseInstagramHtmlFallback(response.data, username)
 }
@@ -214,6 +261,259 @@ function parseInstagramPayload(payload: any, username: string): InstagramStats |
     highest_video_views: highestViews > 0 ? highestViews : null,
     avg_video_views: videoCount > 0 ? Math.round(totalViews / videoCount) : null,
     recent_posts: recentPosts,
+  }
+}
+
+function parseInstagramFromEmbeddedJson(
+  html: string,
+  username: string
+): InstagramStats | null {
+  const $ = cheerio.load(html)
+  let rawJson: string | null = null
+
+  // Try __NEXT_DATA__ (Next.js rendered pages)
+  const nextDataScript = $('#__NEXT_DATA__').html()
+  if (nextDataScript) {
+    try {
+      const parsed = JSON.parse(nextDataScript)
+      const user =
+        parsed?.props?.pageProps?.user ||
+        parsed?.props?.pageProps?.profile?.user ||
+        parsed?.props?.pageProps?.profilePage?.user
+      if (user) {
+        return buildStatsFromProfileData(user, username)
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }
+
+  // Try extracting from any script that contains 'biography' (Instagram user profile field)
+  $('script').each((_, el) => {
+    const content = $(el).html() || $(el).text() || ''
+
+    const biographyIdx = content.indexOf('"biography"')
+    if (biographyIdx === -1) return // skip if no biography field
+
+    // Try to find a JSON object containing this data
+    const objectStart = content.lastIndexOf('{', biographyIdx)
+    if (objectStart === -1) return
+
+    // Balance braces forward from objectStart
+    let depth = 0
+    let endIdx = -1
+    for (let i = objectStart; i < content.length; i++) {
+      if (content[i] === '{') depth++
+      else if (content[i] === '}') {
+        depth--
+        if (depth === 0) {
+          endIdx = i + 1
+          break
+        }
+      }
+    }
+    if (endIdx <= objectStart) return
+
+    const candidate = content.slice(objectStart, endIdx)
+    try {
+      const obj = JSON.parse(candidate)
+      const user = obj?.user || obj?.profile_user || obj
+      if (user && typeof user.biography === 'string') {
+        rawJson = candidate
+        return false
+      }
+    } catch {
+      // Not valid JSON, keep looking
+    }
+  })
+
+  if (rawJson) {
+    try {
+      const parsed = JSON.parse(rawJson)
+      const user = parsed?.user || parsed?.profile_user || parsed
+      if (user) {
+        return buildStatsFromProfileData(user, username)
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }
+
+  // Fallback: try window.__INITIAL_STATE__ assignment patterns
+  const initStateResult = tryExtractInitialState($, username)
+  if (initStateResult) return initStateResult
+
+  return null
+}
+
+function tryExtractInitialState($: cheerio.CheerioAPI, username: string): InstagramStats | null {
+  const result = tryExtractRawInitialState($, username)
+  if (result) return result
+
+  const result2 = tryExtractJsonParseInitialState($, username)
+  if (result2) return result2
+
+  return null
+}
+
+function tryExtractRawInitialState($: cheerio.CheerioAPI, username: string): InstagramStats | null {
+  let result: InstagramStats | null = null
+
+  $('script').each((_, el) => {
+    const content = $(el).html() || $(el).text() || ''
+    const match = /window\.__INITIAL_STATE__\s*=\s*/.exec(content)
+    if (!match) return
+
+    const startIdx = match.index! + match[0].length
+    const rawJson = extractBalancedObject(content, startIdx)
+    if (!rawJson) return
+
+    try {
+      const parsed = JSON.parse(rawJson)
+      const user =
+        parsed?.profile_user ||
+        parsed?.profile?.user ||
+        parsed?.user ||
+        parsed?.profilePage?.user ||
+        parsed?.entry_data?.ProfilePage?.[0]?.graphql?.user
+      if (user) {
+        result = buildStatsFromProfileData(user, username)
+        return false
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  })
+
+  return result
+}
+
+function tryExtractJsonParseInitialState($: cheerio.CheerioAPI, username: string): InstagramStats | null {
+  let result: InstagramStats | null = null
+
+  $('script').each((_, el) => {
+    const content = $(el).html() || $(el).text() || ''
+    const match = /window\.__INITIAL_STATE__\s*=\s*JSON\.parse\s*\(\s*/.exec(content)
+    if (!match) return
+
+    const startIdx = match.index! + match[0].length
+    const strStart = content.indexOf('"', startIdx)
+    if (strStart === -1) return
+    let strEnd = -1
+    let escape = false
+    for (let i = strStart + 1; i < content.length; i++) {
+      if (escape) { escape = false; continue }
+      if (content[i] === '\\') { escape = true; continue }
+      if (content[i] === '"') { strEnd = i + 1; break }
+    }
+    if (strEnd === -1) return
+
+    const raw = content.slice(strStart, strEnd)
+    try {
+      const inner = JSON.parse(raw)
+      const parsed = typeof inner === 'string' ? JSON.parse(inner) : inner
+      const user =
+        parsed?.profile_user ||
+        parsed?.profile?.user ||
+        parsed?.user ||
+        parsed?.profilePage?.user ||
+        parsed?.entry_data?.ProfilePage?.[0]?.graphql?.user
+      if (user) {
+        result = buildStatsFromProfileData(user, username)
+        return false
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  })
+
+  return result
+}
+
+function extractBalancedObject(
+  content: string,
+  fromIndex: number
+): string | null {
+  const objStart = content.indexOf('{', fromIndex)
+  if (objStart === -1) return null
+
+  let depth = 0
+  let inString = false
+  let escape = false
+
+  for (let i = objStart; i < content.length; i++) {
+    const ch = content[i]
+
+    if (escape) {
+      escape = false
+      continue
+    }
+
+    if (ch === '\\' && inString) {
+      escape = true
+      continue
+    }
+
+    if (ch === '"') {
+      inString = !inString
+      continue
+    }
+
+    if (inString) continue
+
+    if (ch === '{') {
+      depth++
+    } else if (ch === '}') {
+      depth--
+      if (depth === 0) {
+        return content.slice(objStart, i + 1)
+      }
+    }
+  }
+
+  return null
+}
+
+function buildStatsFromProfileData(
+  user: any,
+  username: string
+): InstagramStats {
+  const followers = user.follower_count ?? user.edge_followed_by?.count ?? null
+  const following =
+    user.following_count ?? user.edge_follow?.count ?? null
+  const posts =
+    user.media_count ??
+    user.edge_owner_to_timeline_media?.count ??
+    null
+
+  const engagementRate =
+    followers && (user.avg_likes || user.avg_comments)
+      ? Number(
+          (
+            ((user.avg_likes ?? 0) + (user.avg_comments ?? 0)) /
+            followers *
+            100
+          ).toFixed(2)
+        )
+      : null
+
+  return {
+    username,
+    full_name: user.full_name || null,
+    bio: user.biography || user.bio || null,
+    profile_pic_url:
+      user.profile_pic_url_hd || user.profile_pic_url || user.profile_pic || null,
+    followers_count: followers,
+    following_count: following,
+    posts_count: posts,
+    is_private: Boolean(user.is_private),
+    is_verified: Boolean(user.is_verified),
+    avg_likes: user.avg_likes ?? null,
+    avg_comments: user.avg_comments ?? null,
+    engagement_rate: engagementRate,
+    highest_video_views: user.highest_video_views ?? null,
+    avg_video_views: user.avg_video_views ?? null,
+    recent_posts: [],
   }
 }
 

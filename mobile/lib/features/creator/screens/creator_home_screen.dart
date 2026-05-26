@@ -13,9 +13,9 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
-import '../../../data/services/instagram_oauth_service.dart';
 import '../shared/widgets/creator_design_system.dart';
 import '../../../providers/creator_provider.dart';
+import '../widgets/instagram_connect_sheet.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_bottom_nav.dart';
@@ -31,7 +31,6 @@ class CreatorHomeScreen extends ConsumerStatefulWidget {
 }
 
 class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
-  bool _isConnectingInstagram = false;
   final _scrollController = ScrollController();
   double _scrollOffset = 0;
 
@@ -62,50 +61,18 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
   }
 
   Future<void> _connectInstagram() async {
-    if (_isConnectingInstagram) return;
+    final connected = await openInstagramConnectSheet(context, ref);
+    if (!mounted) return;
 
-    setState(() => _isConnectingInstagram = true);
-
-    try {
-      final oauthService = ref.read(instagramOAuthServiceProvider);
-      final result = await oauthService.connectInstagram();
-
+    if (connected) {
+      await ref.read(creatorHomeProvider.notifier).refreshSilently();
       if (!mounted) return;
-
-      if (result.isSuccess) {
-        await ref.read(creatorHomeProvider.notifier).refreshSilently();
-        if (!mounted) return;
-        ref.invalidate(creatorProfileProvider);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              result.username == null
-                  ? 'Instagram connected. Stats are being fetched...'
-                  : '@${result.username} connected. Stats are being fetched...',
-            ),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Instagram connection failed. Please try again.'),
-          ),
-        );
-      }
-    } catch (error) {
-      if (!mounted) return;
-      final message =
-          ref.read(instagramOAuthServiceProvider).extractApiError(error);
+      ref.invalidate(creatorProfileProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content:
-              Text(message.isEmpty ? 'Instagram connection failed.' : message),
+        const SnackBar(
+          content: Text('Instagram connected. Stats are being fetched...'),
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() => _isConnectingInstagram = false);
-      }
     }
   }
 
@@ -228,7 +195,6 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                             const SizedBox(height: AppSpacing.lg),
                             if (!profile.instagramVerified)
                               _InstagramConnectBanner(
-                                isLoading: _isConnectingInstagram,
                                 onConnect: _connectInstagram,
                               ),
                             const SizedBox(height: AppSpacing.xxxl),
@@ -574,11 +540,9 @@ class _GlassPanel extends StatelessWidget {
 class _InstagramConnectBanner extends StatelessWidget {
   const _InstagramConnectBanner({
     required this.onConnect,
-    required this.isLoading,
   });
 
   final VoidCallback onConnect;
-  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -636,9 +600,9 @@ class _InstagramConnectBanner extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.sm),
           _GlassButton(
-            label: isLoading ? 'Connecting' : 'Connect',
+            label: 'Connect',
             accent: AppColors.pink,
-            onTap: isLoading ? null : onConnect,
+            onTap: onConnect,
           ),
         ],
       ),

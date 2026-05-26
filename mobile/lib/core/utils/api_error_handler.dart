@@ -38,10 +38,10 @@ class ApiErrorHandler {
     }
 
     if (statusCode == 500) {
-      return 'Something went wrong on our end. Try again.';
+      return _extractMessage(data) ?? 'Something went wrong on our end. Try again.';
     }
 
-    return _extractMessage(data) ?? 'Something went wrong. Please try again.';
+    return _extractMessage(data) ?? 'Please try again.';
   }
 
   static String? _extractMessage(dynamic data) {

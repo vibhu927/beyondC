@@ -545,6 +545,24 @@ class CreatorActionsNotifier extends AsyncNotifier<void> {
     });
   }
 
+  Future<String> generateBioCode() async {
+    return ref.read(creatorRepositoryProvider).generateBioCode();
+  }
+
+  Future<Map<String, dynamic>> verifyBioCode(String username) async {
+    state = const AsyncLoading();
+    try {
+      final result = await ref.read(creatorRepositoryProvider).verifyBioCode(username);
+      ref.invalidate(creatorProfileProvider);
+      ref.invalidate(creatorHomeProvider);
+      state = const AsyncData(null);
+      return result;
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
   void _invalidateBidRelated() {
     ref.invalidate(myBidsProvider);
     ref.invalidate(creatorCampaignsProvider);
