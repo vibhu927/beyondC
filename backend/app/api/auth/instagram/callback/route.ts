@@ -123,16 +123,18 @@ export async function GET(request: NextRequest) {
 
     const admin = createAdminClient()
 
-    const { data: creatorRecord } = await admin
+    const { data: userRecord } = await admin
       .from('profiles')
       .select('id,role')
       .eq('id', state.userId)
-      .eq('role', 'creator')
+      .in('role', ['creator', 'brand'])
       .maybeSingle()
 
-    if (!creatorRecord) {
+    if (!userRecord) {
       return NextResponse.redirect(redirectTarget)
     }
+
+    const userRole = userRecord.role
 
     const claimedError = await checkInstagramNotClaimed(admin, username, state.userId)
     if (claimedError) {
@@ -143,8 +145,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(claimRedirect)
     }
 
+    const targetTable = userRole === 'brand' ? 'brand_profiles' : 'creator_profiles'
+
     await admin
-      .from('creator_profiles')
+      .from(targetTable)
       .update({
         instagram_username: username,
         instagram_oauth_token: accessToken,
@@ -166,6 +170,7 @@ export async function GET(request: NextRequest) {
         body: JSON.stringify({
           userId: state.userId,
           username,
+          role: userRole,
         }),
       }).catch(() => {
         // Deliberately non-blocking. Verified status should still complete.

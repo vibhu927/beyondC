@@ -2069,6 +2069,15 @@ mixin _$Collab {
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get completedAt => throw _privateConstructorUsedError;
   int? get rating => throw _privateConstructorUsedError;
+  String get collabStatus => throw _privateConstructorUsedError;
+  DateTime? get statusUpdatedAt => throw _privateConstructorUsedError;
+  String? get statusUpdateMessage => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get contractTerms => throw _privateConstructorUsedError;
+  bool get creatorContractAccepted => throw _privateConstructorUsedError;
+  bool get brandContractAccepted => throw _privateConstructorUsedError;
+  DateTime? get creatorContractAcceptedAt => throw _privateConstructorUsedError;
+  DateTime? get brandContractAcceptedAt => throw _privateConstructorUsedError;
+  String get paymentStructure => throw _privateConstructorUsedError;
 
   /// Serializes this Collab to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -2095,7 +2104,16 @@ abstract class $CollabCopyWith<$Res> {
       String? milestoneStatus,
       DateTime? createdAt,
       DateTime? completedAt,
-      int? rating});
+      int? rating,
+      String collabStatus,
+      DateTime? statusUpdatedAt,
+      String? statusUpdateMessage,
+      Map<String, dynamic>? contractTerms,
+      bool creatorContractAccepted,
+      bool brandContractAccepted,
+      DateTime? creatorContractAcceptedAt,
+      DateTime? brandContractAcceptedAt,
+      String paymentStructure});
 }
 
 /// @nodoc
@@ -2124,6 +2142,15 @@ class _$CollabCopyWithImpl<$Res, $Val extends Collab>
     Object? createdAt = freezed,
     Object? completedAt = freezed,
     Object? rating = freezed,
+    Object? collabStatus = null,
+    Object? statusUpdatedAt = freezed,
+    Object? statusUpdateMessage = freezed,
+    Object? contractTerms = freezed,
+    Object? creatorContractAccepted = null,
+    Object? brandContractAccepted = null,
+    Object? creatorContractAcceptedAt = freezed,
+    Object? brandContractAcceptedAt = freezed,
+    Object? paymentStructure = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -2170,6 +2197,42 @@ class _$CollabCopyWithImpl<$Res, $Val extends Collab>
           ? _value.rating
           : rating // ignore: cast_nullable_to_non_nullable
               as int?,
+      collabStatus: null == collabStatus
+          ? _value.collabStatus
+          : collabStatus // ignore: cast_nullable_to_non_nullable
+              as String,
+      statusUpdatedAt: freezed == statusUpdatedAt
+          ? _value.statusUpdatedAt
+          : statusUpdatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      statusUpdateMessage: freezed == statusUpdateMessage
+          ? _value.statusUpdateMessage
+          : statusUpdateMessage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      contractTerms: freezed == contractTerms
+          ? _value.contractTerms
+          : contractTerms // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      creatorContractAccepted: null == creatorContractAccepted
+          ? _value.creatorContractAccepted
+          : creatorContractAccepted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      brandContractAccepted: null == brandContractAccepted
+          ? _value.brandContractAccepted
+          : brandContractAccepted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      creatorContractAcceptedAt: freezed == creatorContractAcceptedAt
+          ? _value.creatorContractAcceptedAt
+          : creatorContractAcceptedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      brandContractAcceptedAt: freezed == brandContractAcceptedAt
+          ? _value.brandContractAcceptedAt
+          : brandContractAcceptedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      paymentStructure: null == paymentStructure
+          ? _value.paymentStructure
+          : paymentStructure // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -2192,7 +2255,16 @@ abstract class _$$CollabImplCopyWith<$Res> implements $CollabCopyWith<$Res> {
       String? milestoneStatus,
       DateTime? createdAt,
       DateTime? completedAt,
-      int? rating});
+      int? rating,
+      String collabStatus,
+      DateTime? statusUpdatedAt,
+      String? statusUpdateMessage,
+      Map<String, dynamic>? contractTerms,
+      bool creatorContractAccepted,
+      bool brandContractAccepted,
+      DateTime? creatorContractAcceptedAt,
+      DateTime? brandContractAcceptedAt,
+      String paymentStructure});
 }
 
 /// @nodoc
@@ -2219,6 +2291,15 @@ class __$$CollabImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? completedAt = freezed,
     Object? rating = freezed,
+    Object? collabStatus = null,
+    Object? statusUpdatedAt = freezed,
+    Object? statusUpdateMessage = freezed,
+    Object? contractTerms = freezed,
+    Object? creatorContractAccepted = null,
+    Object? brandContractAccepted = null,
+    Object? creatorContractAcceptedAt = freezed,
+    Object? brandContractAcceptedAt = freezed,
+    Object? paymentStructure = null,
   }) {
     return _then(_$CollabImpl(
       id: null == id
@@ -2265,6 +2346,42 @@ class __$$CollabImplCopyWithImpl<$Res>
           ? _value.rating
           : rating // ignore: cast_nullable_to_non_nullable
               as int?,
+      collabStatus: null == collabStatus
+          ? _value.collabStatus
+          : collabStatus // ignore: cast_nullable_to_non_nullable
+              as String,
+      statusUpdatedAt: freezed == statusUpdatedAt
+          ? _value.statusUpdatedAt
+          : statusUpdatedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      statusUpdateMessage: freezed == statusUpdateMessage
+          ? _value.statusUpdateMessage
+          : statusUpdateMessage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      contractTerms: freezed == contractTerms
+          ? _value._contractTerms
+          : contractTerms // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      creatorContractAccepted: null == creatorContractAccepted
+          ? _value.creatorContractAccepted
+          : creatorContractAccepted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      brandContractAccepted: null == brandContractAccepted
+          ? _value.brandContractAccepted
+          : brandContractAccepted // ignore: cast_nullable_to_non_nullable
+              as bool,
+      creatorContractAcceptedAt: freezed == creatorContractAcceptedAt
+          ? _value.creatorContractAcceptedAt
+          : creatorContractAcceptedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      brandContractAcceptedAt: freezed == brandContractAcceptedAt
+          ? _value.brandContractAcceptedAt
+          : brandContractAcceptedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      paymentStructure: null == paymentStructure
+          ? _value.paymentStructure
+          : paymentStructure // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -2283,8 +2400,18 @@ class _$CollabImpl extends _Collab {
       this.milestoneStatus,
       this.createdAt,
       this.completedAt,
-      this.rating})
-      : super._();
+      this.rating,
+      this.collabStatus = 'started',
+      this.statusUpdatedAt,
+      this.statusUpdateMessage,
+      final Map<String, dynamic>? contractTerms,
+      this.creatorContractAccepted = false,
+      this.brandContractAccepted = false,
+      this.creatorContractAcceptedAt,
+      this.brandContractAcceptedAt,
+      this.paymentStructure = 'full_upfront'})
+      : _contractTerms = contractTerms,
+        super._();
 
   factory _$CollabImpl.fromJson(Map<String, dynamic> json) =>
       _$$CollabImplFromJson(json);
@@ -2315,10 +2442,40 @@ class _$CollabImpl extends _Collab {
   final DateTime? completedAt;
   @override
   final int? rating;
+  @override
+  @JsonKey()
+  final String collabStatus;
+  @override
+  final DateTime? statusUpdatedAt;
+  @override
+  final String? statusUpdateMessage;
+  final Map<String, dynamic>? _contractTerms;
+  @override
+  Map<String, dynamic>? get contractTerms {
+    final value = _contractTerms;
+    if (value == null) return null;
+    if (_contractTerms is EqualUnmodifiableMapView) return _contractTerms;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  @override
+  @JsonKey()
+  final bool creatorContractAccepted;
+  @override
+  @JsonKey()
+  final bool brandContractAccepted;
+  @override
+  final DateTime? creatorContractAcceptedAt;
+  @override
+  final DateTime? brandContractAcceptedAt;
+  @override
+  @JsonKey()
+  final String paymentStructure;
 
   @override
   String toString() {
-    return 'Collab(id: $id, brandId: $brandId, creatorId: $creatorId, brandCategory: $brandCategory, agreedAmountPaise: $agreedAmountPaise, collabType: $collabType, status: $status, milestoneStatus: $milestoneStatus, createdAt: $createdAt, completedAt: $completedAt, rating: $rating)';
+    return 'Collab(id: $id, brandId: $brandId, creatorId: $creatorId, brandCategory: $brandCategory, agreedAmountPaise: $agreedAmountPaise, collabType: $collabType, status: $status, milestoneStatus: $milestoneStatus, createdAt: $createdAt, completedAt: $completedAt, rating: $rating, collabStatus: $collabStatus, statusUpdatedAt: $statusUpdatedAt, statusUpdateMessage: $statusUpdateMessage, contractTerms: $contractTerms, creatorContractAccepted: $creatorContractAccepted, brandContractAccepted: $brandContractAccepted, creatorContractAcceptedAt: $creatorContractAcceptedAt, brandContractAcceptedAt: $brandContractAcceptedAt, paymentStructure: $paymentStructure)';
   }
 
   @override
@@ -2343,24 +2500,55 @@ class _$CollabImpl extends _Collab {
                 other.createdAt == createdAt) &&
             (identical(other.completedAt, completedAt) ||
                 other.completedAt == completedAt) &&
-            (identical(other.rating, rating) || other.rating == rating));
+            (identical(other.rating, rating) || other.rating == rating) &&
+            (identical(other.collabStatus, collabStatus) ||
+                other.collabStatus == collabStatus) &&
+            (identical(other.statusUpdatedAt, statusUpdatedAt) ||
+                other.statusUpdatedAt == statusUpdatedAt) &&
+            (identical(other.statusUpdateMessage, statusUpdateMessage) ||
+                other.statusUpdateMessage == statusUpdateMessage) &&
+            const DeepCollectionEquality()
+                .equals(other._contractTerms, _contractTerms) &&
+            (identical(
+                    other.creatorContractAccepted, creatorContractAccepted) ||
+                other.creatorContractAccepted == creatorContractAccepted) &&
+            (identical(other.brandContractAccepted, brandContractAccepted) ||
+                other.brandContractAccepted == brandContractAccepted) &&
+            (identical(other.creatorContractAcceptedAt,
+                    creatorContractAcceptedAt) ||
+                other.creatorContractAcceptedAt == creatorContractAcceptedAt) &&
+            (identical(
+                    other.brandContractAcceptedAt, brandContractAcceptedAt) ||
+                other.brandContractAcceptedAt == brandContractAcceptedAt) &&
+            (identical(other.paymentStructure, paymentStructure) ||
+                other.paymentStructure == paymentStructure));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      brandId,
-      creatorId,
-      brandCategory,
-      agreedAmountPaise,
-      collabType,
-      status,
-      milestoneStatus,
-      createdAt,
-      completedAt,
-      rating);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        id,
+        brandId,
+        creatorId,
+        brandCategory,
+        agreedAmountPaise,
+        collabType,
+        status,
+        milestoneStatus,
+        createdAt,
+        completedAt,
+        rating,
+        collabStatus,
+        statusUpdatedAt,
+        statusUpdateMessage,
+        const DeepCollectionEquality().hash(_contractTerms),
+        creatorContractAccepted,
+        brandContractAccepted,
+        creatorContractAcceptedAt,
+        brandContractAcceptedAt,
+        paymentStructure
+      ]);
 
   /// Create a copy of Collab
   /// with the given fields replaced by the non-null parameter values.
@@ -2390,7 +2578,16 @@ abstract class _Collab extends Collab {
       final String? milestoneStatus,
       final DateTime? createdAt,
       final DateTime? completedAt,
-      final int? rating}) = _$CollabImpl;
+      final int? rating,
+      final String collabStatus,
+      final DateTime? statusUpdatedAt,
+      final String? statusUpdateMessage,
+      final Map<String, dynamic>? contractTerms,
+      final bool creatorContractAccepted,
+      final bool brandContractAccepted,
+      final DateTime? creatorContractAcceptedAt,
+      final DateTime? brandContractAcceptedAt,
+      final String paymentStructure}) = _$CollabImpl;
   const _Collab._() : super._();
 
   factory _Collab.fromJson(Map<String, dynamic> json) = _$CollabImpl.fromJson;
@@ -2417,6 +2614,24 @@ abstract class _Collab extends Collab {
   DateTime? get completedAt;
   @override
   int? get rating;
+  @override
+  String get collabStatus;
+  @override
+  DateTime? get statusUpdatedAt;
+  @override
+  String? get statusUpdateMessage;
+  @override
+  Map<String, dynamic>? get contractTerms;
+  @override
+  bool get creatorContractAccepted;
+  @override
+  bool get brandContractAccepted;
+  @override
+  DateTime? get creatorContractAcceptedAt;
+  @override
+  DateTime? get brandContractAcceptedAt;
+  @override
+  String get paymentStructure;
 
   /// Create a copy of Collab
   /// with the given fields replaced by the non-null parameter values.

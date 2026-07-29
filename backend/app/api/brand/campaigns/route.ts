@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
       .eq('brand_id', user.id)
       .order('created_at', { ascending: false })
 
-    if (status && ['draft', 'active', 'closed'].includes(status)) {
+    if (status && ['active', 'paused', 'completed', 'cancelled'].includes(status)) {
       query = query.eq('status', status)
     }
 
@@ -31,7 +31,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    return NextResponse.json({ campaigns })
+    // Map bids count from nested array to flat number
+    const mapped = (campaigns || []).map((c: any) => ({
+      ...c,
+      bid_count: Array.isArray(c.bids) ? (c.bids[0]?.count ?? 0) : 0,
+    }))
+
+    return NextResponse.json({ campaigns: mapped })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }

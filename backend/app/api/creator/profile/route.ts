@@ -104,7 +104,7 @@ export async function PUT(request: NextRequest) {
       if (creatorError) {
         // Backward-compatible fallback for older schema names:
         // niche/content_type/follower_count instead of niches/platforms/followers_count.
-        const shouldTryLegacyFallback = /column\s+"(niches|platforms|followers_count)"\s+does not exist/i.test(
+        const shouldTryLegacyFallback = /(niches|platforms|followers_count)/i.test(
           creatorError.message
         )
 

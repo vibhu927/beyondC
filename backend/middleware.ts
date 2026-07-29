@@ -34,12 +34,20 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin/dashboard', request.url))
   }
 
+  if (pathname === '/dashboard') {
+    return NextResponse.redirect(new URL('/login', request.url))
+  }
+
   const {
     data: { session },
   } = await supabase.auth.getSession()
 
   if (pathname === '/join/success' && !session) {
     return NextResponse.redirect(new URL('/join', request.url))
+  }
+
+  if (pathname.startsWith('/dashboard') && !session) {
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
@@ -73,6 +81,8 @@ export const config = {
     '/join/success',
     '/admin/:path*',
     '/admin',
+    '/dashboard/:path*',
+    '/dashboard',
     '/reset-password',
   ],
 }

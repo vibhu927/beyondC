@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 type FetchStatsBody = {
   userId?: string
   username?: string
+  role?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json',
         'x-internal-secret': internalSecret,
       },
-      body: JSON.stringify({ userId, username }),
+      body: JSON.stringify({ userId, username, role: body.role || 'creator' }),
     })
 
     const result = await scrapeResponse.json()

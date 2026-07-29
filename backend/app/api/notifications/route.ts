@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       .range(from, to)
 
     if (unread_only) {
-      query = query.eq('read', false)
+      query = query.eq('is_read', false)
     }
 
     const { data: notifications, error, count } = await query

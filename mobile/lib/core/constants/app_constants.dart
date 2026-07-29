@@ -16,9 +16,9 @@ class AppConstants {
 
   // Collab fees for creators (in paise — ₹1 = 100 paise)
   static const Map<String, Map<String, int>> collabFees = {
-    'micro': {'min': 1000, 'max': 3000},
-    'mid':   {'min': 5000, 'max': 10000},
-    'big':   {'min': 15000, 'max': 30000},
+    'micro': {'min': 1000, 'max': 2000},   // ₹10–₹20
+    'mid':   {'min': 5000, 'max': 7000},   // ₹50–₹70
+    'big':   {'min': 10000, 'max': 15000}, // ₹100–₹150
   };
 
   // Creator tiers

@@ -11,7 +11,6 @@ import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
-import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../shared/widgets/creator_design_system.dart';
@@ -22,21 +21,13 @@ class CreatorCollabsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final homeAsync = ref.watch(creatorHomeProvider);
-    final navClearance = MediaQuery.of(context).padding.bottom + 84;
     final topInset = MediaQuery.of(context).padding.top + 14;
     const headerHeight = 48.0;
     const headerGap = 34.0;
     final sheetTop = topInset + headerHeight + headerGap;
 
     return Scaffold(
-      extendBody: true,
-      bottomNavigationBar: const BCBottomNav(
-        role: BCPortalRole.creator,
-        currentIndex: 2,
-      ),
-      body: BCPageSwipeArea(
-        role: BCPortalRole.creator,
-        currentIndex: 2,
+      body: SafeArea(
         child: Stack(
           children: [
             const Positioned.fill(
@@ -145,11 +136,11 @@ child: IconButton(
                         ),
                       ),
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(
+                        padding: const EdgeInsets.fromLTRB(
                           AppSpacing.screenPadding,
                           AppSpacing.lg,
                           AppSpacing.screenPadding,
-                          AppSpacing.xl + navClearance,
+                          AppSpacing.xl,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,7 +231,7 @@ class _CollabCard extends StatelessWidget {
         RouteNames.collabDetail.replaceFirst(':id', collab.id),
       ),
       child: GlassPanel(
-        accentColor: AppColors.creatorDark,
+        accentColor: AppColors.neon,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -524,7 +515,7 @@ class _CollabCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GlassPanel(
-      accentColor: AppColors.creatorDark,
+      accentColor: AppColors.blue,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -698,4 +698,14 @@ class CreatorRepository {
     }
     return null;
   }
+
+  Future<CreatorEarnings> getEarnings() async {
+    try {
+      final response = await _dio.get('/creator/earnings');
+      final root = _asMap(response.data);
+      return CreatorEarnings.fromJson(root);
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
 }

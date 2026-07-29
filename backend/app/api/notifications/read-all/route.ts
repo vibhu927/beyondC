@@ -14,9 +14,9 @@ export async function PUT(request: NextRequest) {
     // Mark all notifications as read
     const { error } = await supabase
       .from('notifications')
-      .update({ read: true })
+      .update({ is_read: true })
       .eq('user_id', user.id)
-      .eq('read', false)
+      .eq('is_read', false)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 })

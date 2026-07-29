@@ -214,7 +214,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
     switch (notification.referenceType) {
       case 'collab':
-        return null;
+        if (referenceId == null) return null;
+        return RouteNames.collabDetail.replaceFirst(':id', referenceId);
       case 'bid':
         if (role == 'creator') {
           return RouteNames.myBids;
@@ -230,6 +231,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case 'campaign':
         if (referenceId == null) return RouteNames.creatorCampaigns;
         return RouteNames.campaignDetail.replaceFirst(':id', referenceId);
+      case 'payment':
+        if (referenceId == null) return null;
+        return RouteNames.collabPaymentView.replaceFirst(':id', referenceId);
+      case 'content':
+        if (referenceId == null) return null;
+        if (role == 'brand') {
+          return RouteNames.collabContentReview.replaceFirst(':id', referenceId);
+        }
+        return RouteNames.collabContentSubmit.replaceFirst(':id', referenceId);
+      case 'contract':
+        if (referenceId == null) return null;
+        return RouteNames.collabContract.replaceFirst(':id', referenceId);
       default:
         return null;
     }
@@ -247,6 +260,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         return AppColors.blue;
       case 'request_received':
         return AppColors.orange;
+      case 'contract_created':
+        return const Color(0xFF6366F1);
+      case 'contract_accepted':
+        return AppColors.success;
+      case 'content_submitted':
+        return const Color(0xFF8B5CF6);
+      case 'content_reviewed':
+        return const Color(0xFF0EA5E9);
+      case 'payment_released':
+        return AppColors.neon;
+      case 'collab_status_updated':
+        return const Color(0xFF3D5BFF);
       default:
         return AppColors.ink;
     }
@@ -264,6 +289,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         return Symbols.handshake_rounded;
       case 'request_received':
         return Symbols.mail_rounded;
+      case 'contract_created':
+        return Symbols.description_rounded;
+      case 'contract_accepted':
+        return Symbols.task_alt_rounded;
+      case 'content_submitted':
+        return Symbols.upload_rounded;
+      case 'content_reviewed':
+        return Symbols.rate_review_rounded;
+      case 'payment_released':
+        return Symbols.attach_money_rounded;
+      case 'collab_status_updated':
+        return Symbols.update_rounded;
       default:
         return Icons.notifications_rounded;
     }

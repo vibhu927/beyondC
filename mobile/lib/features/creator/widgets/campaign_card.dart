@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../core/theme/app_colors.dart';
-import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
-import '../../../widgets/cards/bc_card.dart';
-import '../shared/widgets/creator_design_system.dart';
 
 class CampaignCard extends StatelessWidget {
   const CampaignCard({
@@ -25,9 +21,8 @@ class CampaignCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final visibleDeliverables = campaign.deliverables.take(2).toList();
-    final extraCount =
-        campaign.deliverables.length - visibleDeliverables.length;
+    final deadlineText = _deadlineLabel(campaign.deadline);
+    final isUrgent = _isUrgent(campaign.deadline);
 
     return SizedBox(
       width: width,
@@ -36,152 +31,169 @@ class CampaignCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
           decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(24),
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(22),
             border: Border.all(
-              color: AppColors.creatorDark.withValues(alpha: 0.14),
-              width: 1.2,
+              color: AppColors.lightDivider,
+              width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 14,
-                offset: const Offset(0, 8),
+                color: AppColors.black.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ── Header: Title + Deadline ──
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Expanded(
+                    child: Text(
+                      campaign.title,
+                      style: AppTypography.labelLG.copyWith(
+                        color: AppColors.ink,
+                        fontWeight: FontWeight.w800,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
                   Container(
-                    width: 36,
-                    height: 36,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: _avatarColor(campaign.brandInitial),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.creatorDark.withValues(alpha: 0.2),
-                        width: 1.4,
-                      ),
+                      color: (isUrgent ? AppColors.error : AppColors.muted)
+                          .withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    alignment: Alignment.center,
                     child: Text(
-                      campaign.brandInitial,
-                      style:
-                          AppTypography.labelMD.copyWith(color: AppColors.white),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Brand in ${campaign.brandCategory}',
-                          style: AppTypography.labelMD.copyWith(
-                            color: AppColors.creatorDark,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        InlineTonePill(
-                          label: _deadlineLabel(campaign.deadline),
-                          accent: AppColors.creatorDark,
-                        ),
-                      ],
+                      deadlineText,
+                      style: AppTypography.labelXS.copyWith(
+                        color: isUrgent ? AppColors.error : AppColors.muted,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],
               ),
+
+              const SizedBox(height: 4),
+
+              // ── Brand category ──
+              Text(
+                campaign.brandCategory,
+                style: AppTypography.bodyXS.copyWith(
+                  color: AppColors.muted,
+                ),
+              ),
+
               const SizedBox(height: AppSpacing.md),
+
+              // ── Budget + Collab type ──
               Row(
                 children: [
-                  Expanded(
+                  Text(
+                    _budgetShort(campaign),
+                    style: AppTypography.labelMD.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _collabAccent(campaign.collabType)
+                          .withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
                     child: Text(
-                      '${Formatters.currencyFromINR(campaign.minBudget)}–${Formatters.currencyFromINR(campaign.maxBudget)}',
-                      style: AppTypography.displaySM.copyWith(
-                        color: AppColors.creatorDark,
-                        fontWeight: FontWeight.w900,
+                      _collabLabel(campaign.collabType),
+                      style: AppTypography.labelXS.copyWith(
+                        color: _collabAccent(campaign.collabType),
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  InlineTonePill(
-                    label: _collabLabel(campaign.collabType),
-                    accent: AppColors.creatorDark,
+                ],
+              ),
+
+              // ── Deliverables ──
+              if (campaign.deliverables.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  campaign.deliverables.take(2).join(' · ') +
+                      (campaign.deliverables.length > 2
+                          ? ' +${campaign.deliverables.length - 2}'
+                          : ''),
+                  style: AppTypography.bodyXS.copyWith(
+                    color: AppColors.muted,
                   ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  for (final deliverable in visibleDeliverables)
-                    InlineTonePill(
-                      label: deliverable,
-                      accent: AppColors.creatorDark,
-                    ),
-                  if (extraCount > 0)
-                    InlineTonePill(
-                      label: '+$extraCount more',
-                      accent: AppColors.creatorDark,
-                    ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+
               const Spacer(),
+
+              // ── Footer: Location + Bids + Bid button ──
               Row(
                 children: [
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 12,
+                    color: AppColors.muted,
+                  ),
+                  const SizedBox(width: 3),
                   Expanded(
                     child: Text(
-                      '${campaign.bidCount} bids so far',
+                      _locationText(campaign),
                       style: AppTypography.bodyXS.copyWith(
                         color: AppColors.muted,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  InlineTonePill(
-                    label: campaign.targetCity != null
-                        ? '📍 ${campaign.targetCity}'
-                        : campaign.targetState != null
-                            ? '📍 ${campaign.targetState}'
-                            : '🌏 Pan India',
-                    accent: AppColors.creatorDark,
+                  Text(
+                    '${campaign.bidCount} bids',
+                    style: AppTypography.bodyXS.copyWith(
+                      color: AppColors.muted,
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   GestureDetector(
                     onTap: onTap,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.sm,
+                        horizontal: 28,
+                        vertical: 10,
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.creatorDark,
-                        borderRadius: BorderRadius.circular(
-                          AppSpacing.radiusFull,
-                        ),
-                        border: Border.all(
-                          color: AppColors.creatorDark.withValues(alpha: 0.55),
-                          width: 1.0,
-                        ),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusFull),
                         boxShadow: [
                           BoxShadow(
                             color: AppColors.creatorDark.withValues(alpha: 0.2),
                             offset: const Offset(3, 3),
                             blurRadius: 0,
                           ),
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 12,
-                            offset: const Offset(0, 8),
-                          ),
                         ],
                       ),
                       child: Text(
-                        'Bid Now',
+                        'Bid',
                         style: AppTypography.labelSM.copyWith(
                           color: AppColors.neon,
                           fontWeight: FontWeight.w900,
@@ -218,51 +230,33 @@ class CampaignCardSkeleton extends StatelessWidget {
           : AppColors.lightSurfaceAlt,
       child: SizedBox(
         width: width,
-        child: BCCard(
-          shadow: AppShadows.pink,
+        child: Container(
           padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(
+              color: AppColors.lightDivider,
+              width: 1,
+            ),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                      width: 36,
-                      height: 36,
-                      decoration: const BoxDecoration(
-                          color: AppColors.white, shape: BoxShape.circle)),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                            height: 14, width: 140, color: AppColors.white),
-                        const SizedBox(height: AppSpacing.sm),
-                        Container(
-                            height: 24, width: 90, color: AppColors.white),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              Container(height: 26, width: 170, color: AppColors.white),
+              Container(height: 16, width: 160, color: AppColors.white),
+              const SizedBox(height: AppSpacing.sm),
+              Container(height: 10, width: 80, color: AppColors.white),
               const SizedBox(height: AppSpacing.md),
-              Wrap(
-                spacing: AppSpacing.sm,
-                children: [
-                  Container(height: 28, width: 72, color: AppColors.white),
-                  Container(height: 28, width: 92, color: AppColors.white),
-                  Container(height: 28, width: 68, color: AppColors.white),
-                ],
-              ),
+              Container(height: 14, width: 120, color: AppColors.white),
+              const SizedBox(height: AppSpacing.sm),
+              Container(height: 10, width: 100, color: AppColors.white),
               const Spacer(),
               Row(
                 children: [
-                  Container(height: 12, width: 70, color: AppColors.white),
+                  Container(height: 10, width: 60, color: AppColors.white),
                   const Spacer(),
-                  Container(height: 34, width: 92, color: AppColors.white),
+                  Container(
+                      height: 34, width: 60, color: AppColors.white),
                 ],
               ),
             ],
@@ -297,20 +291,24 @@ Color _collabAccent(CampaignCollabType type) {
 
 String _deadlineLabel(DateTime deadline) {
   final duration = deadline.difference(DateTime.now());
-  if (duration.isNegative) {
-    return 'Ended ${DateFormat('d MMM').format(deadline)}';
-  }
+  if (duration.isNegative) return 'Ended';
   if (duration.inDays >= 1) return '${duration.inDays}d left';
   if (duration.inHours >= 1) return '${duration.inHours}h left';
   return '${duration.inMinutes.clamp(1, 59)}m left';
 }
 
-Color _avatarColor(String initial) {
-  const palette = [
-    AppColors.pink,
-    AppColors.blue,
-    AppColors.purple,
-    AppColors.orange
-  ];
-  return palette[initial.codeUnitAt(0) % palette.length];
+bool _isUrgent(DateTime deadline) {
+  final duration = deadline.difference(DateTime.now());
+  return !duration.isNegative && duration.inHours < 24;
+}
+
+String _budgetShort(Campaign campaign) {
+  if (campaign.minBudget == 0 && campaign.maxBudget == 0) return 'Product only';
+  return '${Formatters.currencyFromINR(campaign.minBudget)} – ${Formatters.currencyFromINR(campaign.maxBudget)}';
+}
+
+String _locationText(Campaign campaign) {
+  if (campaign.targetCity != null) return campaign.targetCity!;
+  if (campaign.targetState != null) return campaign.targetState!;
+  return 'Pan India';
 }

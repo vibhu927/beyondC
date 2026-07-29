@@ -35,6 +35,8 @@ class RouteNames {
   static const String brandEvents = '/brand/events';
   static const String createEvent = '/brand/events/create';
   static const String eventInvites = '/brand/events/:id/invites';
+  static const String savedCreators = '/brand/saved-creators';
+  static const String brandAnalytics = '/brand/analytics';
 
   // Agency Portal
   static const String agencyHome = '/agency/home';
@@ -55,6 +57,12 @@ class RouteNames {
   static const String collabDetail = '/collabs/:id';
   static const String collabMilestones = '/collabs/:id/milestones';
   static const String collabRating = '/collabs/:id/rate';
+  static const String collabContract = '/collabs/:id/contract';
+  static const String collabContractCreate = '/collabs/:id/contract/create';
+  static const String collabContentSubmit = '/collabs/:id/content/submit';
+  static const String collabContentReview = '/collabs/:id/content/review';
+  static const String collabPaymentSetup = '/collabs/:id/payment/setup';
+  static const String collabPaymentView = '/collabs/:id/payment/view';
   static const String partnerProfile = '/partner-profile';
   static const String settings = '/settings';
 }

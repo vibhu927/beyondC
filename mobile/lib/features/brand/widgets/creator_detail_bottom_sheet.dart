@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_symbols_icons/symbols.dart';
 
 import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
@@ -8,6 +9,7 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/brand_provider.dart';
+import '../../../providers/saved_creators_provider.dart';
 
 class CreatorDetailBottomSheet extends ConsumerWidget {
   const CreatorDetailBottomSheet({
@@ -21,6 +23,8 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final avgPrice = creator.avgCollabPrice ?? creator.startingPrice;
     final stars = _starsForCreator(creator);
+    final savedCreators = ref.watch(savedCreatorsProvider);
+    final isSaved = savedCreators.valueOrNull?.any((s) => s.creatorId == creator.id) ?? false;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.65,
@@ -227,6 +231,42 @@ class CreatorDetailBottomSheet extends ConsumerWidget {
                     style: AppTypography.bodySM.copyWith(color: AppColors.muted),
                   ),
                   const SizedBox(height: AppSpacing.lg),
+                  GestureDetector(
+                    onTap: () => ref.read(savedCreatorsProvider.notifier).toggleSave(creator.id),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.lg,
+                        vertical: AppSpacing.md,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isSaved ? AppColors.brandPrimary : Colors.transparent,
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                        border: Border.all(
+                          color: isSaved ? AppColors.brandDark : AppColors.brandDark.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            isSaved ? Symbols.bookmark_rounded : Symbols.bookmark_border_rounded,
+                            size: 20,
+                            color: AppColors.brandDark,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(
+                            isSaved ? 'Saved' : 'Save Creator',
+                            style: AppTypography.labelSM.copyWith(
+                              color: AppColors.brandDark,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
                   _BrandPillButton(
                     label: 'View Full Profile',
                     onPressed: () {

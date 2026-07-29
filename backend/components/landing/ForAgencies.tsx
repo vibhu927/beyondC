@@ -47,7 +47,7 @@ export default function ForAgencies() {
 
 
             {/* CTA */}
-            {/* {hasSession ? (
+            {hasSession ? (
               <p className="inline-flex items-center rounded-full border-2 border-ink bg-purple-600 px-4 py-2 font-space text-xs font-bold uppercase tracking-[0.08em] text-white">
                 Account ready, {session?.firstName}
               </p>
@@ -58,7 +58,7 @@ export default function ForAgencies() {
               >
                 Start as Agency →
               </Link>
-            )} */}
+            )}
           </div>
 
           {/* Right Card */}

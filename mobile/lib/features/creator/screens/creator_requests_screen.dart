@@ -12,10 +12,8 @@ import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/badges/bc_badge.dart';
-import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
-import '../../../widgets/creator_page_top_header.dart';
 
 String _readString(dynamic value) {
   if (value == null) return '';
@@ -61,14 +59,7 @@ class _CreatorRequestsScreenState extends ConsumerState<CreatorRequestsScreen> {
     final agencyPitchesAsync = ref.watch(creatorAgencyPitchesProvider);
 
     return Scaffold(
-      extendBody: true,
-      bottomNavigationBar: const BCBottomNav(
-        role: BCPortalRole.creator,
-        currentIndex: 3,
-      ),
-      body: BCPageSwipeArea(
-        role: BCPortalRole.creator,
-        currentIndex: 3,
+      body: SafeArea(
         child: RefreshIndicator(
           color: AppColors.neon,
           onRefresh: () async {
@@ -89,7 +80,39 @@ class _CreatorRequestsScreenState extends ConsumerState<CreatorRequestsScreen> {
                 ),
                 child: Column(
                   children: [
-                    const CreatorPageTopHeader(),
+                    Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppColors.white.withValues(alpha: 0.9),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.creatorDark.withValues(alpha: 0.14),
+                            ),
+                          ),
+                          child: IconButton(
+                            onPressed: () => context.pop(),
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: AppColors.creatorDark,
+                              size: 22,
+                            ),
+                            splashRadius: 20,
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.md),
+                        Text(
+                          'Requests',
+                          style: AppTypography.displaySM.copyWith(
+                            color: AppColors.creatorDark,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     _CreatorCardShell(
                       accent: AppColors.neon,
@@ -215,11 +238,12 @@ class _BrandRequestsTab extends ConsumerWidget {
         message: error.toString(),
         onRetry: () => ref.read(requestsProvider.notifier).refresh(),
       ),
-      data: (requests) {
+      data: (allRequests) {
+        final requests = allRequests.where((r) => r.status == 'pending').toList();
         if (requests.isEmpty) {
           return const Center(
             child: BCEmptyState(
-              emoji: '📨',
+              emoji: ' ',
               message: 'No brand requests yet. Brands will reach out soon.',
             ),
           );
@@ -369,41 +393,43 @@ class _BrandRequestCard extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Expanded(
-                child: _CardActionButton(
-                  label: actionLoading ? 'Please wait...' : 'Accept',
-                  filled: true,
-                  onTap: actionLoading
-                      ? null
-                      : () async {
-                          try {
-                            await ref
-                                .read(creatorActionsProvider.notifier)
-                                .respondToRequest(
-                                  requestId: request.id,
-                                  action: 'accept',
+          if (request.status == 'pending') ...[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: _CardActionButton(
+                    label: actionLoading ? 'Please wait...' : 'Accept',
+                    filled: true,
+                    onTap: actionLoading
+                        ? null
+                        : () async {
+                            try {
+                              await ref
+                                  .read(creatorActionsProvider.notifier)
+                                  .respondToRequest(
+                                    requestId: request.id,
+                                    action: 'accept',
+                                  );
+                              await ref.read(requestsProvider.notifier).refresh();
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Request accepted!')),
                                 );
-                            await ref.read(requestsProvider.notifier).refresh();
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Request accepted!')),
-                              );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error: $e')),
+                                );
+                              }
                             }
-                          } catch (e) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Error: $e')),
-                              );
-                            }
-                          }
-                        },
+                          },
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { scrapeAndUpdateProfile } from '@/lib/instagram/scrape-profile'
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,8 +15,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { data: userRecord } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .in('role', ['creator', 'brand'])
+      .maybeSingle()
+
+    if (!userRecord) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    }
+
+    const userRole = userRecord.role
+    const targetTable = userRole === 'brand' ? 'brand_profiles' : 'creator_profiles'
+
     const { data: profile } = await supabase
-      .from('creator_profiles')
+      .from(targetTable)
       .select('instagram_username, stats_fetched_at, instagram_verified')
       .eq('id', user.id)
       .maybeSingle()
@@ -36,33 +51,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin
-    const internalSecret = process.env.INTERNAL_API_SECRET
-    if (!internalSecret) {
-      return NextResponse.json({ error: 'INTERNAL_API_SECRET is not configured' }, { status: 500 })
+    const result = await scrapeAndUpdateProfile(user.id, profile.instagram_username, userRole)
+
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: result.statusCode ?? 400 }
+      )
     }
 
-    const scrapeUrl = new URL('/api/instagram/scrape', appUrl)
-
-    const triggerResponse = await fetch(scrapeUrl.toString(), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-internal-secret': internalSecret,
-      },
-      body: JSON.stringify({
-        userId: user.id,
-        username: profile.instagram_username,
-      }),
-    })
-
-    if (!triggerResponse.ok) {
-      const result = await triggerResponse.json().catch(() => ({ error: 'Could not start stats refresh' }))
-      return NextResponse.json(result, { status: triggerResponse.status })
-    }
-
-    const result = await triggerResponse.json().catch(() => ({ success: true }))
-    return NextResponse.json({ success: true, message: 'Stats refresh started', ...result })
+    return NextResponse.json({ success: true, message: 'Stats refreshed successfully' })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Could not refresh stats'
     return NextResponse.json({ error: message }, { status: 500 })

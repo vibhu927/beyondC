@@ -16,6 +16,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
+import '../../../widgets/badges/verified_badge.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/brand_page_top_header.dart';
@@ -89,6 +90,11 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
   }
 
   Future<void> _logout() async {
+    // Invalidate all cached providers before signing out
+    ref.invalidate(brandCampaignsProvider);
+    ref.invalidate(brandRequestsProvider);
+    ref.invalidate(brandEventsProvider);
+
     await ref.read(authProvider.notifier).signOut();
     if (!mounted) return;
     context.go(RouteNames.login);
@@ -480,12 +486,20 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      profile.brandName,
-                                      style: AppTypography.displaySM.copyWith(
-                                        color: AppColors.brandDark,
-                                        fontWeight: FontWeight.w900,
-                                      ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          profile.brandName,
+                                          style: AppTypography.displaySM.copyWith(
+                                            color: AppColors.brandDark,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                        if (profile.verified) ...[
+                                          const SizedBox(width: 6),
+                                          const VerifiedBadge(size: 18, role: 'brand'),
+                                        ],
+                                      ],
                                     ),
                                     const SizedBox(height: 4),
                                     Text(location,
@@ -724,6 +738,20 @@ class _BrandProfileScreenState extends ConsumerState<BrandProfileScreen> {
                                       ),
                                     ),
                               const SizedBox(height: AppSpacing.md),
+                              _ProfileActionButton(
+                                label: 'Analytics',
+                                icon: Icons.analytics_rounded,
+                                onPressed: () =>
+                                    context.push(RouteNames.brandAnalytics),
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              _ProfileActionButton(
+                                label: 'Saved Creators',
+                                icon: Icons.bookmark_rounded,
+                                onPressed: () =>
+                                    context.push(RouteNames.savedCreators),
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
                               _ProfileActionButton(
                                 label: 'Settings',
                                 icon: Icons.settings_rounded,

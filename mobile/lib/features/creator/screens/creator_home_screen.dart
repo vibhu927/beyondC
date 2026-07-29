@@ -193,6 +193,16 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                               onCollabsTap: () => context.push(RouteNames.creatorCollabs),
                             ),
                             const SizedBox(height: AppSpacing.lg),
+                            if (home.activeCollabs.isNotEmpty)
+                              _CollabStatusBanner(
+                                collab: home.activeCollabs.first,
+                                onTap: () => context.push(
+                                  RouteNames.collabDetail
+                                      .replaceFirst(':id', home.activeCollabs.first.id),
+                                ),
+                              ),
+                            if (home.activeCollabs.isNotEmpty)
+                              const SizedBox(height: AppSpacing.lg),
                             if (!profile.instagramVerified)
                               _InstagramConnectBanner(
                                 onConnect: _connectInstagram,
@@ -277,7 +287,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                               onTap: () => context.push(RouteNames.creatorRequests),
                             ),
                             const SizedBox(height: AppSpacing.lg),
-                            if (home.requests.isEmpty)
+                            if (home.requests.where((r) => r.status == 'pending').isEmpty)
                               const BCEmptyState(
                                 emoji: ' ',
                                 message:
@@ -285,7 +295,7 @@ class _CreatorHomeScreenState extends ConsumerState<CreatorHomeScreen> {
                               )
                             else
                               Column(
-                                children: home.requests.take(3).map((request) {
+                                children: home.requests.where((r) => r.status == 'pending').take(3).map((request) {
                                   return Padding(
                                     padding: const EdgeInsets.only(
                                       bottom: AppSpacing.md,
@@ -1382,6 +1392,119 @@ class _GlassButton extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CollabStatusBanner extends StatelessWidget {
+  const _CollabStatusBanner({
+    required this.collab,
+    required this.onTap,
+  });
+
+  final Collab collab;
+  final VoidCallback onTap;
+
+  String get _statusLabel {
+    switch (collab.collabStatus) {
+      case 'working_on_draft':
+        return 'Working on draft';
+      case 'draft_ready':
+        return 'Draft ready';
+      case 'content_posted':
+        return 'Content posted';
+      case 'completed':
+        return 'Completed';
+      default:
+        return 'Just started';
+    }
+  }
+
+  Color get _statusColor {
+    switch (collab.collabStatus) {
+      case 'working_on_draft':
+        return const Color(0xFF5B7FFF);
+      case 'draft_ready':
+        return const Color(0xFF8B5CF6);
+      case 'content_posted':
+        return const Color(0xFFEC4899);
+      case 'completed':
+        return const Color(0xFF10B981);
+      default:
+        return AppColors.darkGreen;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: _statusColor.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _statusColor.withValues(alpha: 0.1),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: _statusColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                Icons.update_rounded,
+                size: 20,
+                color: _statusColor,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    collab.brandCategory,
+                    style: AppTypography.labelSM.copyWith(
+                      color: AppColors.ink,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _statusLabel,
+                    style: AppTypography.bodyXS.copyWith(
+                      color: _statusColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right_rounded,
+              size: 20,
+              color: AppColors.muted,
+            ),
+          ],
         ),
       ),
     );

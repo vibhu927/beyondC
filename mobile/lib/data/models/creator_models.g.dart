@@ -231,6 +231,22 @@ _$CollabImpl _$$CollabImplFromJson(Map<String, dynamic> json) => _$CollabImpl(
           ? null
           : DateTime.parse(json['completedAt'] as String),
       rating: (json['rating'] as num?)?.toInt(),
+      collabStatus: json['collabStatus'] as String? ?? 'started',
+      statusUpdatedAt: json['statusUpdatedAt'] == null
+          ? null
+          : DateTime.parse(json['statusUpdatedAt'] as String),
+      statusUpdateMessage: json['statusUpdateMessage'] as String?,
+      contractTerms: json['contractTerms'] as Map<String, dynamic>?,
+      creatorContractAccepted:
+          json['creatorContractAccepted'] as bool? ?? false,
+      brandContractAccepted: json['brandContractAccepted'] as bool? ?? false,
+      creatorContractAcceptedAt: json['creatorContractAcceptedAt'] == null
+          ? null
+          : DateTime.parse(json['creatorContractAcceptedAt'] as String),
+      brandContractAcceptedAt: json['brandContractAcceptedAt'] == null
+          ? null
+          : DateTime.parse(json['brandContractAcceptedAt'] as String),
+      paymentStructure: json['paymentStructure'] as String? ?? 'full_upfront',
     );
 
 Map<String, dynamic> _$$CollabImplToJson(_$CollabImpl instance) =>
@@ -246,6 +262,17 @@ Map<String, dynamic> _$$CollabImplToJson(_$CollabImpl instance) =>
       'createdAt': instance.createdAt?.toIso8601String(),
       'completedAt': instance.completedAt?.toIso8601String(),
       'rating': instance.rating,
+      'collabStatus': instance.collabStatus,
+      'statusUpdatedAt': instance.statusUpdatedAt?.toIso8601String(),
+      'statusUpdateMessage': instance.statusUpdateMessage,
+      'contractTerms': instance.contractTerms,
+      'creatorContractAccepted': instance.creatorContractAccepted,
+      'brandContractAccepted': instance.brandContractAccepted,
+      'creatorContractAcceptedAt':
+          instance.creatorContractAcceptedAt?.toIso8601String(),
+      'brandContractAcceptedAt':
+          instance.brandContractAcceptedAt?.toIso8601String(),
+      'paymentStructure': instance.paymentStructure,
     };
 
 _$WalletTransactionImpl _$$WalletTransactionImplFromJson(

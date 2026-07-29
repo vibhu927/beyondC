@@ -11,6 +11,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/creator_provider.dart';
+import '../../../providers/earnings_provider.dart';
 import '../../../services/razorpay_checkout_service.dart';
 import '../../../widgets/bc_app_bar.dart';
 import '../../../widgets/bc_app_loader.dart';
@@ -150,6 +151,8 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                 AppSpacing.huge,
               ),
               children: [
+                _EarningsSummary(),
+                const SizedBox(height: AppSpacing.xl),
                 BCCard(
                   shadow: AppShadows.neon,
                   backgroundColor: AppColors.ink,
@@ -212,11 +215,14 @@ class _WalletScreenState extends ConsumerState<WalletScreen> {
                       const Text('How fees work 💡',
                           style: AppTypography.displaySM),
                       const SizedBox(height: AppSpacing.md),
-                      _feeRow('Micro Brand', '₹10–₹20'),
+                      _feeRow('Micro Brand',
+                        '₹${AppConstants.collabFees['micro']!['min']! ~/ 100}–₹${AppConstants.collabFees['micro']!['max']! ~/ 100}'),
                       const SizedBox(height: AppSpacing.xs),
-                      _feeRow('Mid Brand', '₹50–₹70'),
+                      _feeRow('Mid Brand',
+                        '₹${AppConstants.collabFees['mid']!['min']! ~/ 100}–₹${AppConstants.collabFees['mid']!['max']! ~/ 100}'),
                       const SizedBox(height: AppSpacing.xs),
-                      _feeRow('Big Brand', '₹100–₹150'),
+                      _feeRow('Big Brand',
+                        '₹${AppConstants.collabFees['big']!['min']! ~/ 100}–₹${AppConstants.collabFees['big']!['max']! ~/ 100}'),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         'Fee deducted only when you accept a collab',
@@ -331,6 +337,130 @@ class _QuickTopUpButton extends StatelessWidget {
           '₹$amount',
           style: AppTypography.labelMD.copyWith(color: AppColors.ink),
         ),
+      ),
+    );
+  }
+}
+
+class _EarningsSummary extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final earningsAsync = ref.watch(creatorEarningsProvider);
+
+    return earningsAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (earnings) {
+        if (earnings.collabsCompleted == 0) return const SizedBox.shrink();
+
+        return Container(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: AppColors.lightBorder),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 18,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Earnings Summary',
+                style: AppTypography.labelLG.copyWith(
+                  color: AppColors.creatorDark,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: _EarningStat(
+                      label: 'Total Earned',
+                      value: Formatters.currencyFromINR(earnings.totalEarnedPaise),
+                      icon: Symbols.account_balance_wallet_rounded,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: _EarningStat(
+                      label: 'Collabs',
+                      value: '${earnings.collabsCompleted}',
+                      icon: Symbols.handshake_rounded,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: _EarningStat(
+                      label: 'Rating',
+                      value: earnings.avgRating > 0
+                          ? earnings.avgRating.toStringAsFixed(1)
+                          : '-',
+                      icon: Symbols.star_rounded,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _EarningStat extends StatelessWidget {
+  const _EarningStat({
+    required this.label,
+    required this.value,
+    required this.icon,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.neon.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: AppColors.creatorDark.withValues(alpha: 0.08),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: AppColors.creatorDark.withValues(alpha: 0.6),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            value,
+            style: AppTypography.labelMD.copyWith(
+              color: AppColors.creatorDark,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: AppTypography.bodyXS.copyWith(
+              color: AppColors.muted,
+            ),
+          ),
+        ],
       ),
     );
   }

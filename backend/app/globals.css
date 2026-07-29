@@ -10,6 +10,24 @@
   --orange: #FF6B00;
   --ink: #0D0D0D;
   --muted: #6B6B6B;
+  --bg-page: #F6F5F1;
+  --bg-card: #FFFFFF;
+  --bg-sidebar: #FFFFFF;
+  --border-color: #0D0D0D;
+}
+
+.dark {
+  --neon: #C8FF00;
+  --pink: #FF2D78;
+  --blue: #3D5BFF;
+  --purple: #9B5DE5;
+  --orange: #FF6B00;
+  --ink: #E8E8E8;
+  --muted: #999999;
+  --bg-page: #0f0f1a;
+  --bg-card: #1a1a2e;
+  --bg-sidebar: #14142a;
+  --border-color: rgba(255, 255, 255, 0.12);
 }
 
 * {
@@ -24,7 +42,7 @@ html {
 
 body {
   color: var(--ink);
-  background: #FFFFFF;
+  background: var(--bg-card);
   overflow-x: hidden;
 }
 
@@ -150,6 +168,75 @@ body {
   transform: translateY(-50%);
 }
 
+/* Dark mode overrides */
+.dark {
+  --bg-page: #0f0f1a;
+  --bg-card: #1a1a2e;
+  --border-accent: rgba(255, 255, 255, 0.12);
+}
+
+.dark .bg-white {
+  background-color: #1a1a2e;
+}
+
+.dark .bg-\[\#F6F5F1\] {
+  background-color: #0f0f1a;
+}
+
+/* Bright accent elements keep dark text for readability */
+.dark .bg-neon,
+.dark .bg-\[\#C8FF00\],
+.dark .bg-pink,
+.dark .bg-\[\#FF2D78\],
+.dark .bg-yellow-200,
+.dark .bg-blue-200 {
+  color: #0D0D0D !important;
+}
+
+.dark .text-muted {
+  color: #999999;
+}
+
+.dark .border-ink {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.dark .bg-ink {
+  background-color: #1a1a3e;
+  color: #E8E8E8;
+}
+
+.dark .bg-\[\#0D0D0D\] {
+  background-color: #1a1a3e;
+  color: #E8E8E8;
+}
+
+/* Shadows: replace ink shadows with light ones */
+.dark .shadow-\[6px_6px_0_\#C8FF00\],
+.dark .shadow-\[4px_4px_0_\#C8FF00\],
+.dark .shadow-\[3px_3px_0_\#C8FF00\],
+.dark .shadow-\[2px_2px_0_\#C8FF00\],
+.dark .shadow-\[5px_5px_0_\#C8FF00\] {
+  box-shadow: 6px 6px 0 #C8FF00 !important;
+}
+
+.dark .shadow-\[4px_4px_0_\#0D0D0D\],
+.dark .shadow-\[3px_3px_0_\#0D0D0D\],
+.dark .shadow-\[2px_2px_0_\#0D0D0D\],
+.dark .shadow-\[5px_5px_0_\#0D0D0D\],
+.dark .shadow-\[6px_6px_0_\#0D0D0D\] {
+  box-shadow: 4px 4px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+.dark .animate-pulse > div {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Scrollbar for dark mode */
+.dark ::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
@@ -160,10 +247,44 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--neon);
+  background: var(--pink);
   border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--pink);
+  background: var(--ink);
+}
+
+/* Media modal animations */
+.media-modal-overlay {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.media-modal-content {
+  animation: modalSlideIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

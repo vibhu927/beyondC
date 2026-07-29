@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { setFrontendSession } from '@/lib/frontend-session'
 
 export default function JoinSuccessPage() {
   const router = useRouter()
@@ -26,18 +27,34 @@ export default function JoinSuccessPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('first_name, role')
+        .select('first_name, full_name, role, email')
         .eq('id', user.id)
         .single()
 
-      if (profile?.first_name) {
-        setFirstName(profile.first_name)
-      }
-      if (profile?.role === 'creator' || profile?.role === 'brand') {
-        setRole(profile.role)
+      if (!profile) {
+        router.push('/join')
+        return
       }
 
+      if (profile.first_name) setFirstName(profile.first_name)
+      const userRole = profile.role as 'creator' | 'brand'
+      if (userRole === 'creator' || userRole === 'brand') setRole(userRole)
+
+      setFrontendSession({
+        id: user.id,
+        firstName: profile.first_name || user.email?.split('@')[0] || 'User',
+        fullName: profile.full_name || '',
+        email: user.email || '',
+        role: userRole,
+      })
+
       setLoading(false)
+
+      if (userRole === 'creator') {
+        router.push('/dashboard/creator')
+      } else if (userRole === 'brand') {
+        router.push('/dashboard/brand')
+      }
     }
 
     void loadProfile()
@@ -71,43 +88,23 @@ export default function JoinSuccessPage() {
         )}
 
         <p className="mx-auto mt-4 max-w-xl font-nunito text-lg text-white/75">
-          Thanks for joining BeyondC. Download the app and log in with the same account.
+          {loading ? '' : 'You are being redirected to your dashboard...'}
         </p>
 
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link
-            href="/"
+            href={role === 'creator' ? '/dashboard/creator' : role === 'brand' ? '/dashboard/brand' : '/'}
             className="inline-flex w-full items-center justify-center gap-2 border-2 border-neon bg-ink px-6 py-4 font-space text-sm font-bold uppercase tracking-[0.08em] text-neon shadow-[4px_4px_0_#C8FF00] sm:w-auto"
           >
             <span aria-hidden>⌂</span>
-            Go to Home
-          </Link>
-
-          <Link
-            href="#"
-            className="inline-flex w-full items-center justify-center gap-2 border-2 border-ink bg-white px-6 py-4 font-space text-sm font-bold uppercase tracking-[0.08em] text-ink shadow-[4px_4px_0_#0D0D0D] sm:w-auto"
-          >
-            <span aria-hidden>🍎</span>
-            Download on App Store
-          </Link>
-
-          <Link
-            href="#"
-            className="inline-flex w-full items-center justify-center gap-2 border-2 border-ink bg-neon px-6 py-4 font-space text-sm font-bold uppercase tracking-[0.08em] text-ink shadow-[4px_4px_0_#0D0D0D] sm:w-auto"
-          >
-            <span aria-hidden>▶</span>
-            Get it on Google Play
+            Go to Dashboard
           </Link>
         </div>
-
-        <p className="mt-6 font-nunito text-sm text-white/60">
-          Your account is ready. Same email and password works on the app.
-        </p>
 
         <button
           type="button"
           onClick={onLogout}
-          className="mt-4 font-space text-xs font-bold uppercase tracking-[0.08em] text-white underline underline-offset-4"
+          className="mt-6 font-space text-xs font-bold uppercase tracking-[0.08em] text-white underline underline-offset-4"
         >
           Log out
         </button>

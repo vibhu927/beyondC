@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_shadows.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -8,7 +9,6 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../data/models/creator_models.dart';
 import '../../../providers/creator_provider.dart';
-import '../../../widgets/buttons/bc_primary_button.dart';
 import '../../../widgets/cards/bc_card.dart';
 import '../../../widgets/inputs/bc_text_field.dart';
 
@@ -56,9 +56,9 @@ class _BidBottomSheetState extends ConsumerState<BidBottomSheet> {
   }
 
   int _estimatedFeePaise() {
-    if (widget.campaign.maxBudget <= 3000) return 2000;
-    if (widget.campaign.maxBudget <= 7000) return 7000;
-    return 20000;
+    final size = widget.campaign.brandSize ?? 'micro';
+    final fees = AppConstants.collabFees[size] ?? AppConstants.collabFees['micro']!;
+    return ((fees['min']! + fees['max']!) / 2).floor();
   }
 
   Future<void> _submit() async {
@@ -110,18 +110,17 @@ class _BidBottomSheetState extends ConsumerState<BidBottomSheet> {
         return Container(
           decoration: const BoxDecoration(
             color: AppColors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            border: Border(top: BorderSide(color: AppColors.ink, width: 2)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
           ),
           child: SafeArea(
             top: false,
             child: SingleChildScrollView(
               controller: scrollController,
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xl,
+              padding: EdgeInsets.fromLTRB(
+                AppSpacing.screenPadding,
                 AppSpacing.md,
-                AppSpacing.xl,
-                AppSpacing.huge,
+                AppSpacing.screenPadding,
+                MediaQuery.of(context).padding.bottom + AppSpacing.md,
               ),
               child: Form(
                 key: _formKey,
@@ -130,18 +129,19 @@ class _BidBottomSheetState extends ConsumerState<BidBottomSheet> {
                   children: [
                     Center(
                       child: Container(
-                        width: 56,
-                        height: 6,
+                        width: 40,
+                        height: 4,
                         decoration: BoxDecoration(
-                          color: AppColors.divider,
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusFull),
+                          color: AppColors.lightBorder,
+                          borderRadius: BorderRadius.circular(2),
                         ),
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    const Text('Place Your Bid',
-                        style: AppTypography.displaySM),
+                    Text('Place Your Bid',
+                        style: AppTypography.displaySM.copyWith(
+                          fontWeight: FontWeight.w900,
+                        )),
                     const SizedBox(height: 24),
                     if (_showPriceField)
                       BCTextField(
@@ -225,10 +225,46 @@ class _BidBottomSheetState extends ConsumerState<BidBottomSheet> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                    BCPrimaryButton.neon(
-                      label: 'Submit Bid →',
-                      isLoading: _isSubmitting,
-                      onPressed: _isSubmitting ? null : _submit,
+                    GestureDetector(
+                      onTap: _isSubmitting ? null : _submit,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.lg,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _isSubmitting
+                              ? AppColors.muted
+                              : AppColors.creatorDark,
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                          boxShadow: _isSubmitting
+                              ? []
+                              : [
+                                  BoxShadow(
+                                    color: AppColors.creatorDark.withValues(alpha: 0.2),
+                                    offset: const Offset(3, 3),
+                                    blurRadius: 0,
+                                  ),
+                                ],
+                        ),
+                        alignment: Alignment.center,
+                        child: _isSubmitting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: AppColors.neon,
+                                ),
+                              )
+                            : Text(
+                                'Submit Bid →',
+                                style: AppTypography.labelMD.copyWith(
+                                  color: AppColors.neon,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                      ),
                     ),
                   ],
                 ),

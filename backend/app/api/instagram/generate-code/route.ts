@@ -16,11 +16,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { data: userRecord } = await admin
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .in('role', ['creator', 'brand'])
+      .maybeSingle()
+
+    if (!userRecord) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+    }
+
+    const targetTable = userRecord.role === 'brand' ? 'brand_profiles' : 'creator_profiles'
+
     const {
       data: profile,
       error: profileError,
     } = await admin
-      .from('creator_profiles')
+      .from(targetTable)
       .select('instagram_verified')
       .eq('id', user.id)
       .maybeSingle()
@@ -32,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     if (!profile) {
       return NextResponse.json(
-        { error: 'Creator profile not found. Please complete your creator setup first.' },
+        { error: 'Profile not found. Please complete your setup first.' },
         { status: 404 }
       )
     }
@@ -44,7 +57,7 @@ export async function POST(request: NextRequest) {
     const code = `BC-${crypto.randomBytes(4).toString('hex').toUpperCase()}`
 
     const { error: updateError } = await admin
-      .from('creator_profiles')
+      .from(targetTable)
       .update({ instagram_verification_code: code })
       .eq('id', user.id)
 
@@ -54,7 +67,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: isMissingColumn
-            ? 'Database setup incomplete: the verification code column is missing. Please apply the latest Supabase migration (20260525000001_bio_verification_code.sql) or contact support.'
+            ? 'Database setup incomplete: the verification code column is missing. Please apply the latest Supabase migration or contact support.'
             : 'Failed to save verification code. Try again.',
         },
         { status: 500 }

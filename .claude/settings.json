@@ -1,0 +1,9 @@
+{
+  "apiKeyHelper": "echo sk-ant-cmx-4fe645fd0b388d8aa61971fc8392fcc7d1e726c62e3771b72639d0361917998c",
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://claudmax.pro",
+    "CLAUDE_CODE_API_KEY_HELPER_TTL_MS": "3600000",
+    "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY": "1"
+  },
+  "theme": "dark"
+}

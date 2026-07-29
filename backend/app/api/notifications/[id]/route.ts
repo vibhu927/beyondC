@@ -17,7 +17,7 @@ export async function PUT(
     // Mark notification as read
     const { error } = await supabase
       .from('notifications')
-      .update({ read: true })
+      .update({ is_read: true })
       .eq('id', params.id)
       .eq('user_id', user.id)
 

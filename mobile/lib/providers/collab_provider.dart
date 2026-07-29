@@ -75,6 +75,85 @@ class CollabNotifier extends FamilyAsyncNotifier<Collab, String> {
       return current.copyWith(rating: score);
     });
   }
+
+  Future<void> updateCollabStatus(String status, {String? message}) async {
+    final current = state.valueOrNull;
+    if (current == null) throw StateError('Collab not loaded.');
+
+    state = await AsyncValue.guard(() async {
+      final updated = await ref.read(collabRepositoryProvider).updateCollabStatus(
+        arg,
+        status,
+        message: message,
+      );
+      return updated;
+    });
+  }
+
+  Future<void> createContract(Map<String, dynamic> terms) async {
+    await ref.read(collabRepositoryProvider).createContract(arg, terms);
+    ref.invalidateSelf();
+    await future;
+  }
+
+  Future<void> acceptContract() async {
+    await ref.read(collabRepositoryProvider).acceptContract(arg);
+    ref.invalidateSelf();
+    await future;
+  }
+
+  Future<List<Map<String, dynamic>>> getContentSubmissions() async {
+    return ref.read(collabRepositoryProvider).getContentSubmissions(arg);
+  }
+
+  Future<void> submitContent({
+    required String contentUrl,
+    required String contentType,
+    String? caption,
+    String? notes,
+  }) async {
+    await ref.read(collabRepositoryProvider).submitContent(
+      arg,
+      contentUrl: contentUrl,
+      contentType: contentType,
+      caption: caption,
+      notes: notes,
+    );
+  }
+
+  Future<void> reviewContent(
+    String submissionId, {
+    required String status,
+    String? feedback,
+  }) async {
+    await ref.read(collabRepositoryProvider).reviewContent(
+      arg,
+      submissionId,
+      status: status,
+      feedback: feedback,
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getPaymentMilestones() async {
+    return ref.read(collabRepositoryProvider).getPaymentMilestones(arg);
+  }
+
+  Future<void> setPaymentMilestones({
+    required String paymentStructure,
+    List<Map<String, dynamic>>? milestones,
+  }) async {
+    await ref.read(collabRepositoryProvider).setPaymentMilestones(
+      arg,
+      paymentStructure: paymentStructure,
+      milestones: milestones,
+    );
+    ref.invalidateSelf();
+    await future;
+  }
+
+  Future<void> releasePaymentMilestone(String milestoneId) async {
+    await ref.read(collabRepositoryProvider).releasePaymentMilestone(arg, milestoneId);
+  }
 }
 
 final collabProvider =

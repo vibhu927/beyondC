@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -7,8 +8,9 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/brand_provider.dart';
+import '../../../providers/saved_creators_provider.dart';
 
-class CreatorCard extends StatelessWidget {
+class CreatorCard extends ConsumerWidget {
   const CreatorCard({
     super.key,
     required this.creator,
@@ -21,7 +23,10 @@ class CreatorCard extends StatelessWidget {
   final VoidCallback? onSendRequest;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final savedCreators = ref.watch(savedCreatorsProvider);
+    final isSaved = savedCreators.valueOrNull?.any((s) => s.creatorId == creator.id) ?? false;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -91,6 +96,27 @@ class CreatorCard extends StatelessWidget {
                               ),
                             ),
                           ),
+                          GestureDetector(
+                            onTap: () => ref.read(savedCreatorsProvider.notifier).toggleSave(creator.id),
+                            child: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: isSaved ? AppColors.brandPrimary : Colors.transparent,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: AppColors.brandDark.withValues(alpha: 0.14),
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: Icon(
+                                isSaved ? Symbols.bookmark_rounded : Symbols.bookmark_border_rounded,
+                                size: 18,
+                                color: isSaved ? AppColors.brandDark : AppColors.brandDark.withValues(alpha: 0.5),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
                           _StatusPill(
                             label: creator.instagramVerified
                                 ? 'Verified'

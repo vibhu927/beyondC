@@ -10,6 +10,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_error_state.dart';
+import '../../../widgets/badges/verified_badge.dart';
 import '../../../widgets/buttons/bc_back_button.dart';
 import '../../creator/shared/widgets/creator_design_system.dart';
 import '../widgets/profile_posts_tab.dart';
@@ -307,11 +308,23 @@ class _PartnerProfileScreenState extends State<PartnerProfileScreen> {
                                       ),
                               ),
                               const SizedBox(height: AppSpacing.sm),
-                              Text(
-                                partner.displayName,
-                                style: AppTypography.labelLG
-                                    .copyWith(color: AppColors.white),
-                                textAlign: TextAlign.center,
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    partner.displayName,
+                                    style: AppTypography.labelLG
+                                        .copyWith(color: AppColors.white),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  if (partner.isVerified) ...[
+                                    const SizedBox(width: 6),
+                                    VerifiedBadge(
+                                      size: 16,
+                                      role: partner.isCreator ? 'creator' : 'brand',
+                                    ),
+                                  ],
+                                ],
                               ),
                               const SizedBox(height: AppSpacing.xs),
                               InlineTonePill(
@@ -921,6 +934,8 @@ class _PartnerProfileData {
   final double avgRating;
 
   bool get isCreator => role == 'creator';
+
+  bool get isVerified => isCreator ? instagramVerified : verified;
 
   String get badgeLabel {
     if (isCreator) {

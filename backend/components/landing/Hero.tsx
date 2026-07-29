@@ -45,46 +45,38 @@ export default function Hero() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-in-up animate-delay-300 mb-12">
+          <div className="flex flex-col items-center justify-center animate-fade-in-up animate-delay-300 mb-12">
             {hasSession ? (
-              <>
+              <div className="flex flex-col sm:flex-row gap-4 items-center">
                 <p className="rounded-full border-2 border-ink bg-neon px-4 py-2 font-space text-xs font-bold uppercase tracking-[0.08em] text-ink">
                   Welcome back, {session?.firstName}
                 </p>
                 <Link
-                  href="/"
-                  className="px-8 py-4 bg-ink text-neon border-2 border-ink shadow-neo-neon font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#C8FF00] hover:-translate-y-1 transition-all"
+                  href={session?.role === 'brand' ? '/dashboard/brand' : '/dashboard/creator'}
+                  className="px-8 py-4 bg-ink text-neon border-2 border-ink font-jakarta font-bold text-lg shadow-[4px_4px_0_#C8FF00] hover:shadow-[6px_6px_0_#C8FF00] hover:-translate-y-1 transition-all"
                 >
-                  Go to Home →
+                  Go to Dashboard →
                 </Link>
-              </>
+              </div>
             ) : (
               <>
-                {/*
-                <Link
-                  href="/join/creator"
-                  className="px-8 py-4 bg-ink text-neon border-2 border-ink shadow-neo-neon font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#C8FF00] hover:-translate-y-1 transition-all"
-                >
-                  I&apos;m a Creator →
-                </Link>
-                <Link
-                  href="/join/brand"
-                  className="px-8 py-4 bg-pink text-white border-2 border-ink shadow-neo-pink font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#FF2D78] hover:-translate-y-1 transition-all"
-                >
-                  I&apos;m a Brand →
-                </Link>
-                */}
-                <div className="max-w-2xl border-2 border-ink bg-neon px-6 py-4 text-center shadow-neo">
-                  <p className="font-jakarta text-base font-bold text-ink sm:text-lg">
-                    Creator/Brand onboarding is paused for now.
-                  </p>
-                  <p className="mt-1 font-nunito text-sm text-ink sm:text-base">
-                    Please add your email in the Join the waitlist section to get access.
-                  </p>
+                <div className="flex flex-col sm:flex-row gap-4 items-center">
+                  <Link
+                    href="#waitlist"
+                    className="px-8 py-4 bg-ink text-neon border-2 border-ink font-jakarta font-bold text-lg shadow-[4px_4px_0_#C8FF00] hover:shadow-[6px_6px_0_#C8FF00] hover:-translate-y-1 transition-all"
+                  >
+                    I&apos;m a Creator →
+                  </Link>
+                  <Link
+                    href="/join/brand"
+                    className="px-8 py-4 bg-pink text-white border-2 border-ink font-jakarta font-bold text-lg shadow-[4px_4px_0_#0D0D0D] hover:shadow-[6px_6px_0_#0D0D0D] hover:-translate-y-1 transition-all"
+                  >
+                    I&apos;m a Brand →
+                  </Link>
                 </div>
                 <Link
                   href="#waitlist"
-                  className="px-8 py-4 bg-ink text-neon border-2 border-ink shadow-neo-neon font-jakarta font-bold text-lg hover:shadow-[6px_6px_0_#C8FF00] hover:-translate-y-1 transition-all"
+                  className="mt-4 px-8 py-3 bg-purple text-white border-2 border-ink font-jakarta font-bold text-base shadow-[3px_3px_0_#0D0D0D] hover:shadow-[5px_5px_0_#9B5DE5] hover:-translate-y-0.5 transition-all"
                 >
                   Join the Waitlist ↓
                 </Link>

@@ -23,11 +23,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { data: userRecord } = await admin
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .in('role', ['creator', 'brand'])
+      .maybeSingle()
+
+    if (!userRecord) {
+      return NextResponse.json({ verified: false, error: 'Profile not found' }, { status: 404 })
+    }
+
+    const userRole = userRecord.role
+    const targetTable = userRole === 'brand' ? 'brand_profiles' : 'creator_profiles'
+
     const {
       data: profile,
       error: profileError,
     } = await admin
-      .from('creator_profiles')
+      .from(targetTable)
       .select('instagram_verification_code, instagram_verified')
       .eq('id', user.id)
       .maybeSingle()
@@ -42,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     if (!profile) {
       return NextResponse.json(
-        { verified: false, error: 'Creator profile not found. Please complete your creator setup first.' },
+        { verified: false, error: 'Profile not found. Please complete your setup first.' },
         { status: 404 }
       )
     }
@@ -66,13 +80,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Username is required' }, { status: 400 })
     }
 
-    let stats: InstagramStats
+    let stats: InstagramStats | null
     try {
       stats = getCachedStats<InstagramStats>(username)
       if (!stats) {
         const { scrapeInstagramProfile } = await import('@/lib/scraping/instagram-scraper')
         stats = await withRetry(() => scrapeInstagramProfile(username), 3, 2000)
         setCachedStats(username, stats)
+      }
+      if (!stats) {
+        return NextResponse.json(
+          {
+            verified: false,
+            error: 'Could not fetch Instagram stats.',
+          },
+          { status: 400 }
+        )
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Scrape failed'
@@ -116,31 +139,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ verified: false, error: claimedError }, { status: 409 })
     }
 
+    const updateData: Record<string, unknown> = {
+      instagram_username: username,
+      instagram_verified: true,
+      instagram_oauth_token: null,
+      instagram_user_id: null,
+      instagram_connected_at: new Date().toISOString(),
+      instagram_verification_code: null,
+      followers_count: stats.followers_count,
+      following_count: stats.following_count,
+      posts_count: stats.posts_count,
+      engagement_rate: stats.engagement_rate,
+      highest_video_views: stats.highest_video_views,
+      avg_video_views: stats.avg_video_views,
+      avg_likes: stats.avg_likes,
+      avg_comments: stats.avg_comments,
+      stats_fetched_at: new Date().toISOString(),
+    }
+
+    if (userRole === 'creator') {
+      updateData.is_discoverable = true
+      updateData.follower_count = stats.followers_count
+    }
+
     const { error: updateError } = await admin
-      .from('creator_profiles')
-      .update({
-        instagram_username: username,
-        instagram_verified: true,
-        instagram_oauth_token: null,
-        instagram_user_id: null,
-        instagram_connected_at: new Date().toISOString(),
-        instagram_verification_code: null,
-        is_discoverable: true,
-        followers_count: stats.followers_count,
-        follower_count: stats.followers_count,
-        following_count: stats.following_count,
-        posts_count: stats.posts_count,
-        engagement_rate: stats.engagement_rate,
-        highest_video_views: stats.highest_video_views,
-        avg_video_views: stats.avg_video_views,
-        avg_likes: stats.avg_likes,
-        avg_comments: stats.avg_comments,
-        stats_fetched_at: new Date().toISOString(),
-      })
+      .from(targetTable)
+      .update(updateData)
       .eq('id', user.id)
 
     if (updateError) {
-      console.error('[verify-bio] Failed to update creator profile:', updateError)
+      console.error('[verify-bio] Failed to update profile:', updateError)
       return NextResponse.json(
         { verified: false, error: 'Failed to save verification. Please try again.' },
         { status: 500 }

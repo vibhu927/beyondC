@@ -22,24 +22,27 @@ class AgencyPortalLayout extends ConsumerWidget {
 
   final Widget child;
 
-  int _getCurrentIndex(BuildContext context) {
+  int? _getCurrentIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
-    final index = _agencyRoutes.indexWhere((route) => location.startsWith(route));
-    return index >= 0 ? index : 0;
+    final index = _agencyRoutes.indexWhere((route) => location == route);
+    return index >= 0 ? index : null;
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentIndex = _getCurrentIndex(context);
+    final showNav = currentIndex != null;
     
     return Scaffold(
-      extendBody: true,
-      appBar: const BCPortalTopBar(),
-      bottomNavigationBar: BCBottomNav(
-        role: BCPortalRole.agency,
-        currentIndex: currentIndex,
-      ),
-      body: child,
+      extendBody: showNav,
+      appBar: showNav ? const BCPortalTopBar() : null,
+      bottomNavigationBar: showNav
+          ? BCBottomNav(
+              role: BCPortalRole.agency,
+              currentIndex: currentIndex,
+            )
+          : null,
+      body: showNav ? child : SafeArea(child: child),
     );
   }
 }

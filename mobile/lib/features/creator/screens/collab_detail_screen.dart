@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_symbols_icons/symbols.dart';
 
+import '../../../core/router/route_names.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -12,6 +13,7 @@ import '../../../providers/collab_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_error_state.dart';
+import '../../chat/chat_screen.dart';
 import '../shared/widgets/creator_design_system.dart';
 
 class CreatorCollabDetailScreen extends ConsumerWidget {
@@ -133,7 +135,7 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.xl),
                       GlassPanel(
-                        accentColor: AppColors.creatorDark,
+                        accentColor: AppColors.neon,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -206,7 +208,7 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.xl),
                       GlassPanel(
-                        accentColor: AppColors.creatorDark,
+                        accentColor: AppColors.success,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -233,11 +235,7 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                               children: [
                                 Expanded(
                                   child: GestureDetector(
-                                    onTap: () {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Opening chat...')),
-                                      );
-                                    },
+                                    onTap: () => openChatDrawer(context, collabId),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
                                         vertical: AppSpacing.md,
@@ -319,7 +317,7 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.md),
                       GlassPanel(
-                        accentColor: AppColors.creatorDark,
+                        accentColor: AppColors.blue,
                         child: Column(
                           children: [
                             Row(
@@ -395,6 +393,88 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
                           ),
                         ),
                       ],
+                      const SizedBox(height: AppSpacing.xl),
+                      Text(
+                        'Actions',
+                        style: AppTypography.displaySM.copyWith(
+                          color: AppColors.creatorDark,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      _buildActionRow(
+                        context: context,
+                        icon: Symbols.update_rounded,
+                        label: 'Update Status',
+                        subtitle: 'Current: ${_statusLabel(collab.collabStatus)}',
+                        iconColor: AppColors.neon,
+                        onTap: () => _showStatusUpdateModal(
+                          context,
+                          ref,
+                          collab,
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _buildActionRow(
+                        context: context,
+                        icon: Symbols.description_rounded,
+                        label: 'Contract',
+                        subtitle: collab.contractTerms != null
+                            ? (collab.creatorContractAccepted && collab.brandContractAccepted
+                                ? 'Accepted'
+                                : 'Pending')
+                            : 'Not created',
+                        iconColor: AppColors.blue,
+                        onTap: collab.contractTerms != null
+                            ? () => context.push(
+                                RouteNames.collabContract
+                                    .replaceAll(':id', collabId),
+                              )
+                            : () => context.push(
+                                RouteNames.collabContractCreate
+                                    .replaceAll(':id', collabId),
+                              ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _buildActionRow(
+                        context: context,
+                        icon: Symbols.upload_rounded,
+                        label: 'Submit Content',
+                        subtitle: 'Upload draft or final content',
+                        iconColor: AppColors.purple,
+                        onTap: () => context.push(
+                          RouteNames.collabContentSubmit
+                              .replaceAll(':id', collabId),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _buildActionRow(
+                        context: context,
+                        icon: Symbols.attach_money_rounded,
+                        label: 'Payment',
+                        subtitle: collab.paymentStructure == 'full_upfront'
+                            ? 'Setup Milestones'
+                            : 'View Milestones',
+                        iconColor: AppColors.success,
+                        onTap: collab.paymentStructure == 'full_upfront'
+                            ? () => context.push(
+                                RouteNames.collabPaymentSetup
+                                    .replaceAll(':id', collabId),
+                              )
+                            : () => context.push(
+                                RouteNames.collabPaymentView
+                                    .replaceAll(':id', collabId),
+                              ),
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      _ContentSubmissionsSection(
+                        collabId: collabId,
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                      _PaymentProgressSection(
+                        collabId: collabId,
+                        paymentStructure: collab.paymentStructure,
+                      ),
                     ],
                   );
                 },
@@ -427,9 +507,298 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
         return 'Cancelled';
       case 'pending':
         return 'Pending';
+      case 'started':
+        return 'Started';
+      case 'working_on_draft':
+        return 'Working on Draft';
+      case 'draft_ready':
+        return 'Draft Ready';
+      case 'content_posted':
+        return 'Content Posted';
       default:
         return status;
     }
+  }
+
+  void _showStatusUpdateModal(
+    BuildContext context,
+    WidgetRef ref,
+    Collab collab,
+  ) {
+    final statuses = [
+      'started',
+      'working_on_draft',
+      'draft_ready',
+      'content_posted',
+      'completed',
+    ];
+    String selectedStatus = collab.collabStatus;
+    final messageController = TextEditingController();
+    bool isLoading = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) {
+          return Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.6,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppSpacing.radiusXL),
+              ),
+              border: Border.all(
+                color: AppColors.creatorDark,
+                width: 2,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: AppSpacing.md),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.creatorDark.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenPadding,
+                  ),
+                  child: Text(
+                    'Update Collab Status',
+                    style: AppTypography.displaySM.copyWith(
+                      color: AppColors.creatorDark,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.screenPadding,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Select Status',
+                          style: AppTypography.labelMD.copyWith(
+                            color: AppColors.creatorDark,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Wrap(
+                          spacing: AppSpacing.sm,
+                          runSpacing: AppSpacing.sm,
+                          children: statuses.map((status) {
+                            final isSelected = selectedStatus == status;
+                            return GestureDetector(
+                              onTap: () {
+                                setModalState(() => selectedStatus = status);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.md,
+                                  vertical: AppSpacing.sm,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppColors.creatorDark
+                                      : AppColors.white,
+                                  borderRadius: BorderRadius.circular(
+                                    AppSpacing.radiusFull,
+                                  ),
+                                  border: Border.all(
+                                    color: AppColors.creatorDark,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Text(
+                                  _statusLabel(status),
+                                  style: AppTypography.labelSM.copyWith(
+                                    color: isSelected
+                                        ? AppColors.white
+                                        : AppColors.creatorDark,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: AppSpacing.xl),
+                        Text(
+                          'Message (optional)',
+                          style: AppTypography.labelMD.copyWith(
+                            color: AppColors.creatorDark,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        TextField(
+                          controller: messageController,
+                          maxLines: 3,
+                          style: AppTypography.bodyMD,
+                          decoration: InputDecoration(
+                            hintText: 'Add a note about this status update...',
+                            hintStyle: AppTypography.bodyMD.copyWith(
+                              color: AppColors.muted,
+                            ),
+                            filled: true,
+                            fillColor: AppColors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.radiusLG,
+                              ),
+                              borderSide: BorderSide(
+                                color: AppColors.creatorDark.withValues(alpha: 0.14),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.radiusLG,
+                              ),
+                              borderSide: BorderSide(
+                                color: AppColors.creatorDark.withValues(alpha: 0.14),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.radiusLG,
+                              ),
+                              borderSide: const BorderSide(
+                                color: AppColors.creatorDark,
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenPadding,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => Navigator.pop(ctx),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.md,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.radiusFull,
+                              ),
+                              border: Border.all(
+                                color: AppColors.creatorDark,
+                                width: 2,
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              'Cancel',
+                              style: AppTypography.labelMD.copyWith(
+                                color: AppColors.creatorDark,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: isLoading
+                              ? null
+                              : () async {
+                                  setModalState(() => isLoading = true);
+                                  try {
+                                    await ref
+                                        .read(collabProvider(collabId).notifier)
+                                        .updateCollabStatus(
+                                          selectedStatus,
+                                          message: messageController.text.trim().isEmpty
+                                              ? null
+                                              : messageController.text.trim(),
+                                        );
+                                    if (ctx.mounted) {
+                                      Navigator.pop(ctx);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Status updated successfully!'),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    setModalState(() => isLoading = false);
+                                    if (ctx.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Error: $e'),
+                                          backgroundColor: AppColors.error,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.md,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.creatorDark,
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.radiusFull,
+                              ),
+                            ),
+                            alignment: Alignment.center,
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.neon,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(
+                                    'Update Status',
+                                    style: AppTypography.labelMD.copyWith(
+                                      color: AppColors.neon,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 
   BCBadgeVariant _statusVariant(String status) {
@@ -445,6 +814,77 @@ class CreatorCollabDetailScreen extends ConsumerWidget {
       default:
         return BCBadgeVariant.outline;
     }
+  }
+
+  Widget _buildActionRow({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required String subtitle,
+    required VoidCallback onTap,
+    Color iconColor = AppColors.neon,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLG),
+          border: Border.all(
+            color: AppColors.creatorDark.withValues(alpha: 0.14),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: iconColor.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.creatorDark.withValues(alpha: 0.14),
+                ),
+              ),
+              alignment: Alignment.center,
+              child: Icon(
+                icon,
+                color: AppColors.creatorDark,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: AppTypography.labelMD.copyWith(
+                      color: AppColors.creatorDark,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: AppTypography.bodyXS.copyWith(
+                      color: AppColors.muted,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Symbols.arrow_forward_ios_rounded,
+              color: AppColors.creatorDark.withValues(alpha: 0.4),
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -547,6 +987,324 @@ class _AmbientGlow extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ContentSubmissionsSection extends ConsumerStatefulWidget {
+  const _ContentSubmissionsSection({required this.collabId});
+
+  final String collabId;
+
+  @override
+  ConsumerState<_ContentSubmissionsSection> createState() => _ContentSubmissionsSectionState();
+}
+
+class _ContentSubmissionsSectionState extends ConsumerState<_ContentSubmissionsSection> {
+  List<Map<String, dynamic>>? _submissions;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSubmissions();
+  }
+
+  Future<void> _loadSubmissions() async {
+    try {
+      final submissions = await ref
+          .read(collabProvider(widget.collabId).notifier)
+          .getContentSubmissions();
+      if (mounted) {
+        setState(() {
+          _submissions = submissions;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) return const SizedBox.shrink();
+    final submissions = _submissions ?? [];
+    if (submissions.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Content Submissions',
+              style: AppTypography.displaySM.copyWith(
+                color: AppColors.creatorDark,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            BCBadge(
+              label: '${submissions.length}',
+              variant: BCBadgeVariant.neon,
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.md),
+        GlassPanel(
+          accentColor: AppColors.pink,
+          child: Column(
+            children: submissions.take(3).map((submission) {
+              final status = submission['status'] ?? 'pending';
+              final createdAt = submission['created_at'];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: _submissionStatusColor(status).withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.creatorDark.withValues(alpha: 0.14),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        _submissionStatusIcon(status),
+                        color: _submissionStatusColor(status),
+                        size: 16,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _submissionStatusLabel(status),
+                            style: AppTypography.labelSM.copyWith(
+                              color: AppColors.creatorDark,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          if (createdAt != null)
+                            Text(
+                              Formatters.timeAgo(DateTime.parse(createdAt)),
+                              style: AppTypography.bodyXS.copyWith(
+                                color: AppColors.muted,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        if (submissions.length > 3)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            child: Text(
+              '+${submissions.length - 3} more submissions',
+              style: AppTypography.bodyXS.copyWith(
+                color: AppColors.muted,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Color _submissionStatusColor(String status) {
+    switch (status) {
+      case 'approved':
+        return AppColors.success;
+      case 'rejected':
+        return AppColors.error;
+      case 'pending':
+      default:
+        return AppColors.orange;
+    }
+  }
+
+  IconData _submissionStatusIcon(String status) {
+    switch (status) {
+      case 'approved':
+        return Icons.check_circle_rounded;
+      case 'rejected':
+        return Icons.cancel_rounded;
+      case 'pending':
+      default:
+        return Icons.schedule_rounded;
+    }
+  }
+
+  String _submissionStatusLabel(String status) {
+    switch (status) {
+      case 'approved':
+        return 'Approved';
+      case 'rejected':
+        return 'Rejected';
+      case 'pending':
+      default:
+        return 'Pending Review';
+    }
+  }
+}
+
+class _PaymentProgressSection extends ConsumerStatefulWidget {
+  const _PaymentProgressSection({
+    required this.collabId,
+    required this.paymentStructure,
+  });
+
+  final String collabId;
+  final String paymentStructure;
+
+  @override
+  ConsumerState<_PaymentProgressSection> createState() => _PaymentProgressSectionState();
+}
+
+class _PaymentProgressSectionState extends ConsumerState<_PaymentProgressSection> {
+  List<Map<String, dynamic>>? _milestones;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMilestones();
+  }
+
+  Future<void> _loadMilestones() async {
+    try {
+      final milestones = await ref
+          .read(collabProvider(widget.collabId).notifier)
+          .getPaymentMilestones();
+      if (mounted) {
+        setState(() {
+          _milestones = milestones;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.paymentStructure == 'full_upfront') return const SizedBox.shrink();
+    if (_isLoading) return const SizedBox.shrink();
+    
+    final milestones = _milestones ?? [];
+    if (milestones.isEmpty) return const SizedBox.shrink();
+
+    final releasedCount = milestones.where((m) => m['status'] == 'released').length;
+    final totalAmount = milestones.fold<int>(
+      0,
+      (sum, m) => sum + ((m['amount_paise'] as int?) ?? 0),
+    );
+    final releasedAmount = milestones
+        .where((m) => m['status'] == 'released')
+        .fold<int>(0, (sum, m) => sum + ((m['amount_paise'] as int?) ?? 0));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Payment Progress',
+          style: AppTypography.displaySM.copyWith(
+            color: AppColors.creatorDark,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        GlassPanel(
+          accentColor: AppColors.success,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Milestones',
+                    style: AppTypography.labelSM.copyWith(
+                      color: AppColors.muted,
+                    ),
+                  ),
+                  Text(
+                    '$releasedCount/${milestones.length} released',
+                    style: AppTypography.labelSM.copyWith(
+                      color: AppColors.creatorDark,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                child: LinearProgressIndicator(
+                  value: milestones.isNotEmpty ? releasedCount / milestones.length : 0,
+                  minHeight: 8,
+                  backgroundColor: AppColors.creatorDark.withValues(alpha: 0.1),
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.neon),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total',
+                    style: AppTypography.labelSM.copyWith(
+                      color: AppColors.muted,
+                    ),
+                  ),
+                  Text(
+                    Formatters.currencyFromINR(totalAmount),
+                    style: AppTypography.labelMD.copyWith(
+                      color: AppColors.creatorDark,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              if (releasedAmount > 0) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Released',
+                      style: AppTypography.labelSM.copyWith(
+                        color: AppColors.success,
+                      ),
+                    ),
+                    Text(
+                      Formatters.currencyFromINR(releasedAmount),
+                      style: AppTypography.labelMD.copyWith(
+                        color: AppColors.success,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

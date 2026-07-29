@@ -52,8 +52,8 @@ export async function GET(request: NextRequest) {
       .eq('id', user.id)
       .maybeSingle()
 
-    if (!profile || profile.role !== 'creator') {
-      return NextResponse.json({ error: 'Only creators can connect Instagram' }, { status: 403 })
+    if (!profile || (profile.role !== 'creator' && profile.role !== 'brand')) {
+      return NextResponse.json({ error: 'Only creators and brands can connect Instagram' }, { status: 403 })
     }
 
     const requestedPlatform = request.nextUrl.searchParams.get('platform')

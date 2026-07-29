@@ -9,7 +9,6 @@ import '../../providers/auth_provider.dart';
 import '../../providers/chat_provider.dart';
 import '../../providers/in_app_notification_provider.dart';
 import '../../widgets/bc_app_loader.dart';
-import '../../widgets/buttons/bc_back_button.dart';
 import '../../widgets/bc_empty_state.dart';
 import '../../widgets/bc_error_state.dart';
 import 'profile_view_sheet.dart';
@@ -121,10 +120,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0xFFE1E8F4),
-                      Color(0xFFE9EFF8),
-                      Color(0xFFF5F7FB),
+                      AppColors.lightBg,
+                      Color(0xFFE1EBCF),
+                      Color(0xFFD2DEBF),
                     ],
+                    stops: [0.0, 0.55, 1.0],
                   ),
                 ),
               ),
@@ -205,10 +205,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 ),
                                 if (showDateSeparator)
                                   Center(
-                                    child: InlineTonePill(
-                                      label: _dayLabel(current.createdAt),
-                                      accent: AppColors.ink,
-                                    ),
+                    child: InlineTonePill(
+                      label: _dayLabel(current.createdAt),
+                      accent: AppColors.creatorDark,
+                    ),
                                   ),
                               ],
                             );
@@ -218,7 +218,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ),
                   ),
                   ChatInputBar(
-                    role: role,
                     onSend: (text) {
                       ref
                           .read(chatProvider(widget.collabId).notifier)
@@ -283,27 +282,41 @@ class _TopBar extends StatelessWidget {
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFFE7EDF7).withValues(alpha: 0.92),
+        color: AppColors.white.withValues(alpha: 0.95),
         border: Border(
           bottom: BorderSide(
-            color: AppColors.ink.withValues(alpha: 0.12),
+            color: AppColors.creatorDark.withValues(alpha: 0.14),
           ),
         ),
       ),
       child: Row(
         children: [
-          BCBackButton(
-            onPressed: onClose,
-            icon: Icons.close_rounded,
-            iconColor: AppColors.ink,
-            tooltip: 'Close',
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.white.withValues(alpha: 0.9),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.creatorDark.withValues(alpha: 0.14),
+              ),
+            ),
+            child: IconButton(
+              onPressed: onClose,
+              icon: const Icon(
+                Icons.arrow_back,
+                color: AppColors.creatorDark,
+                size: 22,
+              ),
+              splashRadius: 20,
+              padding: EdgeInsets.zero,
+            ),
           ),
-          const SizedBox(width: 12),
           Container(
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.ink,
+              color: AppColors.creatorDark,
               shape: BoxShape.circle,
               border: Border.all(
                 color: AppColors.neon.withValues(alpha: 0.8),
@@ -340,7 +353,7 @@ class _TopBar extends StatelessWidget {
                 Text(
                   chat?.otherPartyName ?? 'Chat',
                   style: AppTypography.labelLG.copyWith(
-                    color: AppColors.ink,
+                    color: AppColors.creatorDark,
                     fontWeight: FontWeight.w900,
                   ),
                   maxLines: 1,
@@ -356,11 +369,25 @@ class _TopBar extends StatelessWidget {
               ],
             ),
           ),
-          IconButton(
-            onPressed: onInfo,
-            icon: const Icon(
-              Icons.info_rounded,
-              color: AppColors.ink,
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.white.withValues(alpha: 0.9),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.creatorDark.withValues(alpha: 0.14),
+              ),
+            ),
+            child: IconButton(
+              onPressed: onInfo,
+              icon: const Icon(
+                Icons.info_rounded,
+                color: AppColors.creatorDark,
+                size: 22,
+              ),
+              splashRadius: 20,
+              padding: EdgeInsets.zero,
             ),
           ),
         ],

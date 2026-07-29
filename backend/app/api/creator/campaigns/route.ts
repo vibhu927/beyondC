@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       .from('campaigns')
       .select(`
         *,
-        brand:brand_profiles!campaigns_brand_id_fkey (
+        brand:brand_profiles (
           brand_name,
           brand_category,
           logo_url,
@@ -78,8 +78,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
+    const campaigns = (data || []).map((c: any) => ({
+      ...c,
+      bid_count: Array.isArray(c.bid_count) ? (c.bid_count[0]?.count ?? 0) : (c.bid_count ?? 0),
+      brand_name: c.brand?.brand_name ?? '',
+      brand_logo: c.brand?.logo_url ?? null,
+      brand_category: c.brand?.brand_category ?? '',
+      avg_rating: c.brand?.avg_rating ?? null,
+      brand: undefined,
+    }))
+
     return NextResponse.json({
-      campaigns: data,
+      campaigns,
       pagination: {
         page,
         limit,

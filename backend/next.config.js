@@ -9,6 +9,14 @@ const nextConfig = {
 			'undici',
 		],
 	},
+	images: {
+		remotePatterns: [
+			{
+				protocol: 'https',
+				hostname: 'dewwodfpevclnvdrhmnt.supabase.co',
+			},
+		],
+	},
 }
 
 module.exports = nextConfig

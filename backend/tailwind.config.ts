@@ -15,7 +15,7 @@ const config: Config = {
         blue: '#3D5BFF',
         purple: '#9B5DE5',
         orange: '#FF6B00',
-        ink: '#0D0D0D',
+        ink: 'var(--ink)',
         muted: '#6B6B6B',
       },
       boxShadow: {

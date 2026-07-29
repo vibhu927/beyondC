@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
+    const search = searchParams.get('search')
     const niche = searchParams.get('niche')
     const platform = searchParams.get('platform')
     const min_followers = searchParams.get('min_followers')
@@ -37,6 +38,9 @@ export async function GET(request: NextRequest) {
         .from('creator_discovery_view')
         .select('*', { count: 'exact' })
 
+      if (search) {
+        query = query.ilike('first_name', `%${search}%`)
+      }
       if (niche) {
         query = query.contains('niche', [niche])
       }
@@ -114,6 +118,7 @@ export async function GET(request: NextRequest) {
             posts_count,
             profile:profiles!inner (
               first_name,
+              full_name,
               avatar_url,
               is_onboarded,
               state,
@@ -124,6 +129,9 @@ export async function GET(request: NextRequest) {
         )
         .eq('profile.is_onboarded', true)
 
+      if (search) {
+        fallbackQuery = fallbackQuery.or(`profile.first_name.ilike.%${search}%,profile.full_name.ilike.%${search}%`)
+      }
       if (niche) {
         fallbackQuery = fallbackQuery.contains('niche', [niche])
       }
@@ -176,6 +184,7 @@ export async function GET(request: NextRequest) {
         return {
           id: item.id,
           first_name: profile.first_name ?? 'Creator',
+          full_name: profile.full_name ?? profile.first_name ?? 'Creator',
           avatar_url: profile.avatar_url ?? null,
           state: profile.state ?? null,
           city: profile.city ?? null,
@@ -199,23 +208,19 @@ export async function GET(request: NextRequest) {
 
       return NextResponse.json({
         creators: normalized.sort((a, b) => locationScore(b) - locationScore(a)),
-        pagination: {
-          page,
-          limit,
-          total: fallbackCount || 0,
-          total_pages: Math.ceil((fallbackCount || 0) / limit),
-        },
+        total: fallbackCount || 0,
+        page,
+        limit,
+        totalPages: Math.ceil((fallbackCount || 0) / limit),
       })
     }
 
     return NextResponse.json({
       creators: (creators ?? []).sort((a, b) => locationScore(b) - locationScore(a)),
-      pagination: {
-        page,
-        limit,
-        total: count || 0,
-        total_pages: Math.ceil((count || 0) / limit),
-      },
+      total: count || 0,
+      page,
+      limit,
+      totalPages: Math.ceil((count || 0) / limit),
     })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 })

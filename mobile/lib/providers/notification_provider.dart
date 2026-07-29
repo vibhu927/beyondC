@@ -19,12 +19,26 @@ class NotificationNotifier extends AsyncNotifier<List<AppNotification>> {
   bool _hasMore = true;
   bool _isLoadingMore = false;
 
+  final Set<String> _baselineIds = <String>{};
+  bool _baselineEstablished = false;
+
+  final StreamController<AppNotification> _newNotificationController =
+      StreamController<AppNotification>.broadcast();
+
+  /// Emits notifications that arrive AFTER the initial baseline.
+  /// The initial fetch (REST + first realtime emit) is treated as the
+  /// baseline and does NOT fire any toast.
+  Stream<AppNotification> get onNewNotification =>
+      _newNotificationController.stream;
+
   @override
   Future<List<AppNotification>> build() async {
     final userId = ref.watch(authProvider.select((state) => state.user?.id));
     _currentPage = 1;
     _hasMore = true;
     _isLoadingMore = false;
+    _baselineEstablished = false;
+    _baselineIds.clear();
 
     final notifications =
         await ref.read(notificationRepositoryProvider).getNotifications(
@@ -36,6 +50,7 @@ class NotificationNotifier extends AsyncNotifier<List<AppNotification>> {
     _subscribe(userId);
     ref.onDispose(() {
       _notificationSubscription?.cancel();
+      _newNotificationController.close();
     });
 
     return notifications;
@@ -92,7 +107,7 @@ class NotificationNotifier extends AsyncNotifier<List<AppNotification>> {
         }
       }
       merged.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      _setIfChanged(merged);
+      _applyIncoming(merged);
     } finally {
       _isLoadingMore = false;
     }
@@ -150,14 +165,41 @@ class NotificationNotifier extends AsyncNotifier<List<AppNotification>> {
       _currentPage = 1;
       _hasMore = incoming.length >= _pageSize;
 
-      _setIfChanged(incoming);
+      _applyIncoming(incoming);
     });
   }
 
-  void _setIfChanged(List<AppNotification> incoming) {
-    final current = state.valueOrNull;
-    if (current != null && _isSameList(current, incoming)) {
+  /// Applies an incoming notification list to state.
+  /// - On the very first apply (baseline) all IDs are recorded silently.
+  /// - On subsequent applies, only IDs that are NOT in the baseline
+  ///   fire a new-notification event (toast) — this is what fixes the
+  ///   "toast appears on every login" glitch.
+  void _applyIncoming(List<AppNotification> incoming) {
+    final isBaseline = !_baselineEstablished;
+    if (isBaseline) {
+      _baselineIds
+        ..clear()
+        ..addAll(incoming.map((item) => item.id));
+      _baselineEstablished = true;
+      state = AsyncData(incoming);
       return;
+    }
+
+    final current = state.valueOrNull;
+    final hasMaterialChange =
+        current == null || !_isSameList(current, incoming);
+
+    if (!hasMaterialChange) return;
+
+    final newItems = incoming
+        .where((item) => !_baselineIds.contains(item.id))
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    if (newItems.isNotEmpty) {
+      _baselineIds.addAll(newItems.map((item) => item.id));
+      // Fire only the most recent so a single toast appears at a time.
+      _newNotificationController.add(newItems.first);
     }
 
     state = AsyncData(incoming);

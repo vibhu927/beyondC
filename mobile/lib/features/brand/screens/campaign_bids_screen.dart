@@ -9,7 +9,6 @@ import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
-import '../../../widgets/bc_bottom_nav.dart';
 import '../../chat/profile_view_sheet.dart';
 import '../widgets/bid_review_card.dart';
 
@@ -45,8 +44,6 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
   Widget build(BuildContext context) {
     final brandState = ref.watch(brandProvider);
     final campaign = ref.read(brandProvider.notifier).campaignById(widget.id);
-
-    final navClearance = MediaQuery.of(context).padding.bottom + 104;
 
     if (campaign == null && brandState.isLoading) {
       return const Scaffold(
@@ -90,11 +87,7 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
     final hasSlotsLeft = effectiveSlotsFilled < campaign.slotsTotal;
 
     return Scaffold(
-      extendBody: true,
-      bottomNavigationBar: const BCBottomNav(role: BCPortalRole.brand, currentIndex: 1),
-      body: BCPageSwipeArea(
-        role: BCPortalRole.brand,
-        currentIndex: 1,
+      body: SafeArea(
         child: Stack(
           children: [
             const Positioned.fill(
@@ -115,7 +108,7 @@ class _CampaignBidsScreenState extends ConsumerState<CampaignBidsScreen> {
                 AppSpacing.screenPadding,
                 MediaQuery.of(context).padding.top + 14,
                 AppSpacing.screenPadding,
-                navClearance,
+                AppSpacing.huge,
               ),
               children: [
                 const _BackHeader(),

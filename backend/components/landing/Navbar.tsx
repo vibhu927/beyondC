@@ -68,37 +68,32 @@ export default function Navbar() {
                   Hi, {session?.firstName}
                 </span>
                 <Link
-                  href="/"
+                  href={session?.role === 'brand' ? '/dashboard/brand' : '/dashboard/creator'}
                   className="shrink-0 cursor-pointer px-4 py-2 bg-ink text-neon border-2 border-ink font-jakarta font-semibold text-sm hover:bg-transparent hover:text-ink transition-all"
                 >
-                  Home
+                  Dashboard
                 </Link>
               </>
             ) : (
               <>
-                {/*
                 <Link
-                  href="/join/creator"
-                  className="hidden sm:block shrink-0 cursor-pointer px-4 py-2 bg-ink text-neon border-2 border-ink font-jakarta font-semibold text-sm hover:bg-transparent hover:text-ink transition-all"
+                  href="/login"
+                  className="hidden sm:block shrink-0 cursor-pointer px-4 py-2 bg-purple text-white border-2 border-ink font-jakarta font-semibold text-sm shadow-[3px_3px_0_#0D0D0D] hover:shadow-[4px_4px_0_#9B5DE5] hover:-translate-y-0.5 transition-all"
+                >
+                  Log In
+                </Link>
+                <Link
+                  href="#waitlist"
+                  className="hidden sm:block shrink-0 cursor-pointer px-4 py-2 bg-ink text-neon border-2 border-ink font-jakarta font-semibold text-sm shadow-[3px_3px_0_#C8FF00] hover:shadow-[4px_4px_0_#C8FF00] hover:-translate-y-0.5 transition-all"
                 >
                   Join as Creator
                 </Link>
                 <Link
                   href="/join/brand"
-                  className="shrink-0 cursor-pointer px-4 py-2 bg-neon text-ink border-2 border-ink font-jakarta font-semibold text-sm hover:shadow-neo transition-all"
+                  className="shrink-0 cursor-pointer px-5 py-2 bg-pink text-white border-2 border-ink font-jakarta font-semibold text-sm shadow-[3px_3px_0_#0D0D0D] hover:shadow-[4px_4px_0_#0D0D0D] hover:-translate-y-0.5 transition-all"
                 >
                   Join as Brand
                 </Link>
-                */}
-                  {/* <span className="hidden md:inline-flex items-center rounded-full border-2 border-ink bg-neon px-3 py-2 font-jakarta text-[10px] font-bold uppercase tracking-[0.08em] text-ink">
-                    Join via waitlist
-                  </span> */}
-                <a
-                  href="#waitlist"
-                  className="shrink-0 cursor-pointer px-4 py-2 bg-ink text-neon border-2 border-ink font-jakarta font-semibold text-sm hover:bg-transparent hover:text-ink transition-all"
-                >
-                  Join Waitlist
-                </a>
               </>
             )}
           </div>

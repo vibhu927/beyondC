@@ -12,7 +12,6 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../providers/brand_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
-import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/brand_page_top_header.dart';
@@ -64,14 +63,7 @@ class _BrandCollabsScreenState extends ConsumerState<BrandCollabsScreen> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        extendBody: true,
-        bottomNavigationBar: const BCBottomNav(
-          role: BCPortalRole.brand,
-          currentIndex: 1,
-        ),
-        body: BCPageSwipeArea(
-          role: BCPortalRole.brand,
-          currentIndex: 1,
+        body: SafeArea(
           child: Stack(
             children: [
               const Positioned.fill(

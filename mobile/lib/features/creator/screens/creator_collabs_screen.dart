@@ -10,7 +10,6 @@ import '../shared/widgets/creator_design_system.dart';
 import '../../chat/chat_screen.dart';
 import '../../../providers/creator_provider.dart';
 import '../../../widgets/badges/bc_badge.dart';
-import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_empty_state.dart';
 import '../../../widgets/bc_error_state.dart';
 import '../../../widgets/buttons/bc_primary_button.dart';
@@ -22,21 +21,13 @@ class CreatorCollabsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final collabsAsync = ref.watch(creatorCollabsProvider);
-    final navClearance = MediaQuery.of(context).padding.bottom + 84;
     final topInset = MediaQuery.of(context).padding.top + 14;
     const headerHeight = 48.0;
     const headerGap = 34.0;
     final sheetTop = topInset + headerHeight + headerGap;
 
     return Scaffold(
-      extendBody: true,
-      bottomNavigationBar: const BCBottomNav(
-        role: BCPortalRole.creator,
-        currentIndex: 2,
-      ),
-      body: BCPageSwipeArea(
-        role: BCPortalRole.creator,
-        currentIndex: 2,
+      body: SafeArea(
         child: Stack(
           children: [
             const Positioned.fill(
@@ -103,11 +94,11 @@ class CreatorCollabsScreen extends ConsumerWidget {
                         ),
                       ),
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(
+                        padding: const EdgeInsets.fromLTRB(
                           AppSpacing.screenPadding,
                           AppSpacing.lg,
                           AppSpacing.screenPadding,
-                          AppSpacing.xl + navClearance,
+                          AppSpacing.xl,
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

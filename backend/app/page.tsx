@@ -1,19 +1,20 @@
+import dynamicImport from 'next/dynamic'
 import Navbar from '@/components/landing/Navbar'
 import Hero from '@/components/landing/Hero'
-import Marquee from '@/components/landing/Marquee'
-import HowItWorks from '@/components/landing/HowItWorks'
-import PrivacySection from '@/components/landing/PrivacySection'
-import CollabTypes from '@/components/landing/CollabTypes'
-import EventInvite from '@/components/landing/EventInvite'
-// import Stats from '@/components/landing/Stats'
-import ForCreators from '@/components/landing/ForCreators'
-import ForBrands from '@/components/landing/ForBrands'
-import ForAgencies from '@/components/landing/ForAgencies'
-import Pricing from '@/components/landing/Pricing'
-import FAQ from '@/components/landing/FAQ'
-import Waitlist from '@/components/landing/Waitlist'
-import Footer from '@/components/landing/Footer'
 import RecoveryHashRedirect from '@/components/auth/RecoveryHashRedirect'
+
+const Marquee = dynamicImport(() => import('@/components/landing/Marquee'))
+const HowItWorks = dynamicImport(() => import('@/components/landing/HowItWorks'))
+const PrivacySection = dynamicImport(() => import('@/components/landing/PrivacySection'))
+const CollabTypes = dynamicImport(() => import('@/components/landing/CollabTypes'))
+const EventInvite = dynamicImport(() => import('@/components/landing/EventInvite'))
+const ForCreators = dynamicImport(() => import('@/components/landing/ForCreators'))
+const ForBrands = dynamicImport(() => import('@/components/landing/ForBrands'))
+const ForAgencies = dynamicImport(() => import('@/components/landing/ForAgencies'))
+const Pricing = dynamicImport(() => import('@/components/landing/Pricing'))
+const FAQ = dynamicImport(() => import('@/components/landing/FAQ'))
+const Waitlist = dynamicImport(() => import('@/components/landing/Waitlist'))
+const Footer = dynamicImport(() => import('@/components/landing/Footer'))
 
 export const dynamic = 'force-dynamic'
 

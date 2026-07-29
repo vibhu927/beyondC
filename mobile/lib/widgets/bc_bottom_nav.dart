@@ -46,6 +46,14 @@ class _BCPageSwipeAreaState extends State<BCPageSwipeArea> {
     final shouldMoveByVelocity = velocity.abs() > 450;
 
     var targetIndex = widget.currentIndex;
+    if (widget.currentIndex < 0 || widget.currentIndex >= routes.length) {
+      setState(() {
+        _animationDuration = const Duration(milliseconds: 220);
+        _dragDx = 0;
+      });
+      return;
+    }
+
     if (shouldMoveByDistance || shouldMoveByVelocity) {
       if (_dragDx < 0 || velocity < 0) {
         targetIndex = (widget.currentIndex + 1).clamp(0, maxIndex);
@@ -186,6 +194,7 @@ class _BCBottomNavState extends State<BCBottomNav> {
             final width = constraints.maxWidth * 0.85;
             final itemWidth = width / items.length;
             final selectionSize = math.min(58.0, itemWidth - 14);
+            final noSelection = widget.currentIndex < 0 || widget.currentIndex >= items.length;
             final targetCenterX =
                 _dragX ?? (widget.currentIndex * itemWidth + itemWidth / 2);
             final selectionLeft = (targetCenterX - selectionSize / 2)
@@ -242,27 +251,30 @@ class _BCBottomNavState extends State<BCBottomNav> {
                                 top: selectionTop,
                                 width: selectionSize,
                                 height: selectionSize,
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        AppColors.white,
-                                        rolePrimary.withValues(alpha: 0.96),
-                                      ],
-                                    ),
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: roleDark.withValues(alpha: 0.16),
-                                        blurRadius: 14,
-                                        offset: const Offset(0, 7),
+                                child: Opacity(
+                                  opacity: noSelection ? 0 : 1,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          AppColors.white,
+                                          rolePrimary.withValues(alpha: 0.96),
+                                        ],
                                       ),
-                                    ],
-                                    border: Border.all(
-                                      color: roleDark.withValues(alpha: 0.3),
-                                      width: 1.0,
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: roleDark.withValues(alpha: 0.16),
+                                          blurRadius: 14,
+                                          offset: const Offset(0, 7),
+                                        ),
+                                      ],
+                                      border: Border.all(
+                                        color: roleDark.withValues(alpha: 0.3),
+                                        width: 1.0,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -281,7 +293,7 @@ class _BCBottomNavState extends State<BCBottomNav> {
                                         child: _NavIcon(
                                           icon: items[i].icon,
                                           label: items[i].label,
-                                          isSelected: i == widget.currentIndex,
+                                          isSelected: i == widget.currentIndex && widget.currentIndex >= 0,
                                           role: widget.role,
                                         ),
                                       ),

@@ -2,6 +2,38 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { updateBrandProfileSchema } from '@/lib/validators'
 
+function flattenProfile(raw: any) {
+  if (!raw) return raw
+  const brand = Array.isArray(raw.brand) ? raw.brand[0] : raw.brand
+  if (!brand) return raw
+  return {
+    ...raw,
+    brand_name: brand.brand_name ?? null,
+    brand_category: brand.brand_category ?? null,
+    description: brand.description ?? null,
+    logo_url: brand.logo_url ?? null,
+    website: brand.website ?? null,
+    gst_number: brand.gst_number ?? null,
+    is_brand_verified: brand.is_brand_verified ?? false,
+    credit_balance: brand.credit_balance ?? 0,
+    size: brand.size ?? null,
+    avg_rating: brand.avg_rating ?? null,
+    total_collabs: brand.total_collabs ?? 0,
+    portfolio_links: brand.portfolio_links ?? [],
+    instagram_verified: brand.instagram_verified ?? false,
+    instagram_username: brand.instagram_username ?? null,
+    followers_count: brand.followers_count ?? null,
+    following_count: brand.following_count ?? null,
+    posts_count: brand.posts_count ?? null,
+    engagement_rate: brand.engagement_rate ?? null,
+    highest_video_views: brand.highest_video_views ?? null,
+    avg_video_views: brand.avg_video_views ?? null,
+    avg_likes: brand.avg_likes ?? null,
+    avg_comments: brand.avg_comments ?? null,
+    stats_fetched_at: brand.stats_fetched_at ?? null,
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = createClient()
@@ -59,7 +91,10 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ profile })
+    // Flatten brand.* fields into profile for frontend consumption
+    const flattened = flattenProfile(profile)
+
+    return NextResponse.json({ profile: flattened })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
@@ -83,7 +118,12 @@ export async function PUT(request: NextRequest) {
     const profileFields: any = {}
     const brandFields: any = {}
 
-    if (validatedData.display_name !== undefined) profileFields.display_name = validatedData.display_name
+    if (validatedData.display_name !== undefined) {
+      const normalized = validatedData.display_name.trim()
+      profileFields.full_name = normalized
+      const first = normalized.split(/\s+/).filter(Boolean)[0]
+      if (first) profileFields.first_name = first
+    }
     if (validatedData.avatar_url !== undefined) profileFields.avatar_url = validatedData.avatar_url
     if (validatedData.state !== undefined) profileFields.state = validatedData.state
     if (validatedData.city !== undefined) profileFields.city = validatedData.city
@@ -95,7 +135,6 @@ export async function PUT(request: NextRequest) {
     if (validatedData.logo_url !== undefined) brandFields.logo_url = validatedData.logo_url
     if (validatedData.portfolio_links !== undefined) brandFields.portfolio_links = validatedData.portfolio_links
     if (validatedData.website !== undefined) brandFields.website = validatedData.website
-    if (validatedData.contact_email !== undefined) brandFields.contact_email = validatedData.contact_email
     if (validatedData.size !== undefined) brandFields.size = validatedData.size
 
     // Update profiles table
@@ -136,7 +175,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    return NextResponse.json({ profile })
+    const flattened = flattenProfile(profile)
+
+    return NextResponse.json({ profile: flattened })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }

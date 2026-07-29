@@ -132,7 +132,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    return NextResponse.json({ bids })
+    const flat = (bids || []).map((b: any) => ({
+      ...b,
+      campaign: b.campaign
+        ? {
+            ...b.campaign,
+            brand_name: b.campaign.brand?.brand_name ?? '',
+            brand_logo: b.campaign.brand?.logo_url ?? null,
+            brand: undefined,
+          }
+        : undefined,
+    }))
+
+    return NextResponse.json({ bids: flat })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }

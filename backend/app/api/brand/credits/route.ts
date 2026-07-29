@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createAdminClient, createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { createCreditPurchaseSchema } from '@/lib/validators'
 import { getRazorpay } from '@/lib/razorpay'
 
@@ -75,7 +75,6 @@ export async function POST(request: NextRequest) {
   try {
     const razorpay = getRazorpay()
     const supabase = createClient()
-    const adminClient = createAdminClient()
     const body = await request.json()
 
     // Get current user
@@ -113,20 +112,6 @@ export async function POST(request: NextRequest) {
         credits: selectedPack.credits,
       },
     })
-
-    // Store pending transaction
-    const { error: insertError } = await adminClient.from('credit_transactions').insert({
-      brand_id: user.id,
-      type: 'topup',
-      amount: selectedPack.credits,
-      reason: 'credit_pack_purchase',
-      razorpay_order_id: order.id,
-      balance_after: 0, // Will be updated on verification
-    })
-
-    if (insertError) {
-      throw new Error(`Failed to persist credit transaction: ${insertError.message}`)
-    }
 
     return NextResponse.json({
       order_id: order.id,

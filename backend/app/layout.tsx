@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { League_Spartan, Space_Grotesk, Nunito } from 'next/font/google'
 import './globals.css'
+import { QueryProvider } from '@/components/providers/query-provider'
 
 const leagueSpartanJakarta = League_Spartan({
   subsets: ['latin'],
@@ -42,7 +43,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${leagueSpartanJakarta.variable} ${spaceGrotesk.variable} ${nunito.variable}`}>
-      <body className={nunito.className}>{children}</body>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
+      <body className={nunito.className}>
+        <QueryProvider>{children}</QueryProvider>
+      </body>
     </html>
   )
 }

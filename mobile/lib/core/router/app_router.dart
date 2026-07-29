@@ -28,6 +28,8 @@ import '../../features/agency/screens/agency_discover_brands_screen.dart';
 import '../../features/agency/screens/agency_pitch_creator_screen.dart';
 import '../../features/agency/screens/agency_pitch_brand_screen.dart';
 import '../../features/brand/screens/brand_requests_screen.dart';
+import '../../features/brand/screens/saved_creators_screen.dart';
+import '../../features/brand/screens/analytics_screen.dart';
 import '../../features/brand/screens/credits_screen.dart';
 import '../../features/brand/screens/brand_collabs_screen.dart';
 import '../../features/brand/screens/brand_campaigns_screen.dart';
@@ -47,6 +49,12 @@ import '../../features/shared/screens/milestone_screen.dart';
 import '../../features/shared/screens/notifications_screen.dart';
 import '../../features/shared/screens/partner_profile_screen.dart';
 import '../../features/shared/screens/rating_screen.dart';
+import '../../features/shared/screens/contract_screen.dart';
+import '../../features/shared/screens/payment_milestone_view_screen.dart';
+import '../../features/brand/screens/contract_creation_screen.dart';
+import '../../features/brand/screens/content_review_screen.dart';
+import '../../features/brand/screens/payment_milestone_setup_screen.dart';
+import '../../features/creator/screens/content_submission_screen.dart';
 import '../../widgets/bc_app_bar.dart';
 import 'route_names.dart';
 import 'router_holder.dart';
@@ -347,6 +355,44 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteNames.collabRating,
         builder: (c, s) => RatingScreen(collabId: s.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RouteNames.collabContract,
+        builder: (c, s) => ContractScreen(collabId: s.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RouteNames.collabContractCreate,
+        builder: (c, s) => ContractCreationScreen(collabId: s.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RouteNames.collabContentSubmit,
+        builder: (c, s) => ContentSubmissionScreen(collabId: s.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RouteNames.collabContentReview,
+        builder: (c, s) => ContentReviewScreen(collabId: s.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RouteNames.collabPaymentSetup,
+        builder: (c, s) {
+          final extra = s.extra as Map<String, dynamic>?;
+          return PaymentMilestoneSetupScreen(
+            collabId: s.pathParameters['id']!,
+            agreedAmountPaise: extra?['agreedAmountPaise'] ?? 0,
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteNames.collabPaymentView,
+        builder: (c, s) => PaymentMilestoneViewScreen(collabId: s.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: RouteNames.savedCreators,
+        builder: (c, s) => const SavedCreatorsScreen(),
+      ),
+      GoRoute(
+        path: RouteNames.brandAnalytics,
+        builder: (c, s) => const AnalyticsScreen(),
       ),
       GoRoute(
         path: RouteNames.settings,

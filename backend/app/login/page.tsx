@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { FormEvent, useState } from 'react'
+import { FormEvent, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Navbar from '@/components/landing/Navbar'
 import { createClient } from '@/lib/supabase/client'
 import { validators } from '@/lib/validators'
+import { setFrontendSession } from '@/lib/frontend-session'
 
 const inputClass =
   'w-full bg-white border-2 border-ink px-4 py-3 font-nunito text-base text-ink outline-none transition focus:shadow-[4px_4px_0_#C8FF00]'
@@ -19,9 +20,10 @@ export default function LoginPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitError, setSubmitError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   const validate = () => {
     const nextErrors: Record<string, string> = {}
@@ -41,39 +43,89 @@ export default function LoginPage() {
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    if (!validate()) return
-
     setLoading(true)
     setSubmitError('')
 
     try {
+      if (!validate()) {
+        setLoading(false)
+        return
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       })
 
-      if (error || !data.user) {
+      if (error || !data?.user) {
         setSubmitError('Invalid email or password. Please try again.')
         setLoading(false)
         return
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('is_admin, role')
+        .select('first_name, full_name, is_admin, role')
         .eq('id', data.user.id)
-        .single()
+        .maybeSingle()
+
+      if (profileError) {
+        setSubmitError('Account found, but profile could not be loaded. Please contact support.')
+        setLoading(false)
+        return
+      }
 
       if (profile?.is_admin) {
+        setFrontendSession({
+          id: data.user.id,
+          firstName: profile.first_name || 'Admin',
+          fullName: profile.full_name || '',
+          email: data.user.email || '',
+          role: 'brand',
+        })
         router.push('/admin/dashboard')
         return
       }
 
-      router.push('/join/success')
-    } catch {
-      setSubmitError('Invalid email or password. Please try again.')
+      setFrontendSession({
+        id: data.user.id,
+        firstName: profile?.first_name || data.user.email?.split('@')[0] || 'User',
+        fullName: profile?.full_name || '',
+        email: data.user.email || '',
+        role: (profile?.role as 'creator' | 'brand') || 'creator',
+      })
+
+      if (profile?.role === 'creator') {
+        router.push('/dashboard/creator')
+      } else if (profile?.role === 'brand') {
+        router.push('/dashboard/brand')
+      } else {
+        router.push('/join/success')
+      }
+    } catch (err) {
+      console.error('Login error:', err)
+      setSubmitError('Something went wrong. Please try again.')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true)
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/api/auth/callback`,
+        },
+      })
+      if (error) {
+        setSubmitError('Google login failed. Please try again.')
+      }
+    } catch {
+      setSubmitError('Something went wrong. Please try again.')
+    } finally {
+      setGoogleLoading(false)
     }
   }
 
@@ -129,7 +181,10 @@ export default function LoginPage() {
                 <button
                   type="button"
                   className="absolute right-3 top-1/2 -translate-y-1/2 font-space text-[10px] font-bold uppercase tracking-[0.08em] text-ink"
-                  onClick={() => setShowPassword((prev) => !prev)}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setShowPassword((prev) => !prev)
+                  }}
                 >
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
@@ -167,9 +222,18 @@ export default function LoginPage() {
 
           <button
             type="button"
-            className="w-full border-2 border-ink bg-white px-6 py-3 font-space text-sm font-bold uppercase tracking-[0.08em] text-ink shadow-[4px_4px_0_#0D0D0D]"
+            disabled={googleLoading}
+            onClick={handleGoogleLogin}
+            className="w-full border-2 border-ink bg-white px-6 py-3 font-space text-sm font-bold uppercase tracking-[0.08em] text-ink shadow-[4px_4px_0_#0D0D0D] disabled:cursor-not-allowed disabled:opacity-70"
           >
-            Continue with Google
+            {googleLoading ? (
+              <span className="inline-flex items-center gap-2">
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink border-t-transparent" />
+                Redirecting...
+              </span>
+            ) : (
+              'Continue with Google'
+            )}
           </button>
 
           <p className="mt-6 text-center font-nunito text-base text-ink/80">

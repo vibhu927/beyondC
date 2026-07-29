@@ -9,10 +9,10 @@ export async function GET(request: NextRequest) {
     let statuses: string[]
     if (statusFilter === 'completed') {
       statuses = ['completed']
-    } else if (statusFilter === 'all') {
-      statuses = ['active', 'in_progress', 'completed', 'cancelled']
-    } else {
+    } else if (statusFilter === 'active' || statusFilter === 'in_progress') {
       statuses = ['active', 'in_progress']
+    } else {
+      statuses = ['active', 'in_progress', 'completed', 'cancelled', 'disputed']
     }
 
     const {
@@ -61,13 +61,11 @@ export async function GET(request: NextRequest) {
     }
 
     const enriched = (collabs ?? []).map((item: any) => {
-      const milestoneStatus = item.content_posted
-        ? 'content_posted'
-        : item.draft_submitted
-            ? 'draft_submitted'
-            : item.brief_shared
-                ? 'brief_reviewed'
-                : null
+      let milestoneStatus: string | null = null
+      if (item.content_posted) milestoneStatus = 'content_posted'
+      else if (item.draft_approved) milestoneStatus = 'draft_approved'
+      else if (item.draft_submitted) milestoneStatus = 'draft_submitted'
+      else if (item.brief_shared) milestoneStatus = 'brief_shared'
 
       return {
         ...item,

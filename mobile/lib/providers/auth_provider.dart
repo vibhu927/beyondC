@@ -1,9 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../data/repositories/auth_repository.dart';
-import '../services/fcm_service.dart';
 
 class AuthState {
   final User? user;
@@ -53,7 +50,6 @@ class AuthNotifier extends Notifier<AuthState> {
       if (user != null) {
         final role = user.userMetadata?['role'] as String?;
         state = state.copyWith(user: user, role: role, isLoading: false);
-        unawaited(FCMService().initialize(ref));
       } else {
         state = const AuthState();
       }
@@ -150,8 +146,6 @@ class AuthNotifier extends Notifier<AuthState> {
         error: null,
       );
 
-      await FCMService().initialize(ref);
-
       return authResponse;
     } catch (e) {
       state = state.copyWith(
@@ -185,8 +179,6 @@ class AuthNotifier extends Notifier<AuthState> {
         isLoading: false,
         error: null,
       );
-
-      await FCMService().initialize(ref);
 
       return response;
     } catch (e) {

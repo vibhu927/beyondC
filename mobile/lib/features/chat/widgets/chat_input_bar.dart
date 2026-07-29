@@ -4,17 +4,14 @@ import 'package:material_symbols_icons/symbols.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../creator/shared/widgets/creator_design_system.dart';
 
 class ChatInputBar extends StatefulWidget {
   const ChatInputBar({
     super.key,
     required this.onSend,
-    required this.role,
   });
 
   final ValueChanged<String> onSend;
-  final String role;
 
   @override
   State<ChatInputBar> createState() => _ChatInputBarState();
@@ -43,14 +40,13 @@ class _ChatInputBarState extends State<ChatInputBar> {
   @override
   Widget build(BuildContext context) {
     final canSend = _controller.text.trim().isNotEmpty;
-    final normalizedRole = widget.role.trim().toLowerCase();
-    final isBrand = normalizedRole == 'brand';
-    final accentColor = isBrand ? AppColors.error : AppColors.neon;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFE7EDF7).withValues(alpha: 0.9),
+        color: AppColors.white.withValues(alpha: 0.95),
         border: Border(
-          top: BorderSide(color: AppColors.ink.withValues(alpha: 0.12)),
+          top: BorderSide(
+            color: AppColors.creatorDark.withValues(alpha: 0.14),
+          ),
         ),
       ),
       padding: const EdgeInsets.symmetric(
@@ -61,9 +57,17 @@ class _ChatInputBarState extends State<ChatInputBar> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: GlassPanel(
-              accentColor: _focusNode.hasFocus ? AppColors.neon : AppColors.blue,
-              radius: 999,
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.lightBg,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: _focusNode.hasFocus
+                      ? AppColors.neon.withValues(alpha: 0.5)
+                      : AppColors.creatorDark.withValues(alpha: 0.1),
+                  width: 1.2,
+                ),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: TextField(
                 controller: _controller,
@@ -73,7 +77,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                 onChanged: (_) => setState(() {}),
                 onTap: () => setState(() {}),
                 style: AppTypography.bodyMD,
-                cursorColor: AppColors.ink,
+                cursorColor: AppColors.creatorDark,
                 decoration: const InputDecoration(
                   hintText: 'Type a message...',
                   border: InputBorder.none,
@@ -105,20 +109,13 @@ class _ChatInputBarState extends State<ChatInputBar> {
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                color: accentColor.withValues(alpha: canSend ? 0.2 : 0.09),
+                color: canSend ? AppColors.creatorDark : AppColors.lightBorder,
                 borderRadius: BorderRadius.circular(999),
-                border: uniformBorder(accentColor, width: 1.2),
-                boxShadow: neoShadows(
-                  accentColor,
-                  alpha: 0.2,
-                  offset: 2.5,
-                  blurRadius: 8,
-                ),
               ),
               child: Icon(
                 Symbols.send_rounded,
                 size: 20,
-                color: accentColor.withValues(alpha: canSend ? 1 : 0.55),
+                color: canSend ? AppColors.neon : AppColors.muted,
               ),
             ),
           ),

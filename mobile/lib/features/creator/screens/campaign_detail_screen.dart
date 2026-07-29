@@ -82,17 +82,15 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
 
     final activeBid = bids
         .where(
-            (bid) => bid.campaignId == campaign.id && bid.status != 'withdrawn')
+            (bid) => bid.campaignId == campaign.id && bid.status != 'withdrawn' && bid.status != 'completed' && bid.status != 'rejected')
         .cast<Bid?>()
         .firstOrNull;
     final hasBid = activeBid != null;
     final daysLeft = campaign.deadline.difference(DateTime.now()).inDays;
     final slotCount = campaign.slotsTotal <= 0 ? 1 : campaign.slotsTotal;
     final filledSlots = campaign.slotsFilled.clamp(0, slotCount);
-    final requirementChips = _requirementChips(campaign);
 
     return Scaffold(
-      extendBody: true,
       body: Stack(
         children: [
           const Positioned.fill(
@@ -156,166 +154,95 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                         AppSpacing.screenPadding,
                         AppSpacing.lg,
                         AppSpacing.screenPadding,
-                        AppSpacing.xl + 84,
+                        AppSpacing.xl,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          GlassPanel(
-                            accentColor: AppColors.creatorDark,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      width: 52,
-                                      height: 52,
-                                      decoration: BoxDecoration(
-                                        color: _avatarColor(campaign.brandInitial),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: AppColors.creatorDark,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        campaign.brandInitial,
-                                        style: AppTypography.labelLG
-                                            .copyWith(color: AppColors.white),
-                                      ),
-                                    ),
-                                    const SizedBox(width: AppSpacing.md),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Brand in ${campaign.brandCategory}',
-                                            style: AppTypography.labelLG.copyWith(
-                                              color: AppColors.creatorDark,
-                                            ),
-                                          ),
-                                          const SizedBox(height: AppSpacing.xs),
-                                          Row(
-                                            children: [
-                                              BCBadge(
-                                                label: _collabLabel(campaign.collabType),
-                                                variant: _collabVariant(campaign.collabType),
-                                              ),
-                                              const SizedBox(width: AppSpacing.sm),
-                                              BCBadge(
-                                                label: _deadlineLabel(campaign.deadline),
-                                                variant: BCBadgeVariant.neon,
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: AppSpacing.sm),
-                                Text(
-                                  campaign.createdAt == null
-                                      ? 'Recently posted'
-                                      : 'Posted ${Formatters.timeAgo(campaign.createdAt!)}',
-                                  style: AppTypography.bodyXS,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.xl),
+                          // ── Brand row ──
+                          _BrandHeader(campaign: campaign),
+                          const SizedBox(height: AppSpacing.lg),
+
+                          // ── Campaign Title ──
                           Text(
-                            '${Formatters.currencyFromINR(campaign.minBudget)}–${Formatters.currencyFromINR(campaign.maxBudget)}',
+                            campaign.title,
                             style: AppTypography.displayLG.copyWith(
                               color: AppColors.creatorDark,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
                           const SizedBox(height: AppSpacing.sm),
-                          BCBadge(
-                            label: _collabLabel(campaign.collabType),
-                            variant: _collabVariant(campaign.collabType),
+
+                          // ── Badges row: collab type + deadline ──
+                          Wrap(
+                            spacing: AppSpacing.sm,
+                            runSpacing: AppSpacing.sm,
+                            children: [
+                              BCBadge(
+                                label: _collabLabel(campaign.collabType),
+                                variant: _collabVariant(campaign.collabType),
+                              ),
+                              BCBadge(
+                                label: _deadlineLabel(campaign.deadline),
+                                variant: daysLeft <= 3
+                                    ? BCBadgeVariant.error
+                                    : BCBadgeVariant.neon,
+                              ),
+                              BCBadge(
+                                label: '${campaign.bidCount} bids',
+                                variant: BCBadgeVariant.purple,
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: AppSpacing.lg),
+
+                          // ── Description ──
+                          if (campaign.description.trim().isNotEmpty) ...[
+                            const SizedBox(height: AppSpacing.xl),
+                            const _SectionHeader(label: 'About this campaign'),
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              campaign.description,
+                              style: AppTypography.bodySM.copyWith(
+                                color: AppColors.muted,
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+
+                          // ── Budget ──
+                          const SizedBox(height: AppSpacing.xl),
                           GlassPanel(
-                            accentColor: AppColors.creatorDark,
+                            accentColor: AppColors.success,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  'Target Location',
-                                  style: AppTypography.labelLG,
+                                Text(
+                                  'Budget',
+                                  style: AppTypography.labelLG.copyWith(
+                                    color: AppColors.creatorDark,
+                                  ),
                                 ),
                                 const SizedBox(height: AppSpacing.xs),
                                 Text(
-                                  campaign.targetCity != null
-                                      ? '📍 ${campaign.targetCity}, ${campaign.targetState ?? ''}'
-                                      : campaign.targetState != null
-                                          ? '📍 ${campaign.targetState}'
-                                          : '📍 Pan India',
-                                  style: AppTypography.bodySM,
-                                ),
-                                const SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  'This brand prefers creators from this location.',
-                                  style: AppTypography.bodyXS.copyWith(
-                                    color: AppColors.muted,
+                                  _budgetText(campaign),
+                                  style: AppTypography.displaySM.copyWith(
+                                    color: AppColors.creatorDark,
+                                    fontWeight: FontWeight.w900,
                                   ),
                                 ),
                               ],
                             ),
                           ),
-                          if (campaign.description.trim().isNotEmpty) ...[
-                            const SizedBox(height: AppSpacing.md),
-                            Text(
-                              campaign.description,
-                              style: AppTypography.bodySM,
-                            ),
-                          ],
-                          if (campaign.collabType != CampaignCollabType.paid) ...[
-                            const SizedBox(height: AppSpacing.md),
-                            GlassPanel(
-                              accentColor: AppColors.creatorDark,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Product details',
-                                    style: AppTypography.labelLG,
-                                  ),
-                                  const SizedBox(height: AppSpacing.xs),
-                                  Text(
-                                    'Brand will send a curated product package for authentic usage-based content.',
-                                    style: AppTypography.bodySM.copyWith(
-                                      color: AppColors.muted,
-                                    ),
-                                  ),
-                                  const SizedBox(height: AppSpacing.sm),
-                                  Text(
-                                    'Estimated value: ${Formatters.currencyFromINR((campaign.minBudget + campaign.maxBudget) ~/ 2)}',
-                                    style: AppTypography.labelSM,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+
+                          // ── Deliverables ──
                           const SizedBox(height: AppSpacing.xl),
-                          Text(
-                            'Deliverables 📋',
-                            style: AppTypography.displaySM.copyWith(
-                              color: AppColors.creatorDark,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
+                          const _SectionHeader(label: 'Deliverables'),
                           const SizedBox(height: AppSpacing.sm),
                           Wrap(
                             spacing: AppSpacing.sm,
                             runSpacing: AppSpacing.sm,
                             children: (campaign.deliverables.isEmpty
-                                    ? const <String>['No deliverables specified']
+                                    ? const <String>['Not specified']
                                     : campaign.deliverables)
                                 .map(
                                   (item) => BCBadge(
@@ -325,61 +252,80 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                                 )
                                 .toList(),
                           ),
-                          if (campaign.requirements.trim().isNotEmpty) ...[
-                            const SizedBox(height: AppSpacing.sm),
-                            Text(
-                              campaign.requirements,
-                              style: AppTypography.bodySM.copyWith(
-                                color: AppColors.muted,
-                              ),
-                            ),
-                          ],
+
+                          // ── Niche / Looking for ──
                           const SizedBox(height: AppSpacing.xl),
-                          Text(
-                            'Looking for',
-                            style: AppTypography.displaySM.copyWith(
-                              color: AppColors.creatorDark,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
+                          const _SectionHeader(label: 'Looking for'),
                           const SizedBox(height: AppSpacing.sm),
                           Wrap(
                             spacing: AppSpacing.sm,
                             runSpacing: AppSpacing.sm,
-                            children: (requirementChips.isEmpty
-                                    ? campaign.niche
-                                    : requirementChips)
-                                .map(
-                                  (chip) => BCBadge(
-                                    label: chip,
-                                    variant: BCBadgeVariant.neon,
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                          const SizedBox(height: AppSpacing.xl),
-                          Row(
                             children: [
-                              BCBadge(
-                                label: '${campaign.bidCount} creators have bid',
-                                variant: BCBadgeVariant.neon,
-                              ),
-                              const SizedBox(width: AppSpacing.sm),
-                              BCBadge(
-                                label: '${daysLeft.clamp(0, 365)} days left',
-                                variant: BCBadgeVariant.neon,
+                              for (final niche in campaign.niche)
+                                BCBadge(
+                                  label: niche,
+                                  variant: BCBadgeVariant.purple,
+                                ),
+                              ..._requirementChips(campaign).map(
+                                (chip) => BCBadge(
+                                  label: chip,
+                                  variant: BCBadgeVariant.blue,
+                                ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: AppSpacing.md),
+
+                          // ── Target Location ──
+                          const SizedBox(height: AppSpacing.xl),
+                          GlassPanel(
+                            accentColor: AppColors.pink,
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.location_on_outlined,
+                                  color: AppColors.pink,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Target Location',
+                                        style: AppTypography.labelLG.copyWith(
+                                          color: AppColors.creatorDark,
+                                        ),
+                                      ),
+                                      const SizedBox(height: AppSpacing.xs),
+                                      Text(
+                                        _locationFull(campaign),
+                                        style: AppTypography.bodySM.copyWith(
+                                          color: AppColors.muted,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // ── Slots ──
+                          const SizedBox(height: AppSpacing.xl),
+                          const _SectionHeader(label: 'Slots'),
+                          const SizedBox(height: AppSpacing.sm),
                           ClipRRect(
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusFull),
                             child: Container(
                               height: 12,
                               decoration: BoxDecoration(
                                 color: AppColors.white.withValues(alpha: 0.9),
                                 border: Border.all(
-                                  color: AppColors.creatorDark.withValues(alpha: 0.14),
+                                  color: AppColors.creatorDark
+                                      .withValues(alpha: 0.14),
                                   width: 1.5,
                                 ),
                               ),
@@ -393,9 +339,24 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                           const SizedBox(height: AppSpacing.xs),
                           Text(
                             '$filledSlots of $slotCount slots filled',
-                            style: AppTypography.bodyXS,
+                            style: AppTypography.bodyXS.copyWith(
+                              color: AppColors.muted,
+                            ),
                           ),
-                          const SizedBox(height: AppSpacing.xl + 84),
+
+                          // ── Requirements (if any) ──
+                          if (campaign.requirements.trim().isNotEmpty) ...[
+                            const SizedBox(height: AppSpacing.xl),
+                            const _SectionHeader(label: 'Requirements'),
+                            const SizedBox(height: AppSpacing.sm),
+                            Text(
+                              campaign.requirements,
+                              style: AppTypography.bodySM.copyWith(
+                                color: AppColors.muted,
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -404,6 +365,7 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
               ),
             ),
           ),
+          // ── Back + Share ──
           Positioned(
             top: topInset,
             left: AppSpacing.screenPadding,
@@ -465,7 +427,7 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
           AppSpacing.screenPadding,
           AppSpacing.md,
           AppSpacing.screenPadding,
-          AppSpacing.md,
+          0,
         ),
         decoration: const BoxDecoration(
           color: AppColors.white,
@@ -475,12 +437,14 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
         ),
         child: SafeArea(
           top: false,
-          child: hasBid
+          child: SizedBox(
+            height: 52,
+            child: hasBid
               ? Row(
                   children: [
                     Expanded(
                       child: Text(
-                        '✅ You\'ve already bid on this',
+                        'You\'ve already bid on this',
                         style: AppTypography.labelMD.copyWith(
                           color: AppColors.creatorDark,
                         ),
@@ -507,13 +471,18 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                           vertical: AppSpacing.sm,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.creatorDark,
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                          color: AppColors.white,
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusFull),
+                          border: Border.all(
+                            color: AppColors.lightDivider,
+                            width: 1,
+                          ),
                         ),
                         child: Text(
-                          'Withdraw Bid',
+                          'Withdraw',
                           style: AppTypography.labelSM.copyWith(
-                            color: AppColors.white,
+                            color: AppColors.ink,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
@@ -521,20 +490,119 @@ class _CampaignDetailScreenState extends ConsumerState<CampaignDetailScreen> {
                     ),
                   ],
                 )
-              : SizedBox(
-                  width: double.infinity,
-                  child: GlassButton(
-                    label: 'Place Your Bid →',
-                    accent: AppColors.creatorDark,
-                    textColor: AppColors.neon,
-                    onTap: () => _openBidSheet(campaign),
+              : GestureDetector(
+                  onTap: () => _openBidSheet(campaign),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.lg,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.creatorDark,
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.creatorDark.withValues(alpha: 0.2),
+                          offset: const Offset(3, 3),
+                          blurRadius: 0,
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      'Place Your Bid',
+                      style: AppTypography.labelMD.copyWith(
+                        color: AppColors.neon,
+                        fontWeight: FontWeight.w900,
+                      ),
                   ),
                 ),
+              ),
+          ),
         ),
       ),
     );
   }
 }
+
+// ── Brand Header ──────────────────────────────────────────────────────
+
+class _BrandHeader extends StatelessWidget {
+  const _BrandHeader({required this.campaign});
+
+  final Campaign campaign;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: _avatarColor(campaign.brandInitial),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.creatorDark,
+              width: 2,
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            campaign.brandInitial,
+            style:
+                AppTypography.labelLG.copyWith(color: AppColors.white),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                campaign.brandCategory,
+                style: AppTypography.labelLG.copyWith(
+                  color: AppColors.creatorDark,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                campaign.createdAt == null
+                    ? 'Recently posted'
+                    : 'Posted ${Formatters.timeAgo(campaign.createdAt!)}',
+                style: AppTypography.bodyXS.copyWith(
+                  color: AppColors.muted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Section Header ────────────────────────────────────────────────────
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: AppTypography.labelLG.copyWith(
+        color: AppColors.creatorDark,
+        fontWeight: FontWeight.w800,
+      ),
+    );
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────
 
 String _collabLabel(CampaignCollabType type) {
   switch (type) {
@@ -566,13 +634,23 @@ String _deadlineLabel(DateTime deadline) {
   return '${duration.inMinutes.clamp(1, 59)}m left';
 }
 
+String _budgetText(Campaign campaign) {
+  if (campaign.minBudget == 0 && campaign.maxBudget == 0) {
+    return 'Product only (no cash)';
+  }
+  return '${Formatters.currencyFromINR(campaign.minBudget)} – ${Formatters.currencyFromINR(campaign.maxBudget)}';
+}
+
+String _locationFull(Campaign campaign) {
+  if (campaign.targetCity != null && campaign.targetState != null) {
+    return '${campaign.targetCity}, ${campaign.targetState}';
+  }
+  if (campaign.targetState != null) return campaign.targetState!;
+  return 'Pan India — no location preference';
+}
+
 List<String> _requirementChips(Campaign campaign) {
   final chips = <String>[];
-
-  for (final niche in campaign.niche) {
-    final text = niche.trim();
-    if (text.isNotEmpty) chips.add(text);
-  }
 
   final rawRequirements = campaign.requirements
       .split('|')
@@ -586,13 +664,11 @@ List<String> _requirementChips(Campaign campaign) {
       if (value.isNotEmpty) chips.add(value);
       continue;
     }
-
     if (item.toLowerCase().startsWith('target niches:')) {
       final value = item.substring('target niches:'.length).trim();
       if (value.isNotEmpty) chips.add(value);
       continue;
     }
-
     final match = RegExp(r'min\s+followers\s*:\s*(\d+)', caseSensitive: false)
         .firstMatch(item);
     if (match != null) {
@@ -616,35 +692,4 @@ Color _avatarColor(String initial) {
 
 extension<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;
-}
-
-class AmbientGlow extends StatelessWidget {
-  const AmbientGlow({
-    super.key,
-    required this.size,
-    required this.color,
-  });
-
-  final double size;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: color,
-              blurRadius: size * 0.52,
-              spreadRadius: size * 0.18,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

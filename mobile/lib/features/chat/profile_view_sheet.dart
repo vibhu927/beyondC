@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:material_symbols_icons/symbols.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -107,6 +106,9 @@ class ProfileViewSheet extends ConsumerWidget {
         ? partnerNiche
         : partnerCategory;
 
+    final isBrandView = role == 'brand';
+    final accentColor = isBrandView ? AppColors.pink : AppColors.neon;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
       maxChildSize: 1,
@@ -115,10 +117,10 @@ class ProfileViewSheet extends ConsumerWidget {
       builder: (context, controller) {
         return Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFE7EDF7),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            color: AppColors.lightBg,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
             border: Border.all(
-              color: AppColors.ink.withValues(alpha: 0.14),
+              color: AppColors.creatorDark.withValues(alpha: 0.14),
               width: 1.2,
             ),
           ),
@@ -131,65 +133,96 @@ class ProfileViewSheet extends ConsumerWidget {
               AppSpacing.huge,
             ),
             children: [
-              Container(
-                child: GlassPanel(
-                  accentColor: role == 'brand' ? AppColors.neon : AppColors.pink,
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 72,
-                        height: 72,
-                        decoration: BoxDecoration(
-                          color: AppColors.ink,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: role == 'brand' ? AppColors.neon : AppColors.pink,
-                            width: 2.4,
-                          ),
-                        ),
-                        child: CircleAvatar(
-                          radius: 34,
-                          backgroundColor: Colors.transparent,
-                          backgroundImage: (avatarUrl ?? '').trim().isNotEmpty
-                              ? NetworkImage(avatarUrl!.trim())
-                              : null,
-                          child: (avatarUrl ?? '').trim().isNotEmpty
-                              ? null
-                              : Text(
-                                  partnerName.isNotEmpty
-                                      ? partnerName.substring(0, 1).toUpperCase()
-                                      : 'U',
-                                  style: AppTypography.displaySM.copyWith(
-                                    color: AppColors.white,
-                                  ),
-                                ),
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        partnerFullName,
-                        style: AppTypography.labelLG.copyWith(
-                          color: AppColors.ink,
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                      InlineTonePill(
-                        label: partnerUsername != null &&
-                                partnerUsername.trim().isNotEmpty
-                            ? '@$partnerUsername'
-                            : role == 'brand'
-                                ? 'Creator'
-                                : 'Brand',
-                        accent: AppColors.ink,
-                      ),
-                    ],
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                  decoration: BoxDecoration(
+                    color: AppColors.creatorDark.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: accentColor.withValues(alpha: 0.3),
+                    width: 1.2,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: AppColors.creatorDark,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: accentColor,
+                          width: 2.4,
+                        ),
+                      ),
+                      child: CircleAvatar(
+                        radius: 34,
+                        backgroundColor: Colors.transparent,
+                        backgroundImage: (avatarUrl ?? '').trim().isNotEmpty
+                            ? NetworkImage(avatarUrl!.trim())
+                            : null,
+                        child: (avatarUrl ?? '').trim().isNotEmpty
+                            ? null
+                            : Text(
+                                partnerName.isNotEmpty
+                                    ? partnerName.substring(0, 1).toUpperCase()
+                                    : 'U',
+                                style: AppTypography.displaySM.copyWith(
+                                  color: AppColors.white,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      partnerFullName,
+                      style: AppTypography.labelLG.copyWith(
+                        color: AppColors.creatorDark,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    InlineTonePill(
+                      label: partnerUsername != null &&
+                              partnerUsername.trim().isNotEmpty
+                          ? '@$partnerUsername'
+                          : role == 'brand'
+                              ? 'Creator'
+                              : 'Brand',
+                      accent: AppColors.creatorDark,
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: AppSpacing.md),
-              GlassPanel(
-                accentColor: AppColors.neon,
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.creatorDark.withValues(alpha: 0.14),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.creatorDark.withValues(alpha: 0.06),
+                      offset: const Offset(2, 2),
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
                 child: Row(
                   children: [
                     Expanded(
@@ -203,12 +236,26 @@ class ProfileViewSheet extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              GlassPanel(
-                accentColor: AppColors.pink,
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.creatorDark.withValues(alpha: 0.14),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.creatorDark.withValues(alpha: 0.06),
+                      offset: const Offset(2, 2),
+                      blurRadius: 0,
+                    ),
+                  ],
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('About', style: AppTypography.labelMD),
+                    Text('About', style: AppTypography.labelMD.copyWith(color: AppColors.creatorDark)),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       partnerNiche?.trim().isNotEmpty == true
@@ -216,7 +263,7 @@ class ProfileViewSheet extends ConsumerWidget {
                           : (partnerCategory?.trim().isNotEmpty == true)
                               ? partnerCategory!
                               : 'No additional profile details available yet.',
-                      style: AppTypography.bodySM,
+                      style: AppTypography.bodySM.copyWith(color: AppColors.creatorDark),
                     ),
                   ],
                 ),
@@ -224,14 +271,28 @@ class ProfileViewSheet extends ConsumerWidget {
               if ((partnerState ?? '').trim().isNotEmpty ||
                   (partnerCity ?? '').trim().isNotEmpty) ...[
                 const SizedBox(height: AppSpacing.md),
-                GlassPanel(
-                  accentColor: AppColors.blue,
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.creatorDark.withValues(alpha: 0.14),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.creatorDark.withValues(alpha: 0.06),
+                        offset: const Offset(2, 2),
+                        blurRadius: 0,
+                      ),
+                    ],
+                  ),
                   child: Row(
                     children: [
-                      const Icon(
-                        Symbols.location_on_rounded,
+                      Icon(
+                        Icons.location_on_rounded,
                         size: 14,
-                        color: AppColors.muted,
+                        color: AppColors.creatorDark.withValues(alpha: 0.5),
                       ),
                       const SizedBox(width: 4),
                       Expanded(
@@ -239,6 +300,7 @@ class ProfileViewSheet extends ConsumerWidget {
                           (partnerCity ?? '').trim().isNotEmpty
                               ? '$partnerCity, ${partnerState ?? ''}'
                               : (partnerState ?? ''),
+                          style: AppTypography.bodySM.copyWith(color: AppColors.creatorDark),
                         ),
                       ),
                     ],
@@ -246,35 +308,47 @@ class ProfileViewSheet extends ConsumerWidget {
                 ),
               ],
               const SizedBox(height: AppSpacing.lg),
-              Row(
-                children: [
-                  Expanded(
-                    child: GlassButton(
-                      label: 'View Full Profile',
-                      accent: AppColors.blue,
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        context.push(
-                          RouteNames.partnerProfile,
-                          extra: {
-                            'id': partnerId,
-                            'collabId': chat?.id,
-                            'name': partnerFullName,
-                            'full_name': partnerFullName,
-                            'avatar_url': avatarUrl,
-                            'avatarUrl': avatarUrl,
-                            'role': partnerRole,
-                            'viewerRole': role,
-                            'tier': profileTier,
-                            'bio': profileBio,
-                            'followers': preview?.followers,
-                            'readOnly': true,
-                          },
-                        );
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    context.push(
+                      RouteNames.partnerProfile,
+                      extra: {
+                        'id': partnerId,
+                        'collabId': chat?.id,
+                        'name': partnerFullName,
+                        'full_name': partnerFullName,
+                        'avatar_url': avatarUrl,
+                        'avatarUrl': avatarUrl,
+                        'role': partnerRole,
+                        'viewerRole': role,
+                        'tier': profileTier,
+                        'bio': profileBio,
+                        'followers': preview?.followers,
+                        'readOnly': true,
                       },
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.creatorDark,
+                    foregroundColor: AppColors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
+                  ),
+                  child: Text(
+                    'View Full Profile',
+                    style: AppTypography.labelMD.copyWith(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ],
+                ),
               ),
             ],
           ),
@@ -298,9 +372,20 @@ class ProfileViewSheet extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTypography.bodyXS.copyWith(color: AppColors.muted)),
+        Text(
+          label,
+          style: AppTypography.bodyXS.copyWith(
+            color: AppColors.creatorDark.withValues(alpha: 0.5),
+          ),
+        ),
         const SizedBox(height: AppSpacing.xs),
-        Text(value, style: AppTypography.labelMD),
+        Text(
+          value,
+          style: AppTypography.labelMD.copyWith(
+            color: AppColors.creatorDark,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ],
     );
   }

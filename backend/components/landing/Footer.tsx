@@ -37,12 +37,12 @@ export default function Footer() {
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="font-nunito text-gray-400 hover:text-neon transition-colors">
+                  <a href="/terms" className="font-nunito text-gray-400 hover:text-neon transition-colors">
                     Terms of Service
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="font-nunito text-gray-400 hover:text-neon transition-colors">
+                  <a href="/contact" className="font-nunito text-gray-400 hover:text-neon transition-colors">
                     Contact
                   </a>
                 </li>

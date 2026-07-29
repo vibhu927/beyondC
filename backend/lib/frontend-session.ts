@@ -1,4 +1,5 @@
 export type FrontendSession = {
+  id: string
   firstName: string
   fullName: string
   email: string

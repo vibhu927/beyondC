@@ -12,7 +12,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "seed:admin": "npx ts-node --project tsconfig.json scripts/seed-admin.ts"
+    "seed:admin": "npx ts-node --project tsconfig.json scripts/seed-admin.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
@@ -24,6 +26,7 @@
     "@sparticuz/chromium": "^143.0.4",
     "@supabase/ssr": "^0.1.0",
     "@supabase/supabase-js": "^2.39.0",
+    "@tanstack/react-query": "^5.101.2",
     "@types/nodemailer": "^7.0.11",
     "axios": "^1.14.0",
     "cheerio": "^1.2.0",
@@ -41,6 +44,7 @@
     "recharts": "^3.8.0",
     "resend": "^6.9.4",
     "sanitize-html": "^2.17.2",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.5.0",
     "ts-node": "^10.9.2",
     "zod": "^3.22.4"
@@ -56,6 +60,7 @@
     "postcss": "^8",
     "supabase": "^2.78.1",
     "tailwindcss": "^3.3.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.8"
   }
 }

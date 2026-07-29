@@ -407,3 +407,136 @@ class ActiveCollabSummary {
     );
   }
 }
+
+class SavedCreator {
+  const SavedCreator({
+    required this.id,
+    required this.creatorId,
+    this.firstName,
+    this.avatarUrl,
+    this.niche,
+    this.tier,
+    this.followerCount,
+    this.avgRating,
+    this.engagementRate,
+    this.createdAt,
+  });
+
+  final String id;
+  final String creatorId;
+  final String? firstName;
+  final String? avatarUrl;
+  final List<String>? niche;
+  final String? tier;
+  final int? followerCount;
+  final double? avgRating;
+  final double? engagementRate;
+  final DateTime? createdAt;
+
+  String get creatorInitial {
+    final name = firstName ?? '';
+    if (name.isEmpty) return 'C';
+    return name.substring(0, 1).toUpperCase();
+  }
+
+  factory SavedCreator.fromJson(Map<String, dynamic> json) {
+    final creator = json['creator'] as Map<String, dynamic>?;
+    return SavedCreator(
+      id: (json['id'] ?? '').toString(),
+      creatorId: (json['creator_id'] ?? '').toString(),
+      firstName: creator?['first_name']?.toString() ?? creator?['full_name']?.toString(),
+      avatarUrl: creator?['avatar_url']?.toString(),
+      niche: (creator?['niche'] as List?)?.map((e) => e.toString()).toList(),
+      tier: creator?['tier']?.toString(),
+      followerCount: creator?['follower_count'] is int
+          ? creator!['follower_count'] as int
+          : int.tryParse('${creator?['follower_count'] ?? ''}'),
+      avgRating: creator?['avg_rating'] is double
+          ? creator!['avg_rating'] as double
+          : double.tryParse('${creator?['avg_rating'] ?? ''}'),
+      engagementRate: creator?['engagement_rate'] is double
+          ? creator!['engagement_rate'] as double
+          : double.tryParse('${creator?['engagement_rate'] ?? ''}'),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? ''),
+    );
+  }
+}
+
+class BrandAnalytics {
+  const BrandAnalytics({
+    required this.totalCampaigns,
+    required this.activeCampaigns,
+    required this.completedCollabs,
+    required this.totalSpentPaise,
+    required this.avgRating,
+    required this.campaigns,
+  });
+
+  final int totalCampaigns;
+  final int activeCampaigns;
+  final int completedCollabs;
+  final int totalSpentPaise;
+  final double avgRating;
+  final List<CampaignAnalytics> campaigns;
+
+  factory BrandAnalytics.fromJson(Map<String, dynamic> json) {
+    return BrandAnalytics(
+      totalCampaigns: json['total_campaigns'] ?? 0,
+      activeCampaigns: json['active_campaigns'] ?? 0,
+      completedCollabs: json['completed_collabs'] ?? 0,
+      totalSpentPaise: json['total_spent_paise'] ?? 0,
+      avgRating: (json['avg_rating'] ?? 0).toDouble(),
+      campaigns: (json['campaigns'] as List?)
+              ?.map((e) => CampaignAnalytics.fromJson(e))
+              .toList() ??
+          [],
+    );
+  }
+}
+
+class CampaignAnalytics {
+  const CampaignAnalytics({
+    required this.id,
+    required this.title,
+    required this.status,
+    this.niche,
+    this.collabType,
+    required this.collabsCount,
+    required this.completedCollabs,
+    required this.totalSubmissions,
+    required this.approvedSubmissions,
+    required this.completionRate,
+    required this.avgRating,
+    required this.totalSpentPaise,
+  });
+
+  final String id;
+  final String title;
+  final String status;
+  final String? niche;
+  final String? collabType;
+  final int collabsCount;
+  final int completedCollabs;
+  final int totalSubmissions;
+  final int approvedSubmissions;
+  final int completionRate;
+  final double avgRating;
+  final int totalSpentPaise;
+
+  factory CampaignAnalytics.fromJson(Map<String, dynamic> json) {
+    return CampaignAnalytics(
+      id: (json['id'] ?? '').toString(),
+      title: (json['title'] ?? 'Campaign').toString(),
+      status: (json['status'] ?? 'active').toString(),
+      niche: json['niche']?.toString(),
+      collabType: json['collab_type']?.toString(),
+      collabsCount: json['collabs_count'] ?? 0,
+      completedCollabs: json['completed_collabs'] ?? 0,
+      totalSubmissions: json['total_submissions'] ?? 0,
+      approvedSubmissions: json['approved_submissions'] ?? 0,
+      completionRate: json['completion_rate'] ?? 0,
+      avgRating: (json['avg_rating'] ?? 0).toDouble(),
+      totalSpentPaise: json['total_spent_paise'] ?? 0,
+    );
+  }
+}

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
-    // Get all requests sent to this creator
+    // Get pending requests sent to this creator
     const { data: requests, error } = await supabase
       .from('collab_requests')
       .select(`
@@ -26,13 +26,22 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('creator_id', user.id)
+      .eq('status', 'pending')
       .order('created_at', { ascending: false })
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    return NextResponse.json({ requests })
+    const flat = (requests || []).map((r: any) => ({
+      ...r,
+      brand_name: r.brand?.brand_name ?? '',
+      brand_logo: r.brand?.logo_url ?? null,
+      brand_category: r.brand?.brand_category ?? '',
+      brand: undefined,
+    }))
+
+    return NextResponse.json({ requests: flat })
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }

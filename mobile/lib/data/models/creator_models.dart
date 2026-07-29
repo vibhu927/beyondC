@@ -153,6 +153,15 @@ class Collab with _$Collab {
     DateTime? createdAt,
     DateTime? completedAt,
     int? rating,
+    @Default('started') String collabStatus,
+    DateTime? statusUpdatedAt,
+    String? statusUpdateMessage,
+    Map<String, dynamic>? contractTerms,
+    @Default(false) bool creatorContractAccepted,
+    @Default(false) bool brandContractAccepted,
+    DateTime? creatorContractAcceptedAt,
+    DateTime? brandContractAcceptedAt,
+    @Default('full_upfront') String paymentStructure,
   }) = _Collab;
 
   factory Collab.fromJson(Map<String, dynamic> json) => _$CollabFromJson(json);
@@ -252,4 +261,62 @@ class RazorpayOrder with _$RazorpayOrder {
 
   factory RazorpayOrder.fromJson(Map<String, dynamic> json) =>
       _$RazorpayOrderFromJson(json);
+}
+
+class CreatorEarnings {
+  const CreatorEarnings({
+    required this.totalEarnedPaise,
+    required this.collabsCompleted,
+    required this.avgRating,
+    required this.totalRatings,
+    required this.recentCollabs,
+  });
+
+  final int totalEarnedPaise;
+  final int collabsCompleted;
+  final double avgRating;
+  final int totalRatings;
+  final List<RecentCollab> recentCollabs;
+
+  factory CreatorEarnings.fromJson(Map<String, dynamic> json) {
+    return CreatorEarnings(
+      totalEarnedPaise: json['total_earned_paise'] ?? 0,
+      collabsCompleted: json['collabs_completed'] ?? 0,
+      avgRating: (json['avg_rating'] ?? 0).toDouble(),
+      totalRatings: json['total_ratings'] ?? 0,
+      recentCollabs: (json['recent_collabs'] as List?)
+              ?.map((e) => RecentCollab.fromJson(e))
+              .toList() ??
+          [],
+    );
+  }
+}
+
+class RecentCollab {
+  const RecentCollab({
+    required this.id,
+    required this.brandName,
+    required this.campaignTitle,
+    required this.amountPaise,
+    this.rating,
+    this.completedAt,
+  });
+
+  final String id;
+  final String brandName;
+  final String campaignTitle;
+  final int amountPaise;
+  final int? rating;
+  final DateTime? completedAt;
+
+  factory RecentCollab.fromJson(Map<String, dynamic> json) {
+    return RecentCollab(
+      id: (json['id'] ?? '').toString(),
+      brandName: (json['brand_name'] ?? 'Brand').toString(),
+      campaignTitle: (json['campaign_title'] ?? 'Campaign').toString(),
+      amountPaise: json['amount_paise'] ?? 0,
+      rating: json['rating'],
+      completedAt: DateTime.tryParse(json['completed_at']?.toString() ?? ''),
+    );
+  }
 }

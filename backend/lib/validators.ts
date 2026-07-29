@@ -43,7 +43,6 @@ export const updateBrandProfileSchema = z.object({
   logo_url: z.string().url().optional().nullable(),
   portfolio_links: z.array(z.string().url()).optional(),
   website: z.string().url().optional(),
-  contact_email: z.string().email().optional(),
   size: z.enum(['micro', 'mid', 'big']).optional(),
   state: z.string().optional(),
   city: z.string().optional(),

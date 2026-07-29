@@ -23,6 +23,7 @@ import '../../../providers/creator_provider.dart';
 import '../../../widgets/bc_app_loader.dart';
 import '../../../widgets/bc_bottom_nav.dart';
 import '../../../widgets/bc_error_state.dart';
+import '../../../widgets/badges/verified_badge.dart';
 import '../../../widgets/creator_page_top_header.dart';
 import '../../../widgets/buttons/bc_back_button.dart';
 import '../../../widgets/cards/bc_card.dart';
@@ -40,6 +41,7 @@ class CreatorProfileScreen extends ConsumerStatefulWidget {
 
 class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
   String? _avatarUrl;
+  bool _isRefreshingStats = false;
 
   @override
   void initState() {
@@ -111,6 +113,16 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
 
   Future<void> _logout() async {
     try {
+      // Invalidate all cached providers before signing out
+      ref.invalidate(creatorProfileProvider);
+      ref.invalidate(creatorHomeProvider);
+      ref.invalidate(myBidsProvider);
+      ref.invalidate(creatorCampaignsProvider);
+      ref.invalidate(creatorCompletedCollabsProvider);
+      ref.invalidate(creatorCollabsProvider);
+      ref.invalidate(walletProvider);
+      ref.invalidate(requestsProvider);
+
       await ref.read(authProvider.notifier).signOut();
       if (!mounted) return;
       context.go(RouteNames.login);
@@ -503,10 +515,16 @@ class _CreatorProfileScreenState extends ConsumerState<CreatorProfileScreen> {
                               .copyWith(color: AppColors.muted),
                         ),
                         const SizedBox(height: AppSpacing.xl),
-GlassButton(
-                          label: isSavingFee ? 'Updating...' : 'Update Fee →',
-                          accent: AppColors.neon,
-                          onTap: isSavingFee
+                        Center(
+                          child: SizedBox(
+                            width: MediaQuery.of(context).size.width * 0.5,
+                            height: 52,
+                            child: GlassButton(
+                              label: isSavingFee ? 'Updating...' : 'Update Fee →',
+                              accent: AppColors.darkGreen,
+                              textColor: AppColors.neon,
+                              solidBackground: true,
+                              onTap: isSavingFee
                               ? null
                               : () async {
                                   final rupees =
@@ -538,8 +556,10 @@ GlassButton(
                                     );
                                   }
                                 },
+                            ),
+                          ),
                         ),
-                      ],
+                       ],
                     ),
                   ),
                 );
@@ -551,13 +571,19 @@ GlassButton(
     );
   }
 
+  bool _canRefreshStats(CreatorProfile profile) {
+    if (profile.statsFetchedAt == null) return true;
+    return DateTime.now().difference(profile.statsFetchedAt!).inHours >= 24;
+  }
+
   Future<void> _refreshInstagramStats() async {
+    setState(() => _isRefreshingStats = true);
     try {
       await ref.read(instagramOAuthServiceProvider).refreshStats();
       await ref.read(creatorProfileProvider.notifier).refresh();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Stats refresh started.')),
+        const SnackBar(content: Text('Stats refreshed successfully.')),
       );
     } catch (error) {
       if (!mounted) return;
@@ -568,6 +594,8 @@ GlassButton(
             content:
                 Text(message.isEmpty ? 'Could not refresh stats.' : message)),
       );
+    } finally {
+      if (mounted) setState(() => _isRefreshingStats = false);
     }
   }
 
@@ -718,14 +746,23 @@ GlassButton(
                       ),
               ),
               const SizedBox(height: AppSpacing.sm),
-              Text(
-                profile.displayName?.trim().isNotEmpty == true
-                    ? profile.displayName!.trim()
-                    : profile.fullName,
-                textAlign: TextAlign.center,
-                style: AppTypography.displaySM.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    profile.displayName?.trim().isNotEmpty == true
+                        ? profile.displayName!.trim()
+                        : profile.fullName,
+                    textAlign: TextAlign.center,
+                    style: AppTypography.displaySM.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  if (profile.instagramVerified) ...[
+                    const SizedBox(width: 6),
+                    const VerifiedBadge(size: 18),
+                  ],
+                ],
               ),
               const SizedBox(height: 6),
               Wrap(
@@ -1161,6 +1198,8 @@ GlassButton(
                           if (profile.instagramVerified)
                             _InstagramStatsCard(
                               profile: profile,
+                              isRefreshing: _isRefreshingStats,
+                              canRefresh: _canRefreshStats(profile),
                               onRefreshStats: _refreshInstagramStats,
                             ),
                           const SizedBox(height: AppSpacing.xl),
@@ -1184,7 +1223,7 @@ GlassButton(
                           ),
                           const SizedBox(height: AppSpacing.xl),
                           GlassPanel(
-                            accentColor: AppColors.creatorDark,
+                            accentColor: AppColors.success,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -1253,7 +1292,7 @@ GlassButton(
                                       padding: const EdgeInsets.only(
                                           bottom: AppSpacing.sm),
                                       child: GlassPanel(
-                                        accentColor: AppColors.creatorDark,
+                                        accentColor: AppColors.blue,
                                         child: Row(
                                           children: [
                                             Expanded(
@@ -1294,7 +1333,7 @@ GlassButton(
                             ),
                           const SizedBox(height: AppSpacing.xl),
                           GlassPanel(
-                            accentColor: AppColors.creatorDark,
+                            accentColor: AppColors.success,
                             child: Row(
                               children: [
                                 Expanded(
@@ -1331,7 +1370,7 @@ GlassButton(
                           ),
                           const SizedBox(height: AppSpacing.xl),
                           GlassPanel(
-                            accentColor: AppColors.creatorDark,
+                            accentColor: AppColors.purple,
                             child: Row(
                               children: [
                                 Expanded(
@@ -1458,10 +1497,14 @@ class _StatCard extends StatelessWidget {
 class _InstagramStatsCard extends StatelessWidget {
   const _InstagramStatsCard({
     required this.profile,
+    required this.isRefreshing,
+    required this.canRefresh,
     required this.onRefreshStats,
   });
 
   final CreatorProfile profile;
+  final bool isRefreshing;
+  final bool canRefresh;
   final VoidCallback onRefreshStats;
 
   @override
@@ -1472,80 +1515,247 @@ class _InstagramStatsCard extends StatelessWidget {
     final totalPosts = profile.postsCount ?? 0;
     final hasFetchedStats = profile.statsFetchedAt != null;
 
-    return GlassPanel(
-      accentColor: AppColors.creatorDark,
+    // Instagram signature gradient colors
+    const igGradient = LinearGradient(
+      begin: Alignment.topRight,
+      end: Alignment.bottomLeft,
+      colors: [
+        Color(0xFF833AB4), // purple
+        Color(0xFFC13584), // pink
+        Color(0xFFE1306C), // magenta
+        Color(0xFFFD1D1D), // red-orange
+        Color(0xFFF77737), // orange
+        Color(0xFFFCAF45), // yellow-orange
+      ],
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: igGradient,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFC13584).withValues(alpha: 0.30),
+            offset: const Offset(4, 6),
+            blurRadius: 0,
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header row: handle + verified pill
           Row(
             children: [
+              // small ig camera icon
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+                ),
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.camera_alt_rounded,
+                  size: 16,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   '@${profile.instagramUsername ?? 'instagram'}',
-                  style: AppTypography.labelLG,
+                  style: AppTypography.labelLG.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
               ),
-              const InlineTonePill(
-                label: 'Verified',
-                accent: AppColors.creatorDark,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Expanded(
-                child: _StatCard(
-                  value: Formatters.followerCount(followers),
-                  label: 'Followers',
-                  accent: AppColors.creatorDark,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.22),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.35)),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _StatCard(
-                  value: '${engagementRate.toStringAsFixed(1)}%',
-                  label: 'Engagement',
-                  accent: AppColors.creatorDark,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Expanded(
-                child: _StatCard(
-                  value: Formatters.followerCount(highestViews),
-                  label: 'Highest Views',
-                  accent: AppColors.creatorDark,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _StatCard(
-                  value: '$totalPosts',
-                  label: 'Total Posts',
-                  accent: AppColors.creatorDark,
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.verified_rounded, size: 14, color: Colors.white),
+                    SizedBox(width: 4),
+                    Text(
+                      'Verified',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+
+          const SizedBox(height: 18),
+
+          // Stats grid (2x2)
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final tileW = (constraints.maxWidth - 12) / 2;
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  SizedBox(
+                    width: tileW,
+                    child: _InstagramStatTile(
+                      value: Formatters.followerCount(followers),
+                      label: 'Followers',
+                    ),
+                  ),
+                  SizedBox(
+                    width: tileW,
+                    child: _InstagramStatTile(
+                      value: '${engagementRate.toStringAsFixed(1)}%',
+                      label: 'Engagement',
+                    ),
+                  ),
+                  SizedBox(
+                    width: tileW,
+                    child: _InstagramStatTile(
+                      value: Formatters.followerCount(highestViews),
+                      label: 'Highest Views',
+                    ),
+                  ),
+                  SizedBox(
+                    width: tileW,
+                    child: _InstagramStatTile(
+                      value: '$totalPosts',
+                      label: 'Total Posts',
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+
+          const SizedBox(height: 16),
+
           if (!hasFetchedStats)
             Text(
-              'Instagram connected. Tap Refresh Stats to load your latest numbers.',
-              style: AppTypography.bodySM.copyWith(color: AppColors.muted),
+              'Tap Refresh to load your latest Instagram numbers.',
+              style: AppTypography.bodySM.copyWith(
+                color: Colors.white.withValues(alpha: 0.9),
+              ),
             ),
-          if (!hasFetchedStats) const SizedBox(height: AppSpacing.sm),
+          if (!hasFetchedStats) const SizedBox(height: 12),
+
+          // Refresh button
           Align(
             alignment: Alignment.centerRight,
-            child: GlassButton(
-              label: 'Refresh Stats',
-              accent: AppColors.creatorDark,
-              textColor: AppColors.white,
-              solidBackground: true,
-              onTap: onRefreshStats,
+            child: GestureDetector(
+              onTap: isRefreshing
+                  ? null
+                  : (canRefresh
+                      ? onRefreshStats
+                      : () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('You can only refresh once in 24 hours.'),
+                            ),
+                          );
+                        }),
+              child: Opacity(
+                opacity: isRefreshing || !canRefresh ? 0.5 : 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.20),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isRefreshing)
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      else
+                        const Icon(Icons.refresh_rounded, size: 16, color: Colors.white),
+                      const SizedBox(width: 8),
+                      Text(
+                        isRefreshing ? 'Refreshing...' : 'Refresh Stats',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w800,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InstagramStatTile extends StatelessWidget {
+  const _InstagramStatTile({
+    required this.value,
+    required this.label,
+  });
+
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              height: 1.1,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.95),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

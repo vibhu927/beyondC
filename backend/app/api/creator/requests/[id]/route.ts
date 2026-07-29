@@ -85,23 +85,32 @@ export async function PUT(
         )
       }
 
-      // Deduct collab fee from wallet
+      // Record wallet transaction before deducting balance
       const newBalance = creatorProfile.wallet_balance - collabFee
       
-      await supabase
+      const { error: txnError } = await supabase
+        .from('wallet_transactions')
+        .insert({
+          creator_id: user.id,
+          type: 'deduct',
+          amount: collabFee,
+          reason: 'collab_fee_deducted',
+          reference_id: params.id,
+          balance_after: newBalance,
+        })
+
+      if (txnError) {
+        return NextResponse.json({ error: txnError.message }, { status: 400 })
+      }
+
+      const { error: walletUpdateError } = await supabase
         .from('creator_profiles')
         .update({ wallet_balance: newBalance })
         .eq('id', user.id)
 
-      // Record wallet transaction
-      await supabase.from('wallet_transactions').insert({
-        creator_id: user.id,
-        type: 'deduct',
-        amount: collabFee,
-        reason: 'collab_fee_deducted',
-        reference_id: params.id,
-        balance_after: newBalance,
-      })
+      if (walletUpdateError) {
+        return NextResponse.json({ error: walletUpdateError.message }, { status: 400 })
+      }
 
       // Create collab
       const { data: collab, error: collabError } = await supabase

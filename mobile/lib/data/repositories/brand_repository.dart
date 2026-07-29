@@ -1216,4 +1216,44 @@ class BrandRepository {
     final parsed = value.toString();
     return parsed.isEmpty ? null : parsed;
   }
+
+  Future<List<SavedCreator>> getSavedCreators() async {
+    try {
+      final response = await _dio.get('/brand/saved-creators');
+      final root = _asMap(response.data);
+      final list = _asMapList(root['saved_creators']);
+      return list.map((e) => SavedCreator.fromJson(e)).toList();
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
+  Future<void> saveCreator(String creatorId) async {
+    try {
+      await _dio.post('/brand/saved-creators', data: {'creator_id': creatorId});
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
+  Future<void> unsaveCreator(String creatorId) async {
+    try {
+      await _dio.delete('/brand/saved-creators/$creatorId');
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
+
+  Future<BrandAnalytics> getAnalytics({String? campaignId}) async {
+    try {
+      final queryParams = <String, dynamic>{};
+      if (campaignId != null) queryParams['campaign_id'] = campaignId;
+      
+      final response = await _dio.get('/brand/analytics', queryParameters: queryParams);
+      final root = _asMap(response.data);
+      return BrandAnalytics.fromJson(root);
+    } on DioException catch (e) {
+      throw Exception(ApiErrorHandler.parseError(e));
+    }
+  }
 }
